@@ -1,11 +1,10 @@
-﻿using Microsoft;
+﻿using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Threading.Tasks;
 
 using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
     AwesomeAnalyzer.MakeAsyncAnalyzer,
     AwesomeAnalyzer.MakeAsyncCodeFixProvider>;
-
 
 namespace AwesomeAnalyzer.Test
 {
@@ -101,14 +100,5 @@ class Program
     }
 }");
         }
-    }
-}
-
-namespace MyNamespace
-{
-    using System.Threading.Tasks;
-    class Program
-    {
-        public async Task MethodAsync() {}
     }
 }

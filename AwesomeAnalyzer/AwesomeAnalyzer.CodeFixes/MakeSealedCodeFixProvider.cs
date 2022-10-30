@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace AwesomeAnalyzer
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider)), Shared]
-    public class MakeSealedCodeFixProvider : CodeFixProvider
+    public sealed class MakeSealedCodeFixProvider : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(MakeSealedAnalyzer.DiagnosticId);
 

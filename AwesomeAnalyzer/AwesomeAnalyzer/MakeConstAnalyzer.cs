@@ -8,9 +8,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace AwesomeAnalyzer
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class MakeConstAnalyzer : DiagnosticAnalyzer
+    public sealed class MakeConstAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "MakeConst";
+        public const string DiagnosticId = "JJ0003";
         private const string Category = "Usage";
         private static readonly LocalizableString Description = new LocalizableResourceString(
             nameof(Resources.AnalyzerDescription),
@@ -45,10 +45,10 @@ namespace AwesomeAnalyzer
             // See https://github.com/dotnet/roslyn/blob/main/docs/analyzers/Analyzer%20Actions%20Semantics.md for more information
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
-            context.RegisterSyntaxNodeAction(this.AnalyzeNode, SyntaxKind.LocalDeclarationStatement);
+            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.LocalDeclarationStatement);
         }
 
-        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var localDeclaration = (LocalDeclarationStatementSyntax)context.Node;
 

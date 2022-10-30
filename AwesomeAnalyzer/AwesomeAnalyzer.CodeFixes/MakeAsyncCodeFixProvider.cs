@@ -15,9 +15,11 @@ using Document = Microsoft.CodeAnalysis.Document;
 namespace AwesomeAnalyzer
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider)), Shared]
-    public class MakeAsyncCodeFixProvider : CodeFixProvider
+    public sealed class MakeAsyncCodeFixProvider : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(MakeAsyncAnalyzer.DiagnosticId);
+
+        //public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

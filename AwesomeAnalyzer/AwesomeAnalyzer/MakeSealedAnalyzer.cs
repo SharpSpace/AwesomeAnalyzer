@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -12,31 +11,17 @@ namespace AwesomeAnalyzer
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class MakeSealedAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "MakeSealed";
+        public const string DiagnosticId = "JJ0001";
         private const string Category = "Naming";
-        private static readonly LocalizableString Description = new LocalizableResourceString(
-            nameof(Resources.MakeSealedAnalyzerDescription),
-            Resources.ResourceManager,
-            typeof(Resources));
-        
-        private static readonly LocalizableString MessageFormat = new LocalizableResourceString(
-            nameof(Resources.MakeSealedAnalyzerMessageFormat),
-            Resources.ResourceManager,
-            typeof(Resources));
-
-        private static readonly LocalizableString Title = new LocalizableResourceString(
-            nameof(Resources.MakeSealedAnalyzerTitle),
-            Resources.ResourceManager,
-            typeof(Resources));
         
         private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticId,
-            Title,
-            MessageFormat,
+            "Class should have modifier sealed",
+            "Class should contain modifier sealed",
             Category,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: Description
+            description: "Class should have modifier sealed."
         );
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
@@ -76,39 +61,7 @@ namespace AwesomeAnalyzer
                 return;
             }
 
-            //var symbol = context.SemanticModel.GetDeclaredSymbol(classDeclarationSyntax);
-
-            //var fullyQualifiedMetadataName = symbol.GetFullMetadataName();
-            //var typeByMetadataName = context.Compilation.GetTypeByMetadataName(fullyQualifiedMetadataName);
-
-            ////var findReferences = await SymbolFinder.FindReferencesAsync(symbol, );
-
-            //var a = context.SemanticModel.GetDeclaredSymbol(classDeclarationSyntax).BaseType;
-
-            //var onlyClass = classDeclarationSyntax.WithoutLeadingTrivia().WithoutTrailingTrivia();
-            //var syntaxReference = classDeclarationSyntax.SyntaxTree.GetReference(onlyClass);
-            //if (syntaxReference != null)
-            //{
-            //    return;
-            //}
-
-            //if (classDeclarationSyntax.BaseList != null)
-            //{
-            //    return;
-            //}
-
-            //// Perform data flow analysis on the local declaration.
-            //var dataFlowAnalysis = context.SemanticModel.AnalyzeDataFlow(classDeclarationSyntax);
-
-            //// Retrieve the local symbol for each variable in the local declaration
-            //// and ensure that it is not written outside of the data flow analysis region.
-            //var classSymbol = context.SemanticModel.GetDeclaredSymbol(classDeclarationSyntax, context.CancellationToken);
-            //if (dataFlowAnalysis.WrittenOutside.Contains(classSymbol))
-            //{
-            //    return;
-            //}
-
-            context.ReportDiagnostic(Diagnostic.Create(Rule, context.Node.GetLocation()));
+            context.ReportDiagnostic(Diagnostic.Create(Rule, classDeclarationSyntax.Identifier.GetLocation()));
         }
 
         //private static void AnalyzeSymbolStart(SymbolStartAnalysisContext context)
@@ -133,52 +86,8 @@ namespace AwesomeAnalyzer
                 }
                 break;
             }
+
             return false;
         }
-    }
-
-    class ClassVirtualizationVisitor : CSharpSyntaxRewriter
-    {
-        public List<ClassInformation> Classes { get; }
-
-        public ClassVirtualizationVisitor()
-        {
-            this.Classes = new List<ClassInformation>();
-        }
-
-        public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
-        {
-            //node = (ClassDeclarationSyntax)base.VisitClassDeclaration(node);
-
-            string nameSpaceName = null;
-            if (node.Parent is NamespaceDeclarationSyntax namespaceDeclarationSyntax)
-            {
-                nameSpaceName = namespaceDeclarationSyntax.Name.ToString();
-            }
-            
-            this.Classes.Add(new ClassInformation
-            {
-                ClassName = node.Identifier.ValueText,
-                NameSpaceName = nameSpaceName,
-                BaseClasses = node.BaseList?.Types.Select(x => new ClassInformation
-                {
-                    ClassName = x.ToString(),
-                    NameSpaceName = ((NamespaceDeclarationSyntax)x.Parent.Parent.Parent).Name.ToString()
-                }).ToList()
-            });
-
-            return node;
-        }
-    }
-
-    public class ClassInformation
-    {
-        public string ClassName { get; set; }
-
-        public string NameSpaceName { get; set; }
-
-        public List<ClassInformation> BaseClasses { get; set; }
-
-        public string IdentifierName => $"{this.NameSpaceName}.{this.ClassName}";
     }
 }

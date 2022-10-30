@@ -11,17 +11,17 @@ namespace AwesomeAnalyzer
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class MakeAsyncAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "MakeAsync";
+        public const string DiagnosticId = "JJ0002";
         private const string Category = "Naming";
 
         private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticId,
             "Method contains Async prefix",
-            "MessageFormat",
+            "This method contains Async prefix and its not async",
             Category,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: "Removes Async prefix from method name"
+            description: "Removes Async prefix from method name."
         );
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
