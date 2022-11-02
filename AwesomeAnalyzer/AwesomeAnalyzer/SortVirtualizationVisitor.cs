@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace AwesomeAnalyzer
 {
-    public class SortVirtualizationVisitor : CSharpSyntaxRewriter
+    public sealed class SortVirtualizationVisitor : CSharpSyntaxRewriter
     {
         public enum Types
         {
@@ -30,18 +30,18 @@ namespace AwesomeAnalyzer
             Private = 7
         }
 
-        public Dictionary<Types, List<MethodInformation>> Members { get; }
+        public Dictionary<Types, List<TypesInformation>> Members { get; }
 
         public SortVirtualizationVisitor()
         {
-            this.Members = new Dictionary<Types, List<MethodInformation>>();
+            this.Members = new Dictionary<Types, List<TypesInformation>>();
         }
 
         public override SyntaxNode VisitEnumDeclaration(EnumDeclarationSyntax node)
         {
             var modifiers = node.Modifiers.Select(x => x.ValueText).ToList();
             var modifiersString = string.Join(string.Empty, modifiers);
-            var item = new MethodInformation
+            var item = new TypesInformation
             {
                 Name = node.Identifier.ValueText,
                 FullSpan = node.FullSpan,
@@ -57,7 +57,7 @@ namespace AwesomeAnalyzer
             {
                 this.Members.Add(
                     Types.Enum,
-                    new List<MethodInformation> { item }
+                    new List<TypesInformation> { item }
                 );
             }
 
@@ -68,7 +68,7 @@ namespace AwesomeAnalyzer
         {
             var modifiers = node.Modifiers.Select(x => x.ValueText).ToList();
             var modifiersString = string.Join(string.Empty, modifiers);
-            var item = new MethodInformation
+            var item = new TypesInformation
             {
                 Name = node.Declaration.Variables.ToFullString(),
                 FullSpan = node.FullSpan,
@@ -84,7 +84,7 @@ namespace AwesomeAnalyzer
             {
                 this.Members.Add(
                     Types.Field,
-                    new List<MethodInformation> { item }
+                    new List<TypesInformation> { item }
                 );
             }
 
@@ -93,7 +93,7 @@ namespace AwesomeAnalyzer
 
         public override SyntaxNode VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
         {
-            var item = new MethodInformation
+            var item = new TypesInformation
             {
                 Name = node.Identifier.ValueText,
                 FullSpan = node.FullSpan
@@ -107,7 +107,7 @@ namespace AwesomeAnalyzer
             {
                 this.Members.Add(
                     Types.Constructor,
-                    new List<MethodInformation> { item }
+                    new List<TypesInformation> { item }
                 );
             }
 
@@ -118,7 +118,7 @@ namespace AwesomeAnalyzer
         {
             var modifiers = node.Modifiers.Select(x => x.ValueText).ToList();
             var modifiersString = string.Join(string.Empty, modifiers);
-            var item = new MethodInformation
+            var item = new TypesInformation
             {
                 Name = node.Identifier.ValueText,
                 FullSpan = node.FullSpan,
@@ -134,7 +134,7 @@ namespace AwesomeAnalyzer
             {
                 this.Members.Add(
                     Types.Methods,
-                    new List<MethodInformation> { item }
+                    new List<TypesInformation> { item }
                 );
             }
 
@@ -142,7 +142,7 @@ namespace AwesomeAnalyzer
         }
     }
 
-    public class MethodInformation
+    public class TypesInformation
     {
         public string Name { get; set; }
 

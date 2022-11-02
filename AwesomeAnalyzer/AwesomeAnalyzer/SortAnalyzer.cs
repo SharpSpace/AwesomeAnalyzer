@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 namespace AwesomeAnalyzer
 {
@@ -23,7 +24,7 @@ namespace AwesomeAnalyzer
         private static readonly DiagnosticDescriptor FieldSortRule = new DiagnosticDescriptor(
             FieldSortDiagnosticId,
             "Field needs to be sorted alphabetically",
-            "{0}",
+            "Sort field {0}",
             Category,
             DiagnosticSeverity.Info,
             isEnabledByDefault: true,
@@ -33,17 +34,17 @@ namespace AwesomeAnalyzer
         private static readonly DiagnosticDescriptor FieldOrderRule = new DiagnosticDescriptor(
             FieldOrderDiagnosticId,
             "Field needs to be in correct order",
-            "{0}",
+            "Order field {0}",
             Category,
             DiagnosticSeverity.Info,
             isEnabledByDefault: true,
-            description: "Sorts fields in correct order."
+            description: "Order fields in correct order."
         );
 
         private static readonly DiagnosticDescriptor MethodSortRule = new DiagnosticDescriptor(
             MethodSortDiagnosticId,
             "Method needs to be sorted alphabetically",
-            "{0}",
+            "Sort method {0}",
             Category,
             DiagnosticSeverity.Info,
             isEnabledByDefault: true,
@@ -53,24 +54,24 @@ namespace AwesomeAnalyzer
         private static readonly DiagnosticDescriptor MethodOrderRule = new DiagnosticDescriptor(
             MethodOrderDiagnosticId,
             "Method needs to be in correct order",
-            "{0}",
+            "Order method {0}",
             Category,
             DiagnosticSeverity.Info,
             isEnabledByDefault: true,
-            description: "Sorts methods in correct order."
+            description: "Order methods in correct order."
         );
 
         private static readonly DiagnosticDescriptor ConstructorOrderRule = new DiagnosticDescriptor(
             ConstructorOrderDiagnosticId,
             "Constructor needs to be in correct order",
-            "{0}",
+            "Order constructor {0}",
             Category,
             DiagnosticSeverity.Info,
             isEnabledByDefault: true,
-            description: "Sorts constructor in correct order."
+            description: "Order constructor in correct order."
         );
 
-        private Dictionary<SortVirtualizationVisitor.Types, List<MethodInformation>> _members;
+        private Dictionary<SortVirtualizationVisitor.Types, List<TypesInformation>> _members;
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
             FieldSortRule,
@@ -118,16 +119,10 @@ namespace AwesomeAnalyzer
                     AnalyzeSort(
                         context,
                         this._members[SortVirtualizationVisitor.Types.Methods],
-                        methodDeclarationSyntax.Identifier.ValueText,
+                        methodDeclarationSyntax.FullSpan,
                         MethodSortRule,
                         new[] { methodDeclarationSyntax.Identifier.ValueText },
-                        Location.Create(
-                            context.SemanticModel.SyntaxTree,
-                            new Microsoft.CodeAnalysis.Text.TextSpan(
-                                methodDeclarationSyntax.Span.Start,
-                                methodDeclarationSyntax.Identifier.Span.End - methodDeclarationSyntax.Span.Start
-                            )
-                        )
+                        methodDeclarationSyntax.Identifier.GetLocation()
                     );
 
                     return;
@@ -141,16 +136,16 @@ namespace AwesomeAnalyzer
                             (methodMin != null && fieldDeclarationSyntax.SpanStart >= methodMin),
                         FieldOrderRule,
                         new[] { fieldDeclarationSyntax.Declaration.ToFullString() },
-                        fieldDeclarationSyntax.GetLocation()
+                        fieldDeclarationSyntax.Declaration.Variables[0].Identifier.GetLocation()
                     );
 
                     AnalyzeSort(
                         context,
                         this._members[SortVirtualizationVisitor.Types.Field],
-                        fieldDeclarationSyntax.Declaration.Variables.ToFullString(),
+                        fieldDeclarationSyntax.FullSpan,
                         FieldSortRule,
                         new[] { fieldDeclarationSyntax.Declaration.ToFullString() },
-                        fieldDeclarationSyntax.GetLocation()
+                        fieldDeclarationSyntax.Declaration.Variables[0].Identifier.GetLocation()
                     );
 
                     return;
@@ -182,7 +177,7 @@ namespace AwesomeAnalyzer
                     AnalyzeSort(
                         context,
                         this._members[SortVirtualizationVisitor.Types.Enum],
-                        enumDeclarationSyntax.Identifier.ValueText,
+                        enumDeclarationSyntax.FullSpan,
                         MethodSortRule,
                         new[] { enumDeclarationSyntax.Identifier.ValueText },
                         enumDeclarationSyntax.Identifier.GetLocation());
@@ -192,14 +187,14 @@ namespace AwesomeAnalyzer
 
         private static void AnalyzeSort(
             SyntaxNodeAnalysisContext context,
-            IList<MethodInformation> members,
-            string name,
+            IList<TypesInformation> members,
+            TextSpan fullSpan,
             DiagnosticDescriptor rule,
             object[] messageArgs,
             Location location
         )
         {
-            var member = members.Single(x => x.Name == name);
+            var member = members.Single(x => x.FullSpan.Start == fullSpan.Start);
             var currentIndexOf = members.IndexOf(member);
 
             var sortedList = members.OrderBy(x => x.ModifiersOrder).ThenBy(x => x.Name).ToList();
@@ -212,7 +207,7 @@ namespace AwesomeAnalyzer
 
         private static void AnalyzeOrder(
             SyntaxNodeAnalysisContext context,
-            Dictionary<SortVirtualizationVisitor.Types, List<MethodInformation>> members,
+            Dictionary<SortVirtualizationVisitor.Types, List<TypesInformation>> members,
             Func<int?, int?, int?, int?, bool> func,
             DiagnosticDescriptor rule,
             object[] messageArgs,

@@ -9,7 +9,7 @@ using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
 namespace AwesomeAnalyzer.Test
 {
     [TestClass]
-    public class MakeAsyncTest
+    public sealed class MakeAsyncTest
     {
         [TestMethod]
         public async Task Test1_No_Diagnostic()
@@ -65,11 +65,10 @@ namespace MyNamespace
             await VerifyCS.VerifyCodeFixAsync(@"
 class Program 
 { 
-    void MethodAsync()
+    void [|MethodAsync|]()
     {
     }
 }",
-                VerifyCS.Diagnostic().WithSpan(4, 5, 6, 6),
                 fixedSource: @"
 class Program 
 { 
@@ -85,18 +84,49 @@ class Program
             await VerifyCS.VerifyCodeFixAsync(@"
 class Program 
 { 
-    string MethodAsync()
+    string [|MethodAsync|]()
     {
         return ""Async"";
     }
 }",
-                VerifyCS.Diagnostic().WithSpan(4, 5, 7, 6),
                 fixedSource: @"
 class Program 
 { 
     string Method()
     {
         return ""Async"";
+    }
+}");
+        }
+
+
+        [TestMethod]
+        public async Task Test3_Diagnostic()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+class Program 
+{ 
+    string [|MethodAsync|]()
+    {
+        return ""Async"";
+    }
+
+    private void B()
+    {
+        this.MethodAsync();
+    }
+}",
+                fixedSource: @"
+class Program 
+{ 
+    string Method()
+    {
+        return ""Async"";
+    }
+
+    private void B()
+    {
+        this.Method();
     }
 }");
         }

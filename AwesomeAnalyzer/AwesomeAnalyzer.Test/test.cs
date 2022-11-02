@@ -23,7 +23,7 @@
 
         private void B()
         {
-            var a = "a";
+            this.A();
         }
 
         private void C() { }

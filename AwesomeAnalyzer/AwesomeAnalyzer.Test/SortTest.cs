@@ -16,10 +16,13 @@ namespace AwesomeAnalyzer.Test
         public async Task Test1_NoDiagnostic()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
-sealed class Program {
-    void A(){}
-    void B(){}
-    void C(){}
+sealed class Program
+{
+    void A() { }
+
+    void B() { }
+
+    void C() { }
 }");
         }
 
@@ -27,16 +30,22 @@ sealed class Program {
         public async Task TestSort1_Diagnostic()
         {
             await VerifyCS.VerifyCodeFixAsync(@"
-sealed class Program {
-    void {|JJ1003:C|}(){}
-    void B(){}
-    void {|JJ1003:A|}(){}
+sealed class Program
+{
+    void {|JJ1003:C|}() { }
+
+    void B() { }
+
+    void {|JJ1003:A|}() { }
 }",
                 @"
-sealed class Program {
-    void A(){}
-    void B(){}
-    void C(){}
+sealed class Program
+{
+    void A() { }
+
+    void B() { }
+
+    void C() { }
 }");
         }
 
@@ -44,38 +53,44 @@ sealed class Program {
         public async Task TestSort2_Diagnostic()
         {
             await VerifyCS.VerifyCodeFixAsync(@"
-sealed class Program {
-    {|JJ1001:private string _c;|}
+sealed class Program
+{
+    private string {|JJ1001:_c|};
+
     private string _b;
-    {|JJ1001:private string _a;|}
+
+    private string {|JJ1001:_a|};
 
     public Program() { }
 
-    void {|JJ1003:C|}(){}
+    void {|JJ1003:C|}() { }
 
     void B()
     {
         var a = ""a"";
     }
 
-    void {|JJ1003:A|}(){}
+    void {|JJ1003:A|}() { }
 }",
                 @"
-sealed class Program {
+sealed class Program
+{
     private string _a;
+
     private string _b;
+
     private string _c;
 
     public Program() { }
 
-    void A(){}
+    void A() { }
 
     void B()
     {
         var a = ""a"";
     }
 
-    void C(){}
+    void C() { }
 }");
         }
 
@@ -83,13 +98,17 @@ sealed class Program {
         public async Task TestSort3_Diagnostic()
         {
             await VerifyCS.VerifyCodeFixAsync(@"
-sealed class Program {
-    {|JJ1001:private string _b;|}
-    {|JJ1001:private string _a;|}
+sealed class Program
+{
+    private string {|JJ1001:_b|};
+
+    private string {|JJ1001:_a|};
 }",
                 @"
-sealed class Program {
+sealed class Program
+{
     private string _a;
+
     private string _b;
 }");
         }
@@ -98,8 +117,9 @@ sealed class Program {
         public async Task TestSort4_Diagnostic()
         {
             await VerifyCS.VerifyCodeFixAsync(@"
-sealed class Program {
-    {|JJ1003:void C|}()
+sealed class Program
+{
+    void {|JJ1003:C|}()
     {
     }
 
@@ -108,11 +128,12 @@ sealed class Program {
         var a = ""a"";
     }
 
-    {|JJ1003:void A|}(){}
+    void {|JJ1003:A|}() { }
 }",
                 @"
-sealed class Program {
-    void A(){}
+sealed class Program
+{
+    void A() { }
 
     void B()
     {
@@ -129,24 +150,82 @@ sealed class Program {
         public async Task TestSortMember1_Diagnostic()
         {
             await VerifyCS.VerifyCodeFixAsync(@"
-sealed class Program {
-    {|JJ1001:public string _c;|}
+sealed class Program
+{
+    private const string {|JJ1001:_d|} = ""Const"";
+
+    public const string {|JJ1001:_e|} = ""Const"";
+}",
+                @"
+sealed class Program
+{
+    public const string _e = ""Const"";
+
     private const string _d = ""Const"";
-    {|JJ1001:public const string _e = ""Const"";|}
-    {|JJ1001:private readonly string _b;|}
-    {|JJ1001:public readonly string _f;|}
-    {|JJ1001:public static string _g;|}
+}");
+        }
+
+        [TestMethod]
+        public async Task TestSortMember2_Diagnostic()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+sealed class Program
+{
+    public string {|JJ1001:_c|};
+
+    private const string _d = ""Const"";
+
+    public const string {|JJ1001:_e|} = ""Const"";
+
+    private readonly string {|JJ1001:_b|};
+
+    public readonly string {|JJ1001:_f|};
+
+    public static string {|JJ1001:_g|};
+
     private string _a;
 }",
                 @"
-sealed class Program {
+sealed class Program
+{
     public const string _e = ""Const"";
+
     private const string _d = ""Const"";
+
     public static string _g;
+
     public readonly string _f;
+
     public string _c;
+
     private readonly string _b;
+
     private string _a;
+}");
+        }
+
+        [TestMethod]
+        public async Task TestSortMember3_Diagnostic()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+namespace AwesomeAnalyzer.Test
+{
+    sealed class Program
+    {
+        private const string {|JJ1001:_d|} = ""Const"";
+
+        public const string {|JJ1001:_e|} = ""Const"";
+    }
+}",
+                @"
+namespace AwesomeAnalyzer.Test
+{
+    sealed class Program
+    {
+        public const string _e = ""Const"";
+
+        private const string _d = ""Const"";
+    }
 }");
         }
     }

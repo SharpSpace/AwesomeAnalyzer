@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -8,6 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
 namespace AwesomeAnalyzer
@@ -34,8 +37,8 @@ namespace AwesomeAnalyzer
             {
                 context.RegisterCodeFix(
                     CodeAction.Create(
-                        "Sort",
-                        token => Task.FromResult(this.MakeAsyncPrefix(context.Document, root, token, oldSource)),
+                        "Sort document",
+                        token => this.SortDocumentAsync(context.Document, root, token, oldSource),
                         equivalenceKey: "SortCodeFixTitle"
                     ),
                     diagnostic
@@ -43,7 +46,7 @@ namespace AwesomeAnalyzer
             }
         }
 
-        private Document MakeAsyncPrefix(
+        private Task<Document> SortDocumentAsync(
             Document document,
             SyntaxNode root,
             CancellationToken token,
@@ -70,6 +73,7 @@ namespace AwesomeAnalyzer
             foreach (var item in
                      oldCode.OrderByDescending(x => x.FullSpan.Start))
             {
+                token.ThrowIfCancellationRequested();
                 newSource = newSource.Remove(item.FullSpan.Start, item.FullSpan.Length);
 
                 if (item.FullSpan.Start < minStartIndex)
@@ -78,13 +82,23 @@ namespace AwesomeAnalyzer
                 }
             }
 
-            newSource = oldCode
+            var count = 0;
+            foreach (var tuple in oldCode
                 .OrderByDescending(x => x.Order)
-                .ThenByDescending(x => x.ModifiersOrder)
-                .ThenByDescending(x => x.Name)
-                .Aggregate(newSource, (current, code) => current.Insert(minStartIndex, code.Code));
+                 .ThenByDescending(x => x.ModifiersOrder)
+                 .ThenByDescending(x => x.Name))
+            {
+                token.ThrowIfCancellationRequested();
+                count++;
+                var code = count != 1 
+                    ? $"    {tuple.Code.Trim()}{Environment.NewLine}{Environment.NewLine}" 
+                    : $"    {tuple.Code.Trim()}{Environment.NewLine}";
 
-            return document.WithText(SourceText.From(newSource));
+                newSource = newSource.Insert(minStartIndex, code);
+            }
+
+            //return document.WithText(SourceText.From(newSource));
+            return Formatter.FormatAsync(document.WithText(SourceText.From(newSource)), cancellationToken: token);
         }
     }
 }

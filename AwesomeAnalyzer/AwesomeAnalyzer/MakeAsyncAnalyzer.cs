@@ -32,28 +32,40 @@ namespace AwesomeAnalyzer
             context.EnableConcurrentExecution();
 
             context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.MethodDeclaration);
+            //context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.MethodKeyword);
         }
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            var methodDeclarationSyntax = (MethodDeclarationSyntax)context.Node;
-
-            if (
-                methodDeclarationSyntax.Identifier.ValueText.EndsWith("Async") &&
-                methodDeclarationSyntax.Modifiers.Any(x => x.ValueText == "async") == false &&
-                methodDeclarationSyntax.ReturnType is IdentifierNameSyntax identifierNameSyntax &&
-                identifierNameSyntax.Identifier.ValueText != "Task"
-            )
+            if (context.Node is MethodDeclarationSyntax methodDeclarationSyntax)
             {
-                context.ReportDiagnostic(Diagnostic.Create(Rule, context.Node.GetLocation()));
-            }
+                bool hasAsyncModifier = false;
+                foreach (var modifier in methodDeclarationSyntax.Modifiers)
+                {
+                    if (modifier.ValueText == "async")
+                    {
+                        hasAsyncModifier = true;
+                        break;
+                    }
+                }
 
-            if (methodDeclarationSyntax.Identifier.ValueText.EndsWith("Async") &&
-                methodDeclarationSyntax.Modifiers.Any(x => x.ValueText == "async") == false &&
-                !(methodDeclarationSyntax.ReturnType is IdentifierNameSyntax)
-            )
-            {
-                context.ReportDiagnostic(Diagnostic.Create(Rule, context.Node.GetLocation()));
+                if (
+                    methodDeclarationSyntax.Identifier.ValueText.EndsWith("Async") &&
+                    hasAsyncModifier == false &&
+                    methodDeclarationSyntax.ReturnType is IdentifierNameSyntax identifierNameSyntax &&
+                    identifierNameSyntax.Identifier.ValueText != "Task"
+                )
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, methodDeclarationSyntax.Identifier.GetLocation()));
+                }
+
+                if (methodDeclarationSyntax.Identifier.ValueText.EndsWith("Async") &&
+                    hasAsyncModifier == false &&
+                    !(methodDeclarationSyntax.ReturnType is IdentifierNameSyntax)
+                   )
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, methodDeclarationSyntax.Identifier.GetLocation()));
+                }
             }
         }
     }

@@ -44,13 +44,6 @@ namespace AwesomeAnalyzer
             CancellationToken cancellationToken
         )
         {
-            var firstToken = localDeclaration.GetFirstToken();
-            var leadingTrivia = firstToken.LeadingTrivia;
-            var trimmedLocal = localDeclaration.ReplaceToken(
-            firstToken, 
-                firstToken.WithLeadingTrivia(SyntaxTriviaList.Empty)
-            );
-
             var oldClassSource = localDeclaration.GetText().ToString();
             var newClassSource = oldClassSource.Replace("class", "sealed class");
 
@@ -60,6 +53,12 @@ namespace AwesomeAnalyzer
             return document.WithText(SourceText.From(newSource));
 
 
+            var firstToken = localDeclaration.GetFirstToken();
+            var trimmedLocal = localDeclaration.ReplaceToken(
+                firstToken,
+                firstToken.WithLeadingTrivia(SyntaxTriviaList.Empty)
+            );
+            var leadingTrivia = firstToken.LeadingTrivia;
             //var code = trimmedLocal.ToString();
             //var newCode = code.Insert(code.IndexOf("class"), "sealed ");
             //SyntaxFactory.parse
