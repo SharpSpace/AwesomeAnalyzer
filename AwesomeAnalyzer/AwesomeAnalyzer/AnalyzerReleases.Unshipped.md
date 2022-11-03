@@ -8,8 +8,10 @@ Rule ID | Category | Severity | Notes
 JJ0001 | Naming | Warning | MakeSealedAnalyzer
 JJ0002 | Naming | Warning | MakeAsyncAnalyzer
 JJ0003 | Usage | Warning | MakeConstAnalyzer
-JJ1001 | Naming | Info | SortAnalyzer
-JJ1002 | Naming | Info | SortAnalyzer
-JJ1003 | Naming | Info | SortAnalyzer
-JJ1004 | Naming | Info | SortAnalyzer
-JJ1005 | Naming | Info | SortAnalyzer
+JJ1001 | Order | Warning | SortAnalyzer
+JJ1002 | Order | Warning | SortAnalyzer
+JJ1003 | Order | Warning | SortAnalyzer
+JJ1004 | Order | Warning | SortAnalyzer
+JJ1005 | Order | Warning | SortAnalyzer
+JJ1006 | Order | Warning | SortAnalyzer
+JJ1007 | Order | Warning | SortAnalyzer

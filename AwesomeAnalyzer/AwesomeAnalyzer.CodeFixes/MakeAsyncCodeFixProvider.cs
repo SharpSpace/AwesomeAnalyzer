@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -9,7 +8,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 
@@ -65,16 +63,6 @@ namespace AwesomeAnalyzer
                 localDeclaration.Identifier.ValueText.Replace("Async", string.Empty),
                 token
             ).ConfigureAwait(false);
-
-            //var oldSource = (await document.GetSyntaxRootAsync(token).ConfigureAwait(false)).ToFullString();
-
-            //var span = localDeclaration.Identifier.Span;
-            //var oldCode = oldSource.Substring(span.Start, span.Length);
-            //var newCode = oldCode.Replace("Async", string.Empty);
-
-            //var newSource = $"{oldSource.Substring(0, span.Start)}{newCode}{oldSource.Substring(span.End)}";
-
-            //return document.WithText(SourceText.From(newSource));
         }
     }
 }

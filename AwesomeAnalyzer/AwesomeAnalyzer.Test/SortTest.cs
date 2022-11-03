@@ -55,22 +55,24 @@ sealed class Program
             await VerifyCS.VerifyCodeFixAsync(@"
 sealed class Program
 {
-    private string {|JJ1001:_c|};
+    public string {|JJ1007:F|} { get; set; }
 
-    private string _b;
+    private string {|JJ1002:_a|};
 
-    private string {|JJ1001:_a|};
+    void {|JJ1004:A|}() { }
 
-    public Program() { }
+    private string {|JJ1002:_b|};
 
-    void {|JJ1003:C|}() { }
-
-    void B()
+    void {|JJ1004:B|}()
     {
         var a = ""a"";
     }
 
-    void {|JJ1003:A|}() { }
+    private string {|JJ1002:_c|};
+
+    public {|JJ1005:Program|}() { }
+
+    void C() { }
 }",
                 @"
 sealed class Program
@@ -82,6 +84,8 @@ sealed class Program
     private string _c;
 
     public Program() { }
+
+    public string F { get; set; }
 
     void A() { }
 
@@ -225,6 +229,35 @@ namespace AwesomeAnalyzer.Test
         public const string _e = ""Const"";
 
         private const string _d = ""Const"";
+    }
+}");
+        }
+
+        [TestMethod]
+        public async Task TestSortProperty1_Diagnostic()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+namespace AwesomeAnalyzer.Test
+{
+    sealed class Program
+    {
+        public string {|JJ1006:C|} { get; set; }
+
+        public int B { get; set; }
+
+        public bool {|JJ1006:A|} { get; set; }
+    }
+}",
+                @"
+namespace AwesomeAnalyzer.Test
+{
+    sealed class Program
+    {
+        public bool A { get; set; }
+
+        public int B { get; set; }
+
+        public string C { get; set; }
     }
 }");
         }

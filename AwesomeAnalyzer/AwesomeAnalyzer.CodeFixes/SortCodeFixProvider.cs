@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -9,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
@@ -21,9 +19,11 @@ namespace AwesomeAnalyzer
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
             SortAnalyzer.FieldSortDiagnosticId,
             SortAnalyzer.FieldOrderDiagnosticId,
+            SortAnalyzer.ConstructorOrderDiagnosticId,
+            SortAnalyzer.PropertySortDiagnosticId,
+            SortAnalyzer.PropertyOrderDiagnosticId,
             SortAnalyzer.MethodSortDiagnosticId,
-            SortAnalyzer.MethodOrderDiagnosticId,
-            SortAnalyzer.ConstructorOrderDiagnosticId
+            SortAnalyzer.MethodOrderDiagnosticId
         );
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;

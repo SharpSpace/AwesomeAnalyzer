@@ -16,7 +16,8 @@ namespace AwesomeAnalyzer
             Enum = 1,
             Field = 2,
             Constructor = 3,
-            Methods = 4,
+            Property = 4,
+            Methods = 5,
         }
 
         public enum ModifiersSort
@@ -134,6 +135,33 @@ namespace AwesomeAnalyzer
             {
                 this.Members.Add(
                     Types.Methods,
+                    new List<TypesInformation> { item }
+                );
+            }
+
+            return node;
+        }
+
+        public override SyntaxNode VisitPropertyDeclaration(PropertyDeclarationSyntax node)
+        {
+            var modifiers = node.Modifiers.Select(x => x.ValueText).ToList();
+            var modifiersString = string.Join(string.Empty, modifiers);
+            var item = new TypesInformation
+            {
+                Name = node.Identifier.ValueText,
+                FullSpan = node.FullSpan,
+                Modifiers = string.Join(",", modifiers),
+                ModifiersOrder = string.IsNullOrEmpty(modifiersString) ? (int)ModifiersSort.Private : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true)
+            };
+
+            if (this.Members.ContainsKey(Types.Property))
+            {
+                this.Members[Types.Property].Add(item);
+            }
+            else
+            {
+                this.Members.Add(
+                    Types.Property,
                     new List<TypesInformation> { item }
                 );
             }
