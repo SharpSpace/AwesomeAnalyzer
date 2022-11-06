@@ -15,3 +15,9 @@ JJ1004 | Order | Warning | SortAnalyzer
 JJ1005 | Order | Warning | SortAnalyzer
 JJ1006 | Order | Warning | SortAnalyzer
 JJ1007 | Order | Warning | SortAnalyzer
+JJ1008 | Order | Warning | SortAnalyzer
+JJ1009 | Order | Warning | SortAnalyzer
+JJ1010 | Order | Warning | SortAnalyzer
+JJ1011 | Order | Warning | SortAnalyzer
+JJ1012 | Order | Warning | SortAnalyzer
+JJ1013 | Order | Warning | SortAnalyzer

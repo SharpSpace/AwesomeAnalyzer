@@ -9,8 +9,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.Text;
-
 using Document = Microsoft.CodeAnalysis.Document;
 
 namespace AwesomeAnalyzer
@@ -18,9 +16,7 @@ namespace AwesomeAnalyzer
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider)), Shared]
     public sealed class MakeAsyncCodeFixProvider : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(MakeAsyncAnalyzer.DiagnosticId);
-
-        //public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticDescriptors.MakeAsyncRule0002.Id);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -37,7 +33,7 @@ namespace AwesomeAnalyzer
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         "Remove Async in method name",
-                        token => MakeAsyncAsync(context.Document, declaration, diagnostic.Location.SourceSpan, token),
+                        token => MakeAsyncAsync(context.Document, declaration, token),
                         equivalenceKey: "MakeAsyncCodeFixTitle"
                     ),
                     diagnostic
@@ -48,11 +44,9 @@ namespace AwesomeAnalyzer
         private async Task<Solution> MakeAsyncAsync(
             Document document,
             MethodDeclarationSyntax localDeclaration,
-            TextSpan locationSourceSpan,
             CancellationToken token
         )
         {
-            //var callerTask2 = SymbolFinder.FindReferencesAsync(myFunction, solution);
             var semanticModel = await document.GetSemanticModelAsync(token).ConfigureAwait(false);
             var symbol = semanticModel.GetDeclaredSymbol(localDeclaration, token);
 

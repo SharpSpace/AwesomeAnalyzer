@@ -17,9 +17,9 @@ namespace AwesomeAnalyzer
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeConstCodeFixProvider)), Shared]
     public class MakeConstCodeFixProvider : CodeFixProvider
     {
-        public override sealed ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(MakeConstAnalyzer.DiagnosticId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticDescriptors.MakeConstRule0003.Id);
 
-        public override sealed FixAllProvider GetFixAllProvider()
+        public sealed override FixAllProvider GetFixAllProvider()
         {
             // See https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for more information on Fix All Providers
             return WellKnownFixAllProviders.BatchFixer;

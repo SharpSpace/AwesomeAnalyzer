@@ -11,20 +11,7 @@ namespace AwesomeAnalyzer
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class MakeSealedAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "JJ0001";
-        private const string Category = "Naming";
-        
-        private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
-            DiagnosticId,
-            "Class should have modifier sealed",
-            "Class should contain modifier sealed",
-            Category,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
-            description: "Class should have modifier sealed."
-        );
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.MakeSealedRule0001);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -35,9 +22,14 @@ namespace AwesomeAnalyzer
             context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
         }
 
-        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var classDeclarationSyntax = (ClassDeclarationSyntax)context.Node;
+
+            if (classDeclarationSyntax.Modifiers.Any(SyntaxKind.StaticKeyword))
+            {
+                return;
+            }
 
             if (classDeclarationSyntax.Modifiers.Any(SyntaxKind.SealedKeyword))
             {
@@ -61,33 +53,7 @@ namespace AwesomeAnalyzer
                 return;
             }
 
-            context.ReportDiagnostic(Diagnostic.Create(Rule, classDeclarationSyntax.Identifier.GetLocation()));
-        }
-
-        //private static void AnalyzeSymbolStart(SymbolStartAnalysisContext context)
-        //{
-        //    var symbol = (ITypeParameterSymbol)context.Symbol;
-
-        //    symbol.
-        //}
-        
-        private bool InheritsFrom(INamedTypeSymbol baseClassSymbol, INamedTypeSymbol symbol)
-        {
-            while (true)
-            {
-                if (symbol.ToString() == baseClassSymbol.ToString())
-                {
-                    return true;
-                }
-                if (symbol.BaseType != null)
-                {
-                    symbol = symbol.BaseType;
-                    continue;
-                }
-                break;
-            }
-
-            return false;
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MakeSealedRule0001, classDeclarationSyntax.Identifier.GetLocation()));
         }
     }
 }

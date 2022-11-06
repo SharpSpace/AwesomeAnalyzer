@@ -14,95 +14,20 @@ namespace AwesomeAnalyzer
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class SortAnalyzer : DiagnosticAnalyzer
     {
-        public const string FieldSortDiagnosticId = "JJ1001";
-        public const string FieldOrderDiagnosticId = "JJ1002";
-        public const string MethodSortDiagnosticId = "JJ1003";
-        public const string MethodOrderDiagnosticId = "JJ1004";
-        public const string ConstructorOrderDiagnosticId = "JJ1005";
-        public const string PropertySortDiagnosticId = "JJ1006";
-        public const string PropertyOrderDiagnosticId = "JJ1007";
-        private const string Category = "Order";
-
-        private static readonly DiagnosticDescriptor FieldSortRule1001 = new DiagnosticDescriptor(
-            FieldSortDiagnosticId,
-            "Field needs to be sorted alphabetically",
-            "Sort field {0}",
-            Category,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
-            description: "Sorts fields alphabetically."
-        );
-
-        private static readonly DiagnosticDescriptor FieldOrderRule1002 = new DiagnosticDescriptor(
-            FieldOrderDiagnosticId,
-            "Field needs to be in correct order",
-            "Order field {0}",
-            Category,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
-            description: "Order fields in correct order."
-        );
-
-        private static readonly DiagnosticDescriptor ConstructorOrderRule1005 = new DiagnosticDescriptor(
-            ConstructorOrderDiagnosticId,
-            "Constructor needs to be in correct order",
-            "Order constructor {0}",
-            Category,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
-            description: "Order constructor in correct order."
-        );
-
-        private static readonly DiagnosticDescriptor PropertySortRule1006 = new DiagnosticDescriptor(
-            PropertySortDiagnosticId,
-            "Property needs to be sorted alphabetically",
-            "Sort property {0}",
-            Category,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
-            description: "Sorts properties alphabetically."
-        );
-
-        private static readonly DiagnosticDescriptor PropertyOrderRule1007 = new DiagnosticDescriptor(
-            PropertyOrderDiagnosticId,
-            "Property needs to be in correct order",
-            "Order property {0}",
-            Category,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
-            description: "Order properties in correct order."
-        );
-
-        private static readonly DiagnosticDescriptor MethodSortRule1003 = new DiagnosticDescriptor(
-            MethodSortDiagnosticId,
-            "Method needs to be sorted alphabetically",
-            "Sort method {0}",
-            Category,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
-            description: "Sorts methods alphabetically."
-        );
-
-        private static readonly DiagnosticDescriptor MethodOrderRule1004 = new DiagnosticDescriptor(
-            MethodOrderDiagnosticId,
-            "Method needs to be in correct order",
-            "Order method {0}",
-            Category,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
-            description: "Order methods in correct order."
-        );
-
-        private Dictionary<SortVirtualizationVisitor.Types, List<TypesInformation>> _members;
-
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            FieldSortRule1001,
-            FieldOrderRule1002,
-            ConstructorOrderRule1005,
-            PropertySortRule1006,
-            PropertyOrderRule1007,
-            MethodSortRule1003, 
-            MethodOrderRule1004
+            DiagnosticDescriptors.EnumSortRule1008, 
+            DiagnosticDescriptors.EnumOrderRule1009,
+            DiagnosticDescriptors.FieldSortRule1001, 
+            DiagnosticDescriptors.FieldOrderRule1002,
+            DiagnosticDescriptors.ConstructorOrderRule1005, 
+            DiagnosticDescriptors.DelegateSortRule1010,
+            DiagnosticDescriptors.DelegateOrderRule1011, 
+            DiagnosticDescriptors.EventSortRule1012,
+            DiagnosticDescriptors.EventOrderRule1013, 
+            DiagnosticDescriptors.PropertySortRule1006,
+            DiagnosticDescriptors.PropertyOrderRule1007, 
+            DiagnosticDescriptors.MethodSortRule1003,
+            DiagnosticDescriptors.MethodOrderRule1004
         );
 
         public override void Initialize(AnalysisContext context)
@@ -110,147 +35,156 @@ namespace AwesomeAnalyzer
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
 
-            context.RegisterSyntaxNodeAction(this.AnalyzeNode, SyntaxKind.MethodDeclaration);
-            context.RegisterSyntaxNodeAction(this.AnalyzeNode, SyntaxKind.FieldDeclaration);
-            context.RegisterSyntaxNodeAction(this.AnalyzeNode, SyntaxKind.ConstructorDeclaration);
-            context.RegisterSyntaxNodeAction(this.AnalyzeNode, SyntaxKind.EnumDeclaration);
-            context.RegisterSyntaxNodeAction(this.AnalyzeNode, SyntaxKind.PropertyDeclaration);
+            context.RegisterSyntaxNodeAction(
+                this.AnalyzeNode,
+                SyntaxKind.EnumDeclaration,
+                SyntaxKind.FieldDeclaration,
+                SyntaxKind.ConstructorDeclaration,
+                SyntaxKind.DelegateDeclaration,
+                SyntaxKind.EventFieldDeclaration,
+                SyntaxKind.PropertyDeclaration,
+                SyntaxKind.MethodDeclaration
+            );
         }
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            //if (_members == null)
-            {
-                var sortVirtualizationVisitor = new SortVirtualizationVisitor();
-                sortVirtualizationVisitor.Visit(context.SemanticModel.SyntaxTree.GetRoot());
-                _members = sortVirtualizationVisitor.Members;
-            }
+            var sortVirtualizationVisitor = new SortVirtualizationVisitor();
+            sortVirtualizationVisitor.Visit(context.SemanticModel.SyntaxTree.GetRoot());
+            var members = sortVirtualizationVisitor.Members;
+            //context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Node.SyntaxTree).
 
             switch (context.Node)
             {
                 case EnumDeclarationSyntax enumDeclarationSyntax:
-                    if (AnalyzeOrder(
-                            this._members,
-                            SortVirtualizationVisitor.Types.Enum,
-                            enumDeclarationSyntax.FullSpan
-                    ))
-                    {
-                        context.ReportDiagnostic(Diagnostic.Create(
-                            MethodOrderRule1004,
-                            enumDeclarationSyntax.Identifier.GetLocation(),
-                            messageArgs: new[] { enumDeclarationSyntax.Identifier.ValueText }
-                        ));
-                    }
-
-                    if (AnalyzeSort(
-                            this._members[SortVirtualizationVisitor.Types.Enum],
-                        enumDeclarationSyntax.FullSpan
-                    ))
-                    {
-                        context.ReportDiagnostic(Diagnostic.Create(
-                            MethodSortRule1003,
-                            enumDeclarationSyntax.Identifier.GetLocation(),
-                            messageArgs: new[] { enumDeclarationSyntax.Identifier.ValueText }
-                        ));
-                    }
+                    this.AnalyzeOrderAndSort(
+                        members,
+                        context,
+                        SortVirtualizationVisitor.Types.Enum,
+                        enumDeclarationSyntax.Identifier,
+                        enumDeclarationSyntax.FullSpan, DiagnosticDescriptors.EnumOrderRule1009, DiagnosticDescriptors.EnumSortRule1008
+                    );
 
                     break;
                 case FieldDeclarationSyntax fieldDeclarationSyntax:
-                    if (AnalyzeOrder(
-                        this._members,
+                    this.AnalyzeOrderAndSort(
+                        members,
+                        context,
                         SortVirtualizationVisitor.Types.Field,
-                        fieldDeclarationSyntax.FullSpan
-                    ))
-                    {
-                        context.ReportDiagnostic(Diagnostic.Create(
-                            FieldOrderRule1002,
-                            fieldDeclarationSyntax.Declaration.Variables[0].Identifier.GetLocation(),
-                            messageArgs: new[] { fieldDeclarationSyntax.Declaration.Variables[0].Identifier.ToFullString() }
-                        ));
-                    }
-
-                    if (AnalyzeSort(
-                            this._members[SortVirtualizationVisitor.Types.Field],
-                        fieldDeclarationSyntax.FullSpan
-                    ))
-                    {
-                        context.ReportDiagnostic(Diagnostic.Create(
-                            FieldSortRule1001,
-                            fieldDeclarationSyntax.Declaration.Variables[0].Identifier.GetLocation(),
-                            messageArgs: new[] { fieldDeclarationSyntax.Declaration.Variables[0].Identifier.ToFullString() }
-                        ));
-                    }
+                        fieldDeclarationSyntax.Declaration.Variables[0].Identifier,
+                        fieldDeclarationSyntax.FullSpan, DiagnosticDescriptors.FieldOrderRule1002, DiagnosticDescriptors.FieldSortRule1001
+                    );
 
                     return;
                 case ConstructorDeclarationSyntax constructorDeclarationSyntax:
                     if (AnalyzeOrder(
-                            this._members,
+                            members,
                             SortVirtualizationVisitor.Types.Constructor,
                             constructorDeclarationSyntax.FullSpan
                         ))
                     {
-                        context.ReportDiagnostic(Diagnostic.Create(
-                            ConstructorOrderRule1005,
+                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ConstructorOrderRule1005,
                             constructorDeclarationSyntax.Identifier.GetLocation(),
                             messageArgs: new[] { constructorDeclarationSyntax.Identifier.ValueText }
                         ));
                     }
 
                     return;
-                case PropertyDeclarationSyntax propertyDeclarationSyntax:
-                    if (AnalyzeOrder(
-                            this._members,
-                            SortVirtualizationVisitor.Types.Property,
-                            propertyDeclarationSyntax.FullSpan
-                        ))
-                    {
-                        context.ReportDiagnostic(Diagnostic.Create(
-                            PropertyOrderRule1007,
-                            propertyDeclarationSyntax.Identifier.GetLocation(),
-                            messageArgs: new[] { propertyDeclarationSyntax.Identifier.ValueText }
-                        ));
-                    }
+                case DelegateDeclarationSyntax delegateDeclarationSyntax:
+                    this.AnalyzeOrderAndSort(
+                        members,
+                        context,
+                        SortVirtualizationVisitor.Types.Delegate,
+                        delegateDeclarationSyntax.Identifier,
+                        delegateDeclarationSyntax.FullSpan, DiagnosticDescriptors.DelegateOrderRule1011, DiagnosticDescriptors.DelegateSortRule1010
+                    );
 
-                    if (AnalyzeSort(
-                            this._members[SortVirtualizationVisitor.Types.Property],
-                            propertyDeclarationSyntax.FullSpan
-                        ))
-                    {
-                        context.ReportDiagnostic(Diagnostic.Create(
-                            PropertySortRule1006,
-                            propertyDeclarationSyntax.Identifier.GetLocation(), 
-                            messageArgs: new[] { propertyDeclarationSyntax.Identifier.ValueText }
-                        ));
-                    }
+                    return;
+                case EventFieldDeclarationSyntax eventFieldDeclarationSyntax:
+                    this.AnalyzeOrderAndSort(
+                        members,
+                        context,
+                        SortVirtualizationVisitor.Types.EventField,
+                        eventFieldDeclarationSyntax.Declaration.Variables[0].Identifier,
+                        eventFieldDeclarationSyntax.FullSpan, DiagnosticDescriptors.EventOrderRule1013, DiagnosticDescriptors.EventSortRule1012
+                    );
+
+                    return;
+                case EventDeclarationSyntax eventDeclarationSyntax:
+                    this.AnalyzeOrderAndSort(
+                        members,
+                        context,
+                        SortVirtualizationVisitor.Types.Event,
+                        eventDeclarationSyntax.Identifier,
+                        eventDeclarationSyntax.FullSpan, DiagnosticDescriptors.EventOrderRule1013, DiagnosticDescriptors.EventSortRule1012
+                    );
+
+                    return;
+                case PropertyDeclarationSyntax propertyDeclarationSyntax:
+                    this.AnalyzeOrderAndSort(
+                        members,
+                        context,
+                        SortVirtualizationVisitor.Types.Property,
+                        propertyDeclarationSyntax.Identifier,
+                        propertyDeclarationSyntax.FullSpan, DiagnosticDescriptors.PropertyOrderRule1007, DiagnosticDescriptors.PropertySortRule1006
+                    );
 
                     return;
                 case MethodDeclarationSyntax methodDeclarationSyntax:
-                    if (AnalyzeOrder(
-                            this._members,
-                            SortVirtualizationVisitor.Types.Methods,
-                            methodDeclarationSyntax.FullSpan
-                        ))
-                    {
-                        context.ReportDiagnostic(Diagnostic.Create(
-                            MethodOrderRule1004,
-                            methodDeclarationSyntax.Identifier.GetLocation(),
-                            messageArgs: new[] { methodDeclarationSyntax.Identifier.ValueText }
-                        ));
-                    }
-
-                    if (AnalyzeSort(
-                            this._members[SortVirtualizationVisitor.Types.Methods],
-                        methodDeclarationSyntax.FullSpan
-                    ))
-                    {
-                        context.ReportDiagnostic(Diagnostic.Create(
-                            MethodSortRule1003,
-                            methodDeclarationSyntax.Identifier.GetLocation(),
-                            messageArgs: new[] { methodDeclarationSyntax.Identifier.ValueText }
-                        ));
-                    }
+                    this.AnalyzeOrderAndSort(
+                        members,
+                        context,
+                        SortVirtualizationVisitor.Types.Methods,
+                        methodDeclarationSyntax.Identifier,
+                        methodDeclarationSyntax.FullSpan, DiagnosticDescriptors.MethodOrderRule1004, DiagnosticDescriptors.MethodSortRule1003
+                    );
 
                     return;
+            }
+        }
+
+        private void AnalyzeOrderAndSort(
+            Dictionary<SortVirtualizationVisitor.Types, List<TypesInformation>> members, 
+            SyntaxNodeAnalysisContext context,
+            SortVirtualizationVisitor.Types types,
+            SyntaxToken syntaxIdentifier,
+            TextSpan fullSpan,
+            DiagnosticDescriptor orderRule,
+            DiagnosticDescriptor sortRule
+        )
+        {
+            if (AnalyzeOrder(
+                    members,
+                    types,
+                    fullSpan
+                ))
+            {
+                context.ReportDiagnostic(
+                    Diagnostic.Create(
+                        orderRule,
+                        syntaxIdentifier.GetLocation(),
+                        messageArgs: new[] { syntaxIdentifier.ValueText }
+                    )
+                );
+            }
+
+            if (AnalyzeSort(
+                    members[types],
+                    fullSpan
+                ))
+            {
+                if (types == SortVirtualizationVisitor.Types.Methods)
+                {
+
+                }
+
+                context.ReportDiagnostic(
+                    Diagnostic.Create(
+                        sortRule,
+                        syntaxIdentifier.GetLocation(),
+                        messageArgs: new[] { syntaxIdentifier.ValueText }
+                    )
+                );
             }
         }
 

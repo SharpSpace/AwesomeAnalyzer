@@ -17,13 +17,19 @@ namespace AwesomeAnalyzer
     public sealed class SortCodeFixProvider : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
-            SortAnalyzer.FieldSortDiagnosticId,
-            SortAnalyzer.FieldOrderDiagnosticId,
-            SortAnalyzer.ConstructorOrderDiagnosticId,
-            SortAnalyzer.PropertySortDiagnosticId,
-            SortAnalyzer.PropertyOrderDiagnosticId,
-            SortAnalyzer.MethodSortDiagnosticId,
-            SortAnalyzer.MethodOrderDiagnosticId
+            DiagnosticDescriptors.EnumSortRule1008.Id,
+            DiagnosticDescriptors.EnumOrderRule1009.Id,
+            DiagnosticDescriptors.FieldSortRule1001.Id,
+            DiagnosticDescriptors.FieldOrderRule1002.Id,
+            DiagnosticDescriptors.ConstructorOrderRule1005.Id,
+            DiagnosticDescriptors.DelegateSortRule1010.Id,
+            DiagnosticDescriptors.DelegateOrderRule1011.Id,
+            DiagnosticDescriptors.EventSortRule1012.Id,
+            DiagnosticDescriptors.EnumOrderRule1009.Id,
+            DiagnosticDescriptors.PropertySortRule1006.Id,
+            DiagnosticDescriptors.PropertyOrderRule1007.Id,
+            DiagnosticDescriptors.MethodSortRule1003.Id,
+            DiagnosticDescriptors.MethodOrderRule1004.Id
         );
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
@@ -70,8 +76,7 @@ namespace AwesomeAnalyzer
 
             var minStartIndex = int.MaxValue;
             var newSource = oldSource;
-            foreach (var item in
-                     oldCode.OrderByDescending(x => x.FullSpan.Start))
+            foreach (var item in oldCode.OrderByDescending(x => x.FullSpan.Start))
             {
                 token.ThrowIfCancellationRequested();
                 newSource = newSource.Remove(item.FullSpan.Start, item.FullSpan.Length);

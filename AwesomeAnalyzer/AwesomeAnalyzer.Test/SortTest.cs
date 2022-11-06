@@ -23,7 +23,8 @@ sealed class Program
     void B() { }
 
     void C() { }
-}");
+}"
+            );
         }
 
         [TestMethod]
@@ -46,16 +47,25 @@ sealed class Program
     void B() { }
 
     void C() { }
-}");
+}"
+            );
         }
 
         [TestMethod]
         public async Task TestSort2_Diagnostic()
         {
             await VerifyCS.VerifyCodeFixAsync(@"
+using System;
+
 sealed class Program
 {
     public string {|JJ1007:F|} { get; set; }
+
+    private static void {|JJ1004:D|}() { }
+
+    public event OnEvent {|JJ1013:Event|};
+
+    public delegate void {|JJ1011:OnEvent|}(object sender, EventArgs args);
 
     private string {|JJ1002:_a|};
 
@@ -68,6 +78,11 @@ sealed class Program
         var a = ""a"";
     }
 
+    private enum {|JJ1009:MyEnum|}
+    {
+        a, b, c
+    }
+
     private string {|JJ1002:_c|};
 
     public {|JJ1005:Program|}() { }
@@ -75,6 +90,8 @@ sealed class Program
     void C() { }
 }",
                 @"
+using System;
+
 sealed class Program
 {
     private string _a;
@@ -85,7 +102,18 @@ sealed class Program
 
     public Program() { }
 
+    public delegate void OnEvent(object sender, EventArgs args);
+
+    public event OnEvent Event;
+
+    private enum MyEnum
+    {
+        a, b, c
+    }
+
     public string F { get; set; }
+
+    private static void D() { }
 
     void A() { }
 
@@ -95,7 +123,8 @@ sealed class Program
     }
 
     void C() { }
-}");
+}"
+            );
         }
 
         [TestMethod]
@@ -114,7 +143,8 @@ sealed class Program
     private string _a;
 
     private string _b;
-}");
+}"
+            );
         }
 
         [TestMethod]
@@ -147,7 +177,8 @@ sealed class Program
     void C()
     {
     }
-}");
+}"
+            );
         }
 
         [TestMethod]
@@ -166,7 +197,8 @@ sealed class Program
     public const string _e = ""Const"";
 
     private const string _d = ""Const"";
-}");
+}"
+            );
         }
 
         [TestMethod]
@@ -205,7 +237,8 @@ sealed class Program
     private readonly string _b;
 
     private string _a;
-}");
+}"
+            );
         }
 
         [TestMethod]
@@ -230,7 +263,8 @@ namespace AwesomeAnalyzer.Test
 
         private const string _d = ""Const"";
     }
-}");
+}"
+            );
         }
 
         [TestMethod]
@@ -259,7 +293,8 @@ namespace AwesomeAnalyzer.Test
 
         public string C { get; set; }
     }
-}");
+}"
+            );
         }
     }
-}
+}   

@@ -11,20 +11,7 @@ namespace AwesomeAnalyzer
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class MakeAsyncAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "JJ0002";
-        private const string Category = "Naming";
-
-        private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
-            DiagnosticId,
-            "Method contains Async prefix",
-            "This method contains Async prefix and its not async",
-            Category,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
-            description: "Removes Async prefix from method name."
-        );
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.MakeAsyncRule0002);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -37,35 +24,26 @@ namespace AwesomeAnalyzer
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            if (context.Node is MethodDeclarationSyntax methodDeclarationSyntax)
+            if (!(context.Node is MethodDeclarationSyntax methodDeclarationSyntax)) return;
+            
+            var hasAsyncModifier = methodDeclarationSyntax.Modifiers.Any(modifier => modifier.ValueText == "async");
+
+            if (
+                methodDeclarationSyntax.Identifier.ValueText.EndsWith("Async") &&
+                hasAsyncModifier == false &&
+                methodDeclarationSyntax.ReturnType is IdentifierNameSyntax identifierNameSyntax &&
+                identifierNameSyntax.Identifier.ValueText != "Task"
+            )
             {
-                bool hasAsyncModifier = false;
-                foreach (var modifier in methodDeclarationSyntax.Modifiers)
-                {
-                    if (modifier.ValueText == "async")
-                    {
-                        hasAsyncModifier = true;
-                        break;
-                    }
-                }
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MakeAsyncRule0002, methodDeclarationSyntax.Identifier.GetLocation()));
+            }
 
-                if (
-                    methodDeclarationSyntax.Identifier.ValueText.EndsWith("Async") &&
-                    hasAsyncModifier == false &&
-                    methodDeclarationSyntax.ReturnType is IdentifierNameSyntax identifierNameSyntax &&
-                    identifierNameSyntax.Identifier.ValueText != "Task"
-                )
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, methodDeclarationSyntax.Identifier.GetLocation()));
-                }
-
-                if (methodDeclarationSyntax.Identifier.ValueText.EndsWith("Async") &&
-                    hasAsyncModifier == false &&
-                    !(methodDeclarationSyntax.ReturnType is IdentifierNameSyntax)
-                   )
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, methodDeclarationSyntax.Identifier.GetLocation()));
-                }
+            if (methodDeclarationSyntax.Identifier.ValueText.EndsWith("Async") &&
+                hasAsyncModifier == false &&
+                !(methodDeclarationSyntax.ReturnType is IdentifierNameSyntax)
+               )
+            {
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MakeAsyncRule0002, methodDeclarationSyntax.Identifier.GetLocation()));
             }
         }
     }

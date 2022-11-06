@@ -10,35 +10,9 @@ namespace AwesomeAnalyzer
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class MakeConstAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "JJ0003";
-        private const string Category = "Usage";
-        private static readonly LocalizableString Description = new LocalizableResourceString(
-            nameof(Resources.AnalyzerDescription),
-            Resources.ResourceManager,
-            typeof(Resources));
-
-        private static readonly LocalizableString MessageFormat = new LocalizableResourceString(
-            nameof(Resources.AnalyzerMessageFormat),
-            Resources.ResourceManager,
-            typeof(Resources));
-
-        private static readonly LocalizableString Title = new LocalizableResourceString(
-            nameof(Resources.AnalyzerTitle),
-            Resources.ResourceManager,
-            typeof(Resources));
-        
-        private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
-            DiagnosticId,
-            Title,
-            MessageFormat,
-            Category,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
-            description: Description);
-
         // You can change these strings in the Resources.resx file. If you do not want your analyzer to be localize-able, you can use regular strings for Title and MessageFormat.
         // See https://github.com/dotnet/roslyn/blob/main/docs/analyzers/Localizing%20Analyzers.md for more on localization
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.MakeConstRule0003);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -117,7 +91,7 @@ namespace AwesomeAnalyzer
                 }
             }
 
-            context.ReportDiagnostic(Diagnostic.Create(Rule, context.Node.GetLocation()));
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MakeConstRule0003, context.Node.GetLocation()));
         }
     }
 

@@ -6,6 +6,14 @@ namespace AwesomeAnalyzer
 {
     public static class Extentions
     {
+        /// <summary>
+        /// Get CLR Metadata type name that can be used with Type.GetType(name)
+        /// </summary>
+        public static string GetAssemblyQualifiedName(this ITypeSymbol symbol)
+        {
+            return $"{symbol.ContainingNamespace}.{symbol.Name}, {symbol.ContainingAssembly}";
+        }
+
         public static string GetFullMetadataName(this ISymbol s)
         {
             if (s == null || IsRootNamespace(s))
@@ -41,14 +49,6 @@ namespace AwesomeAnalyzer
         {
             INamespaceSymbol s = null;
             return ((s = symbol as INamespaceSymbol) != null) && s.IsGlobalNamespace;
-        }
-
-        /// <summary>
-        /// Get CLR Metadata type name that can be used with Type.GetType(name)
-        /// </summary>
-        public static string GetAssemblyQualifiedName(this ITypeSymbol symbol)
-        {
-            return $"{symbol.ContainingNamespace}.{symbol.Name}, {symbol.ContainingAssembly}";
         }
     }
 }

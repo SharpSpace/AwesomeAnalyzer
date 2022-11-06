@@ -13,11 +13,14 @@ namespace AwesomeAnalyzer
     {
         public enum Types
         {
-            Enum = 1,
-            Field = 2,
-            Constructor = 3,
-            Property = 4,
-            Methods = 5,
+            Field = 1,
+            Constructor = 2,
+            Delegate = 3,
+            EventField = 4,
+            Event = 5,
+            Enum = 6,
+            Property = 7,
+            Methods = 8,
         }
 
         public enum ModifiersSort
@@ -27,8 +30,9 @@ namespace AwesomeAnalyzer
             PublicStatic = 3,
             PublicReadOnly = 4,
             Public = 5,
-            PrivateReadOnly = 6,
-            Private = 7
+            PrivateStatic = 6,
+            PrivateReadOnly = 7,
+            Private = 8
         }
 
         public Dictionary<Types, List<TypesInformation>> Members { get; }
@@ -40,54 +44,30 @@ namespace AwesomeAnalyzer
 
         public override SyntaxNode VisitEnumDeclaration(EnumDeclarationSyntax node)
         {
-            var modifiers = node.Modifiers.Select(x => x.ValueText).ToList();
-            var modifiersString = string.Join(string.Empty, modifiers);
             var item = new TypesInformation
             {
                 Name = node.Identifier.ValueText,
                 FullSpan = node.FullSpan,
-                Modifiers = string.Join(",", modifiers),
-                ModifiersOrder = string.IsNullOrEmpty(modifiersString) ? (int)ModifiersSort.Private : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true)
             };
 
-            if (this.Members.ContainsKey(Types.Enum))
-            {
-                this.Members[Types.Enum].Add(item);
-            }
-            else
-            {
-                this.Members.Add(
-                    Types.Enum,
-                    new List<TypesInformation> { item }
-                );
-            }
+            SetModifiers(node.Modifiers, item);
+
+            AddToList(item, Types.Enum);
 
             return node;
         }
 
         public override SyntaxNode VisitFieldDeclaration(FieldDeclarationSyntax node)
         {
-            var modifiers = node.Modifiers.Select(x => x.ValueText).ToList();
-            var modifiersString = string.Join(string.Empty, modifiers);
             var item = new TypesInformation
             {
-                Name = node.Declaration.Variables.ToFullString(),
+                Name = node.Declaration.Variables[0].Identifier.ValueText,
                 FullSpan = node.FullSpan,
-                Modifiers = string.Join(",", modifiers),
-                ModifiersOrder = string.IsNullOrEmpty(modifiersString) ? (int)ModifiersSort.Private : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true)
             };
 
-            if (this.Members.ContainsKey(Types.Field))
-            {
-                this.Members[Types.Field].Add(item);
-            }
-            else
-            {
-                this.Members.Add(
-                    Types.Field,
-                    new List<TypesInformation> { item }
-                );
-            }
+            SetModifiers(node.Modifiers, item);
+
+            AddToList(item, Types.Field);
 
             return node;
         }
@@ -100,17 +80,78 @@ namespace AwesomeAnalyzer
                 FullSpan = node.FullSpan
             };
 
-            if (this.Members.ContainsKey(Types.Constructor))
+            AddToList(item, Types.Constructor);
+
+            return node;
+        }
+
+        public override SyntaxNode VisitDelegateDeclaration(DelegateDeclarationSyntax node)
+        {
+            var item = new TypesInformation
             {
-                this.Members[Types.Constructor].Add(item);
-            }
-            else
+                Name = node.Identifier.ValueText,
+                FullSpan = node.FullSpan,
+            };
+
+            SetModifiers(node.Modifiers, item);
+
+            AddToList(item, Types.Delegate);
+
+            return node;
+        }
+
+        public override SyntaxNode VisitEventFieldDeclaration(EventFieldDeclarationSyntax node)
+        {
+            var item = new TypesInformation
             {
-                this.Members.Add(
-                    Types.Constructor,
-                    new List<TypesInformation> { item }
-                );
-            }
+                Name = node.Declaration.Variables[0].Identifier.ValueText,
+                FullSpan = node.FullSpan,
+            };
+
+            SetModifiers(node.Modifiers, item);
+
+            AddToList(item, Types.EventField);
+
+            return node;
+        }
+
+        public override SyntaxNode VisitEventDeclaration(EventDeclarationSyntax node)
+        {
+            var item = new TypesInformation
+            {
+                Name = node.Identifier.ValueText,
+                FullSpan = node.FullSpan
+            };
+
+            SetModifiers(node.Modifiers, item);
+
+            AddToList(item, Types.Event);
+
+            return node;
+        }
+
+        private static void SetModifiers(SyntaxTokenList modifiers, TypesInformation item)
+        {
+            var modifiersText = modifiers.Select(x => x.ValueText).ToList();
+            var modifiersString = string.Join(string.Empty, modifiersText);
+
+            item.Modifiers = string.Join(",", modifiersText);
+            item.ModifiersOrder = string.IsNullOrEmpty(modifiersString) ? (int)ModifiersSort.Private : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true);
+        }
+
+        public override SyntaxNode VisitPropertyDeclaration(PropertyDeclarationSyntax node)
+        {
+            var modifiers = node.Modifiers.Select(x => x.ValueText).ToList();
+            var modifiersString = string.Join(string.Empty, modifiers);
+            var item = new TypesInformation
+            {
+                Name = node.Identifier.ValueText,
+                FullSpan = node.FullSpan,
+                Modifiers = string.Join(",", modifiers),
+                ModifiersOrder = string.IsNullOrEmpty(modifiersString) ? (int)ModifiersSort.Private : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true)
+            };
+
+            AddToList(item, Types.Property);
 
             return node;
         }
@@ -127,50 +168,28 @@ namespace AwesomeAnalyzer
                 ModifiersOrder = string.IsNullOrEmpty(modifiersString) ? (int)ModifiersSort.Private : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true)
             };
 
-            if (this.Members.ContainsKey(Types.Methods))
-            {
-                this.Members[Types.Methods].Add(item);
-            }
-            else
-            {
-                this.Members.Add(
-                    Types.Methods,
-                    new List<TypesInformation> { item }
-                );
-            }
+            AddToList(item, Types.Methods);
 
             return node;
         }
 
-        public override SyntaxNode VisitPropertyDeclaration(PropertyDeclarationSyntax node)
+        private void AddToList(TypesInformation item, Types constructor)
         {
-            var modifiers = node.Modifiers.Select(x => x.ValueText).ToList();
-            var modifiersString = string.Join(string.Empty, modifiers);
-            var item = new TypesInformation
+            if (this.Members.ContainsKey(constructor))
             {
-                Name = node.Identifier.ValueText,
-                FullSpan = node.FullSpan,
-                Modifiers = string.Join(",", modifiers),
-                ModifiersOrder = string.IsNullOrEmpty(modifiersString) ? (int)ModifiersSort.Private : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true)
-            };
-
-            if (this.Members.ContainsKey(Types.Property))
-            {
-                this.Members[Types.Property].Add(item);
+                this.Members[constructor].Add(item);
             }
             else
             {
                 this.Members.Add(
-                    Types.Property,
+                    constructor,
                     new List<TypesInformation> { item }
                 );
             }
-
-            return node;
         }
     }
 
-    public class TypesInformation
+    public sealed class TypesInformation
     {
         public string Name { get; set; }
 

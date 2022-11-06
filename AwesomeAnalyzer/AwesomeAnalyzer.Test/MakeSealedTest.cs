@@ -24,6 +24,12 @@ namespace AwesomeAnalyzer.Test
         }
 
         [TestMethod]
+        public async Task PublicStaticClassTest_NoDiagnostic()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"public static class Program {}");
+        }
+
+        [TestMethod]
         public async Task ClassTest_Diagnostic()
         {
             await VerifyCS.VerifyCodeFixAsync(
