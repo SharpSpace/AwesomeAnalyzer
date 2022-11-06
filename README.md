@@ -8,8 +8,6 @@ Download [latest version here](https://github.com/SharpSpace/AwesomeAnalyzer/raw
 
 ## Analyzers
 
-MakeSealed
-
-MakeAsync
-
-Sort and Order
+* Make Sealed
+* Make Async
+* Sort and Order
