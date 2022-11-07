@@ -36,6 +36,16 @@ namespace AwesomeAnalyzer
             description: "Variable can be a const."
         );
 
+        public static readonly DiagnosticDescriptor DisposedRule0004 = new DiagnosticDescriptor(
+            "JJ0004",
+            "Statement is missing using because type implements IDisposable",
+            "Add using to statement {0}",
+            "Usage",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Statement is missing using because type implements IDisposable."
+        );
+
         public static readonly DiagnosticDescriptor EnumSortRule1008 = new DiagnosticDescriptor(
             "JJ1008",
             "Enum needs to be sorted alphabetically",
