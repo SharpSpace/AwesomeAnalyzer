@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace AwesomeAnalyzer.Test
 {
@@ -41,12 +42,9 @@ namespace AwesomeAnalyzer.Test
             using var reader = new StreamReader("");
         }
 
-        private void B()
-        {
-            this.A();
-        }
+        private async Task B() => await this.C();
 
-        private void C() { }
+        private async Task C() => await Task.CompletedTask;
 
         public event OnEvent Event;
     }

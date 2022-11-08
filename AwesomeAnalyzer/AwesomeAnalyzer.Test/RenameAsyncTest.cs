@@ -3,13 +3,13 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
-    AwesomeAnalyzer.MakeAsyncAnalyzer,
-    AwesomeAnalyzer.MakeAsyncCodeFixProvider>;
+    AwesomeAnalyzer.RenameAsyncAnalyzer,
+    AwesomeAnalyzer.RenameAsyncCodeFixProvider>;
 
 namespace AwesomeAnalyzer.Test
 {
     [TestClass]
-    public sealed class MakeAsyncTest
+    public sealed class RenameAsyncTest
     {
         [TestMethod]
         public async Task Test1_No_Diagnostic()
@@ -99,7 +99,6 @@ class Program
 }");
         }
 
-
         [TestMethod]
         public async Task Test3_Diagnostic()
         {
@@ -127,6 +126,53 @@ class Program
     private void B()
     {
         this.Method();
+    }
+}");
+        }
+
+        [TestMethod]
+        public async Task TestMissingAwait1_NoDiagnostic()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+using System.Threading.Tasks;
+
+namespace Test
+{
+    class Program 
+    { 
+        private async Task B() => await CAsync();
+
+        private async Task CAsync() => await Task.CompletedTask;
+    }
+}");
+        }
+
+
+        [TestMethod]
+        public async Task TestMissingAwait1_Diagnostic()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+using System.Threading.Tasks;
+
+namespace Test
+{
+    class Program 
+    { 
+        private void B() => [|C()|];
+
+        private async Task C() => await Task.CompletedTask;
+    }
+}",
+                fixedSource: @"
+using System.Threading.Tasks;
+
+namespace Test
+{
+    class Program 
+    { 
+        private async Task B() => await CAsync();
+
+        private async Task CAsync() => await Task.CompletedTask;
     }
 }");
         }

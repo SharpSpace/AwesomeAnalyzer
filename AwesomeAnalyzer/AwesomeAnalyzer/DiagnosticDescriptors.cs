@@ -16,16 +16,6 @@ namespace AwesomeAnalyzer
             description: "Class should have modifier sealed."
         );
 
-        public static readonly DiagnosticDescriptor MakeAsyncRule0002 = new DiagnosticDescriptor(
-            "JJ0002",
-            "Method contains Async prefix",
-            "This method contains Async prefix and its not async",
-            "Naming",
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
-            description: "Removes Async prefix from method name."
-        );
-
         public static readonly DiagnosticDescriptor MakeConstRule0003 = new DiagnosticDescriptor(
             "JJ0003",
             "Variable can be a const",
@@ -44,6 +34,36 @@ namespace AwesomeAnalyzer
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Statement is missing using because type implements IDisposable."
+        );
+
+        public static readonly DiagnosticDescriptor MakeAsyncRule0100 = new DiagnosticDescriptor(
+            "JJ0100",
+            "Method contains Async prefix",
+            "This method contains Async prefix and its not async",
+            "Naming",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Removes Async prefix from method name."
+        );
+
+        public static readonly DiagnosticDescriptor MakeAsyncRule0101 = new DiagnosticDescriptor(
+            "JJ0101",
+            "Method call is missing Await",
+            "Method call {0} is missing Await",
+            "Naming",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Method call is missing Await."
+        );
+
+        public static readonly DiagnosticDescriptor MakeAsyncRule0102 = new DiagnosticDescriptor(
+            "JJ0102",
+            "Method name is missing Async prefix",
+            "Method name {0} is missing Async prefix",
+            "Naming",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Method name is missing Async prefix."
         );
 
         public static readonly DiagnosticDescriptor EnumSortRule1008 = new DiagnosticDescriptor(

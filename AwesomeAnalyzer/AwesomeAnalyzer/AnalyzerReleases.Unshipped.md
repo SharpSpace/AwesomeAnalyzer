@@ -6,9 +6,11 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 JJ0001 | Naming | Warning | MakeSealedAnalyzer
-JJ0002 | Naming | Warning | MakeAsyncAnalyzer
 JJ0003 | Usage | Warning | MakeConstAnalyzer
 JJ0004 | Usage | Warning | DiagnosticDescriptors
+JJ0100 | Naming | Warning | DiagnosticDescriptors
+JJ0101 | Naming | Warning | DiagnosticDescriptors
+JJ0102 | Naming | Warning | DiagnosticDescriptors
 JJ1001 | Order | Warning | SortAnalyzer
 JJ1002 | Order | Warning | SortAnalyzer
 JJ1003 | Order | Warning | SortAnalyzer

@@ -9,9 +9,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace AwesomeAnalyzer
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class MakeAsyncAnalyzer : DiagnosticAnalyzer
+    public sealed class RenameAsyncAnalyzer : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.MakeAsyncRule0002);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.MakeAsyncRule0100);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -19,7 +19,6 @@ namespace AwesomeAnalyzer
             context.EnableConcurrentExecution();
 
             context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.MethodDeclaration);
-            //context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.MethodKeyword);
         }
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
@@ -35,7 +34,7 @@ namespace AwesomeAnalyzer
                 identifierNameSyntax.Identifier.ValueText != "Task"
             )
             {
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MakeAsyncRule0002, methodDeclarationSyntax.Identifier.GetLocation()));
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MakeAsyncRule0100, methodDeclarationSyntax.Identifier.GetLocation()));
             }
 
             if (methodDeclarationSyntax.Identifier.ValueText.EndsWith("Async") &&
@@ -43,7 +42,7 @@ namespace AwesomeAnalyzer
                 !(methodDeclarationSyntax.ReturnType is IdentifierNameSyntax)
                )
             {
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MakeAsyncRule0002, methodDeclarationSyntax.Identifier.GetLocation()));
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MakeAsyncRule0100, methodDeclarationSyntax.Identifier.GetLocation()));
             }
         }
     }
