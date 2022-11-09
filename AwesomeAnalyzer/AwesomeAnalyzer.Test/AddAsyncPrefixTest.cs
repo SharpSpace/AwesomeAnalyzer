@@ -27,6 +27,18 @@ namespace Test
 }");
         }
 
+        [TestMethod]
+        public async Task TestMissingAsync2_NoDiagnostic()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+namespace Test
+{
+    class Program 
+    { 
+        private string B() => return nameof(B);
+    }
+}");
+        }
 
         [TestMethod]
         public async Task TestMissingAsync1_Diagnostic()

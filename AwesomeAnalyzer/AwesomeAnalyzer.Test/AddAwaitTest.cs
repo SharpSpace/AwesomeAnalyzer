@@ -27,6 +27,28 @@ namespace Test
 }");
         }
 
+        [TestMethod]
+        public async Task TestMissingAwait2_NoDiagnostic()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+using System.Threading.Tasks;
+
+namespace Test
+{
+    class Program 
+    { 
+        private async Task B()
+        { 
+            var a = await TestClass.CAsync().ConfigureAwait(false);
+        }
+    }
+
+    class TestClass
+    { 
+        public static async Task<string> CAsync() => await Task.FromResult(""Test"");
+    }
+}");
+        }
 
         [TestMethod]
         public async Task TestMissingAwait1_Diagnostic()

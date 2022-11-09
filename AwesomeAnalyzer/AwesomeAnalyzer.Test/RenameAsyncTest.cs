@@ -60,6 +60,16 @@ namespace MyNamespace
         }
 
         [TestMethod]
+        public async Task Test5_No_Diagnostic()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+interface Program 
+{ 
+    Task MethodAsync(){}
+}");
+        }
+
+        [TestMethod]
         public async Task Test1_Diagnostic()
         {
             await VerifyCS.VerifyCodeFixAsync(@"
