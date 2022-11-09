@@ -38,6 +38,7 @@ class Program
 namespace MyNamespace
 {
     using System.Threading.Tasks;
+
     class Program
     {
         public async Task MethodAsync() {}
@@ -52,6 +53,7 @@ namespace MyNamespace
 namespace MyNamespace
 {
     using System.Threading.Tasks;
+
     class Program
     {
         public async Task<string> MethodAsync() { return ""Async""; }
@@ -63,9 +65,14 @@ namespace MyNamespace
         public async Task Test5_No_Diagnostic()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
-interface Program 
-{ 
-    Task MethodAsync(){}
+namespace MyNamespace
+{
+    using System.Threading.Tasks;
+
+    interface Program 
+    { 
+        Task MethodAsync();
+    }
 }");
         }
 
@@ -140,51 +147,5 @@ class Program
 }");
         }
 
-        [TestMethod]
-        public async Task TestMissingAwait1_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
-using System.Threading.Tasks;
-
-namespace Test
-{
-    class Program 
-    { 
-        private async Task B() => await CAsync();
-
-        private async Task CAsync() => await Task.CompletedTask;
-    }
-}");
-        }
-
-
-        [TestMethod]
-        public async Task TestMissingAwait1_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
-using System.Threading.Tasks;
-
-namespace Test
-{
-    class Program 
-    { 
-        private void B() => [|C()|];
-
-        private async Task C() => await Task.CompletedTask;
-    }
-}",
-                fixedSource: @"
-using System.Threading.Tasks;
-
-namespace Test
-{
-    class Program 
-    { 
-        private async Task B() => await CAsync();
-
-        private async Task CAsync() => await Task.CompletedTask;
-    }
-}");
-        }
     }
 }

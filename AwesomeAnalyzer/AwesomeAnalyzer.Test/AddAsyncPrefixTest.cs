@@ -35,7 +35,24 @@ namespace Test
 {
     class Program 
     { 
-        private string B() => return nameof(B);
+        private string B() => nameof(B);
+    }
+}");
+        }
+
+        [TestMethod]
+        public async Task TestMissingAsync3_NoDiagnostic()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+using System.Threading.Tasks;
+
+namespace Test
+{
+    class Program 
+    { 
+        private async Task B() => await CAsync().ConfigureAwait(false);
+
+        private async Task CAsync() => await Task.CompletedTask;
     }
 }");
         }

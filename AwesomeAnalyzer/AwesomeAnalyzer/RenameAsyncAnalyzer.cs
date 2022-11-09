@@ -25,21 +25,18 @@ namespace AwesomeAnalyzer
         {
             if (!(context.Node is MethodDeclarationSyntax methodDeclarationSyntax)) return;
             
-            var hasAsyncModifier = methodDeclarationSyntax.Modifiers.Any(modifier => modifier.ValueText == "async");
+            if (methodDeclarationSyntax.Modifiers.Any(modifier => modifier.ValueText == "async")) return;
+            if (!methodDeclarationSyntax.Identifier.ValueText.EndsWith("Async")) return;
 
-            if (
-                methodDeclarationSyntax.Identifier.ValueText.EndsWith("Async") &&
-                hasAsyncModifier == false &&
-                methodDeclarationSyntax.ReturnType is IdentifierNameSyntax identifierNameSyntax &&
-                identifierNameSyntax.Identifier.ValueText != "Task"
-            )
+            //if (methodDeclarationSyntax.HasParent<InterfaceDeclarationSyntax>() != null) return;
+
+            if (methodDeclarationSyntax.ReturnType is IdentifierNameSyntax identifierNameSyntax &&
+                identifierNameSyntax.Identifier.ValueText != "Task")
             {
                 context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MakeAsyncRule0100, methodDeclarationSyntax.Identifier.GetLocation()));
             }
 
-            if (methodDeclarationSyntax.Identifier.ValueText.EndsWith("Async") &&
-                hasAsyncModifier == false &&
-                !(methodDeclarationSyntax.ReturnType is IdentifierNameSyntax)
+            if (!(methodDeclarationSyntax.ReturnType is IdentifierNameSyntax)
                )
             {
                 context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MakeAsyncRule0100, methodDeclarationSyntax.Identifier.GetLocation()));

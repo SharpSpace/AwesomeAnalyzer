@@ -26,7 +26,7 @@ namespace AwesomeAnalyzer
         {
             if (!(context.Node is InvocationExpressionSyntax invocationExpressionSyntax)) return;
 
-            if (invocationExpressionSyntax.Parent is AwaitExpressionSyntax) return;
+            if (invocationExpressionSyntax.HasParent<AwaitExpressionSyntax>() != null) return;
 
             var typeSymbol = context.SemanticModel.GetTypeInfo(invocationExpressionSyntax);
             if (typeSymbol.Type.Name != "Task") return;

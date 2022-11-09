@@ -28,7 +28,10 @@ namespace AwesomeAnalyzer
             if (!(invocationExpressionSyntax.Expression is IdentifierNameSyntax identifierNameSyntax)) return;
 
             if (identifierNameSyntax.Identifier.ValueText.EndsWith("Async")) return;
-            
+
+            var typeSymbol = context.SemanticModel.GetTypeInfo(invocationExpressionSyntax);
+            if (typeSymbol.Type.Name != "Task") return;
+
             context.ReportDiagnostic(Diagnostic.Create(
                 DiagnosticDescriptors.MakeAsyncRule0102,
                 identifierNameSyntax.Identifier.GetLocation(),

@@ -49,19 +49,11 @@ namespace AwesomeAnalyzer
         {
             if (declaration.Parent is AwaitExpressionSyntax) return document;
 
-            var method = declaration.Parent;
-            while (true)
-            {
-                method = method.Parent;
-                if (method is MethodDeclarationSyntax || method == null)
-                {
-                    break;
-                }
-            }
+            var methodDeclarationSyntax = declaration.HasParent<MethodDeclarationSyntax>();
 
             var oldSource = (await document.GetSyntaxRootAsync(token).ConfigureAwait(false)).ToFullString();
             string newSource;
-            if (method is MethodDeclarationSyntax methodDeclarationSyntax && 
+            if (methodDeclarationSyntax != null && 
                 methodDeclarationSyntax.Modifiers.Any(x => x.ValueText == "async") == false
             )
             {

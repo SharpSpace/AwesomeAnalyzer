@@ -50,6 +50,22 @@ namespace Test
 }");
         }
 
+
+        [TestMethod]
+        public async Task TestMissingAwait3_NoDiagnostic()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+namespace MyNamespace
+{
+    using System.Threading.Tasks;
+
+    interface Program 
+    { 
+        Task MethodAsync();
+    }
+}");
+        }
+
         [TestMethod]
         public async Task TestMissingAwait1_Diagnostic()
         {
