@@ -85,5 +85,32 @@ namespace Test
     }
 }");
         }
+
+        [TestMethod]
+        public async Task TestMissingAsync2_Diagnostic()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+using System;
+using System.Threading.Tasks;
+
+namespace Test
+{
+    class Program 
+    { 
+        private async Task C(Func<Task<string>> func) => await {|JJ0102:func|}();
+    }
+}",
+                fixedSource: @"
+using System;
+using System.Threading.Tasks;
+
+namespace Test
+{
+    class Program 
+    { 
+        private async Task C(Func<Task<string>> funcAsync) => await {|JJ0102:funcAsync()|};
+    }
+}");
+        }
     }
 }
