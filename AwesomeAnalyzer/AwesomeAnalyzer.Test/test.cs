@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -42,9 +43,9 @@ namespace AwesomeAnalyzer.Test
             using var reader = new StreamReader("");
         }
 
-        private async Task B() => await this.C();
+        //private async Task B() => await this.C();
 
-        private async Task C() => await Task.CompletedTask;
+        private async Task C(Func<Task<string>> func) => await func();
 
         public event OnEvent Event;
     }
