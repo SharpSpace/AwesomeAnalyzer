@@ -6,12 +6,14 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace AwesomeAnalyzer
+namespace AwesomeAnalyzer.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class RenameAsyncAnalyzer : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.MakeAsyncRule0100);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+            DiagnosticDescriptors.RenameAsyncRule0100
+        );
 
         public override void Initialize(AnalysisContext context)
         {
@@ -24,7 +26,7 @@ namespace AwesomeAnalyzer
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             if (!(context.Node is MethodDeclarationSyntax methodDeclarationSyntax)) return;
-            
+
             if (methodDeclarationSyntax.Modifiers.Any(modifier => modifier.ValueText == "async")) return;
             if (!methodDeclarationSyntax.Identifier.ValueText.EndsWith("Async")) return;
 
@@ -33,13 +35,13 @@ namespace AwesomeAnalyzer
             if (methodDeclarationSyntax.ReturnType is IdentifierNameSyntax identifierNameSyntax &&
                 identifierNameSyntax.Identifier.ValueText != "Task")
             {
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MakeAsyncRule0100, methodDeclarationSyntax.Identifier.GetLocation()));
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.RenameAsyncRule0100, methodDeclarationSyntax.Identifier.GetLocation()));
             }
 
             if (!(methodDeclarationSyntax.ReturnType is IdentifierNameSyntax)
                )
             {
-                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MakeAsyncRule0100, methodDeclarationSyntax.Identifier.GetLocation()));
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.RenameAsyncRule0100, methodDeclarationSyntax.Identifier.GetLocation()));
             }
         }
     }

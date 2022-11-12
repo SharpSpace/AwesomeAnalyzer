@@ -9,23 +9,23 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
-namespace AwesomeAnalyzer
+namespace AwesomeAnalyzer.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class SortAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.EnumSortRule1008, 
+            DiagnosticDescriptors.EnumSortRule1008,
             DiagnosticDescriptors.EnumOrderRule1009,
-            DiagnosticDescriptors.FieldSortRule1001, 
+            DiagnosticDescriptors.FieldSortRule1001,
             DiagnosticDescriptors.FieldOrderRule1002,
-            DiagnosticDescriptors.ConstructorOrderRule1005, 
+            DiagnosticDescriptors.ConstructorOrderRule1005,
             DiagnosticDescriptors.DelegateSortRule1010,
-            DiagnosticDescriptors.DelegateOrderRule1011, 
+            DiagnosticDescriptors.DelegateOrderRule1011,
             DiagnosticDescriptors.EventSortRule1012,
-            DiagnosticDescriptors.EventOrderRule1013, 
+            DiagnosticDescriptors.EventOrderRule1013,
             DiagnosticDescriptors.PropertySortRule1006,
-            DiagnosticDescriptors.PropertyOrderRule1007, 
+            DiagnosticDescriptors.PropertyOrderRule1007,
             DiagnosticDescriptors.MethodSortRule1003,
             DiagnosticDescriptors.MethodOrderRule1004
         );
@@ -36,7 +36,7 @@ namespace AwesomeAnalyzer
             context.EnableConcurrentExecution();
 
             context.RegisterSyntaxNodeAction(
-                this.AnalyzeNode,
+                AnalyzeNode,
                 SyntaxKind.EnumDeclaration,
                 SyntaxKind.FieldDeclaration,
                 SyntaxKind.ConstructorDeclaration,
@@ -57,7 +57,7 @@ namespace AwesomeAnalyzer
             switch (context.Node)
             {
                 case EnumDeclarationSyntax enumDeclarationSyntax:
-                    this.AnalyzeOrderAndSort(
+                    AnalyzeOrderAndSort(
                         members,
                         context,
                         SortVirtualizationVisitor.Types.Enum,
@@ -67,7 +67,7 @@ namespace AwesomeAnalyzer
 
                     break;
                 case FieldDeclarationSyntax fieldDeclarationSyntax:
-                    this.AnalyzeOrderAndSort(
+                    AnalyzeOrderAndSort(
                         members,
                         context,
                         SortVirtualizationVisitor.Types.Field,
@@ -91,7 +91,7 @@ namespace AwesomeAnalyzer
 
                     return;
                 case DelegateDeclarationSyntax delegateDeclarationSyntax:
-                    this.AnalyzeOrderAndSort(
+                    AnalyzeOrderAndSort(
                         members,
                         context,
                         SortVirtualizationVisitor.Types.Delegate,
@@ -101,7 +101,7 @@ namespace AwesomeAnalyzer
 
                     return;
                 case EventFieldDeclarationSyntax eventFieldDeclarationSyntax:
-                    this.AnalyzeOrderAndSort(
+                    AnalyzeOrderAndSort(
                         members,
                         context,
                         SortVirtualizationVisitor.Types.EventField,
@@ -111,7 +111,7 @@ namespace AwesomeAnalyzer
 
                     return;
                 case EventDeclarationSyntax eventDeclarationSyntax:
-                    this.AnalyzeOrderAndSort(
+                    AnalyzeOrderAndSort(
                         members,
                         context,
                         SortVirtualizationVisitor.Types.Event,
@@ -121,7 +121,7 @@ namespace AwesomeAnalyzer
 
                     return;
                 case PropertyDeclarationSyntax propertyDeclarationSyntax:
-                    this.AnalyzeOrderAndSort(
+                    AnalyzeOrderAndSort(
                         members,
                         context,
                         SortVirtualizationVisitor.Types.Property,
@@ -131,7 +131,7 @@ namespace AwesomeAnalyzer
 
                     return;
                 case MethodDeclarationSyntax methodDeclarationSyntax:
-                    this.AnalyzeOrderAndSort(
+                    AnalyzeOrderAndSort(
                         members,
                         context,
                         SortVirtualizationVisitor.Types.Methods,
@@ -144,7 +144,7 @@ namespace AwesomeAnalyzer
         }
 
         private void AnalyzeOrderAndSort(
-            Dictionary<SortVirtualizationVisitor.Types, List<TypesInformation>> members, 
+            Dictionary<SortVirtualizationVisitor.Types, List<TypesInformation>> members,
             SyntaxNodeAnalysisContext context,
             SortVirtualizationVisitor.Types types,
             SyntaxToken syntaxIdentifier,
@@ -223,7 +223,7 @@ namespace AwesomeAnalyzer
             var above = aboveList.Any() ? (Min: aboveList.Min(y => y.Start), Max: aboveList.Max(y => y.End)) : (Min: int.MinValue, Max: int.MinValue);
             var below = belowList.Any() ? (Min: belowList.Min(y => y.Start), Max: belowList.Max(y => y.End)) : (Min: int.MaxValue, Max: int.MaxValue);
 
-            if (above.Min < span.Start && above.Max <= span.Start && 
+            if (above.Min < span.Start && above.Max <= span.Start &&
                 below.Min >= span.End && below.Max > span.End
             )
             {

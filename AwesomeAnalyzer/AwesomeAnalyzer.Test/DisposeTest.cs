@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
-    AwesomeAnalyzer.DisposedAnalyzer,
+    AwesomeAnalyzer.Analyzers.DisposedAnalyzer,
     AwesomeAnalyzer.DisposedCodeFixProvider>;
 
 namespace AwesomeAnalyzer.Test

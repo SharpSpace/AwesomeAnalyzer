@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace AwesomeAnalyzer
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider)), Shared]
-    public sealed class SortCodeFixProvider : CodeFixProvider
+    public sealed class SortAndOrderCodeFixProvider : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
             DiagnosticDescriptors.EnumSortRule1008.Id,
@@ -44,7 +44,7 @@ namespace AwesomeAnalyzer
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         "Sort document",
-                        token => this.SortDocumentAsync(context.Document, root, token, oldSource),
+                        token => SortDocumentAsync(context.Document, root, token, oldSource),
                         equivalenceKey: "SortCodeFixTitle"
                     ),
                     diagnostic
@@ -52,7 +52,7 @@ namespace AwesomeAnalyzer
             }
         }
 
-        private Task<Document> SortDocumentAsync(
+        private static Task<Document> SortDocumentAsync(
             Document document,
             SyntaxNode root,
             CancellationToken token,

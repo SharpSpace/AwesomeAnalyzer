@@ -3,8 +3,8 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
-    AwesomeAnalyzer.SortAnalyzer,
-    AwesomeAnalyzer.SortCodeFixProvider>;
+    AwesomeAnalyzer.Analyzers.SortAnalyzer,
+    AwesomeAnalyzer.SortAndOrderCodeFixProvider>;
 
 
 namespace AwesomeAnalyzer.Test

@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace AwesomeAnalyzer
+namespace AwesomeAnalyzer.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class DisposedAnalyzer : DiagnosticAnalyzer
@@ -22,7 +22,7 @@ namespace AwesomeAnalyzer
             context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ObjectCreationExpression);
         }
 
-        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             if (!(context.Node is ObjectCreationExpressionSyntax objectCreationExpressionSyntax)) return;
             if (!(objectCreationExpressionSyntax.Parent is EqualsValueClauseSyntax equalsValueClauseSyntax)) return;
@@ -30,7 +30,7 @@ namespace AwesomeAnalyzer
             if (!(variableDeclaratorSyntax.Parent is VariableDeclarationSyntax variableDeclarationSyntax)) return;
 
             var localDeclarationStatementSyntax = variableDeclarationSyntax.Parent as LocalDeclarationStatementSyntax;
-            if (localDeclarationStatementSyntax != null && 
+            if (localDeclarationStatementSyntax != null &&
                 localDeclarationStatementSyntax.UsingKeyword.ValueText == "using"
             ) return;
 
@@ -47,7 +47,7 @@ namespace AwesomeAnalyzer
             if (interfaces.Any(x => x.Name == "IDisposable") == false) return;
 
             context.ReportDiagnostic(Diagnostic.Create(
-                DiagnosticDescriptors.DisposedRule0004, 
+                DiagnosticDescriptors.DisposedRule0004,
                 variableDeclarationSyntax.GetLocation(),
                 messageArgs: variableDeclarationSyntax.ToString()
             ));

@@ -36,7 +36,7 @@ namespace AwesomeAnalyzer
             description: "Statement is missing using because type implements IDisposable."
         );
 
-        public static readonly DiagnosticDescriptor MakeAsyncRule0100 = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor RenameAsyncRule0100 = new DiagnosticDescriptor(
             "JJ0100",
             "Method contains Async prefix",
             "This method contains Async prefix and its not async",
@@ -46,7 +46,7 @@ namespace AwesomeAnalyzer
             description: "Removes Async prefix from method name."
         );
 
-        public static readonly DiagnosticDescriptor MakeAsyncRule0101 = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor AddAwaitRule0101 = new DiagnosticDescriptor(
             "JJ0101",
             "Method call is missing Await",
             "Method call {0} is missing Await",
@@ -56,7 +56,7 @@ namespace AwesomeAnalyzer
             description: "Method call is missing Await."
         );
 
-        public static readonly DiagnosticDescriptor MakeAsyncRule0102 = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor AddAsyncRule0102 = new DiagnosticDescriptor(
             "JJ0102",
             "Method name is missing Async prefix",
             "Method name {0} is missing Async prefix",

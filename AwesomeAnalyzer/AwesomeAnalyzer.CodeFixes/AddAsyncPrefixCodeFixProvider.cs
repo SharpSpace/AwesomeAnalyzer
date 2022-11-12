@@ -16,7 +16,7 @@ namespace AwesomeAnalyzer
     public sealed class AddAsyncPrefixCodeFixProvider : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
-            DiagnosticDescriptors.MakeAsyncRule0102.Id
+            DiagnosticDescriptors.AddAsyncRule0102.Id
         );
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)

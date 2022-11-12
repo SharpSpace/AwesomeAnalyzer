@@ -4,13 +4,13 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace AwesomeAnalyzer
+namespace AwesomeAnalyzer.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class AddAsyncAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.MakeAsyncRule0102
+            DiagnosticDescriptors.AddAsyncRule0102
         );
 
         public override void Initialize(AnalysisContext context)
@@ -33,7 +33,7 @@ namespace AwesomeAnalyzer
             if (typeSymbol.Type.Name != "Task") return;
 
             context.ReportDiagnostic(Diagnostic.Create(
-                DiagnosticDescriptors.MakeAsyncRule0102,
+                DiagnosticDescriptors.AddAsyncRule0102,
                 identifierNameSyntax.Identifier.GetLocation(),
                 messageArgs: identifierNameSyntax.Identifier.ValueText
             ));

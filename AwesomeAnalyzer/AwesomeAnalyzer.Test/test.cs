@@ -41,11 +41,12 @@ namespace AwesomeAnalyzer.Test
         void A()
         {
             using var reader = new StreamReader("");
+            
         }
 
         //private async Task B() => await this.C();
 
-        private async Task C(Func<Task<string>> func) => await func();
+        private async Task C(Func<Task<string>> funcAsync) => await funcAsync();
 
         public event OnEvent Event;
     }

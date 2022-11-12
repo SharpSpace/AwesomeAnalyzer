@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace AwesomeAnalyzer
+namespace AwesomeAnalyzer.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class MakeConstAnalyzer : DiagnosticAnalyzer
@@ -60,7 +60,7 @@ namespace AwesomeAnalyzer
             }
 
             context.ReportDiagnostic(Diagnostic.Create(
-                DiagnosticDescriptors.MakeConstRule0003, 
+                DiagnosticDescriptors.MakeConstRule0003,
                 context.Node.GetLocation()
             ));
         }

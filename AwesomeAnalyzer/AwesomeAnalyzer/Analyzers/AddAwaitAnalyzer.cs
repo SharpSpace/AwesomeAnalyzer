@@ -4,14 +4,14 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace AwesomeAnalyzer
+namespace AwesomeAnalyzer.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class AddAwaitAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.MakeAsyncRule0101,
-            DiagnosticDescriptors.MakeAsyncRule0102
+            DiagnosticDescriptors.AddAwaitRule0101,
+            DiagnosticDescriptors.AddAsyncRule0102
         );
 
         public override void Initialize(AnalysisContext context)
@@ -22,7 +22,7 @@ namespace AwesomeAnalyzer
             context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.InvocationExpression);
         }
 
-        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             if (!(context.Node is InvocationExpressionSyntax invocationExpressionSyntax)) return;
 
@@ -31,8 +31,15 @@ namespace AwesomeAnalyzer
             var typeSymbol = context.SemanticModel.GetTypeInfo(invocationExpressionSyntax);
             if (typeSymbol.Type.Name != "Task") return;
 
+            var methodDeclarationSyntax = invocationExpressionSyntax.HasParent<MethodDeclarationSyntax>();
+            if (methodDeclarationSyntax != null)
+            {
+                var typeInfo = context.SemanticModel.GetTypeInfo(methodDeclarationSyntax.ReturnType);
+                if (typeInfo.Type.Name == "Task") return;
+            }
+
             context.ReportDiagnostic(Diagnostic.Create(
-                DiagnosticDescriptors.MakeAsyncRule0101, 
+                DiagnosticDescriptors.AddAwaitRule0101,
                 invocationExpressionSyntax.GetLocation(),
                 messageArgs: invocationExpressionSyntax.ToString()
             ));

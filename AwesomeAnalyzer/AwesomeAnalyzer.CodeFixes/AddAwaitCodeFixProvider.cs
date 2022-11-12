@@ -16,7 +16,7 @@ namespace AwesomeAnalyzer
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider)), Shared]
     public sealed class AddAwaitCodeFixProvider : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticDescriptors.MakeAsyncRule0101.Id);
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticDescriptors.AddAwaitRule0101.Id);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

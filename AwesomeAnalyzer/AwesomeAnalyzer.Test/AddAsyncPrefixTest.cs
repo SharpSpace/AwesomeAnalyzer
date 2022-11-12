@@ -2,7 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
-    AwesomeAnalyzer.AddAsyncAnalyzer,
+    AwesomeAnalyzer.Analyzers.AddAsyncAnalyzer,
     AwesomeAnalyzer.AddAsyncPrefixCodeFixProvider>;
 
 namespace AwesomeAnalyzer.Test
@@ -53,6 +53,21 @@ namespace Test
         private async Task B() => await CAsync().ConfigureAwait(false);
 
         private async Task CAsync() => await Task.CompletedTask;
+    }
+}");
+        }
+
+        [TestMethod]
+        public async Task TestMissingAsync4_NoDiagnostic()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+namespace MyNamespace
+{
+    using System.Threading.Tasks;
+
+    class Program
+    {
+        public Task<string> MethodAsync() { return Task.FromResult(""Async""); }
     }
 }");
         }
