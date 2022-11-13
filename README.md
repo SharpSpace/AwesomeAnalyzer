@@ -2,6 +2,8 @@
 
 AwesomeAnalyzer is a pack of different Roslyn Analyzers
 
+[![CodeQL](https://github.com/SharpSpace/AwesomeAnalyzer/actions/workflows/codeql.yml/badge.svg)](https://github.com/SharpSpace/AwesomeAnalyzer/actions/workflows/codeql.yml)
+
 ## Installation
 
 Download [latest version here](https://github.com/SharpSpace/AwesomeAnalyzer/releases/download/v0.35.1/AwesomeAnalyzer.0.35.1.vsix)
