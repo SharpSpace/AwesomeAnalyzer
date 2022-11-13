@@ -12,7 +12,7 @@ namespace AwesomeAnalyzer.Test
     public sealed class RenameAsyncTest
     {
         [TestMethod]
-        public async Task Test1_No_Diagnostic()
+        public async Task Test1_NoDiagnostic()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 class Program 
@@ -22,7 +22,7 @@ class Program
         }
 
         [TestMethod]
-        public async Task Test2_No_Diagnostic()
+        public async Task Test2_NoDiagnostic()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 class Program 
@@ -32,7 +32,7 @@ class Program
         }
 
         [TestMethod]
-        public async Task Test3_No_Diagnostic()
+        public async Task Test3_NoDiagnostic()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 namespace MyNamespace
@@ -47,7 +47,7 @@ namespace MyNamespace
         }
 
         [TestMethod]
-        public async Task Test4_No_Diagnostic()
+        public async Task Test4_NoDiagnostic()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 namespace MyNamespace
@@ -62,7 +62,7 @@ namespace MyNamespace
         }
 
         [TestMethod]
-        public async Task Test5_No_Diagnostic()
+        public async Task Test5_NoDiagnostic()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 namespace MyNamespace
