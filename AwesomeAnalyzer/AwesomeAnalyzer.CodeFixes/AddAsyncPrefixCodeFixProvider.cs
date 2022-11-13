@@ -19,6 +19,8 @@ namespace AwesomeAnalyzer
             DiagnosticDescriptors.AddAsyncRule0102.Id
         );
 
+        public override FixAllProvider GetFixAllProvider() => null;
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);

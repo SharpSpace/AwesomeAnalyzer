@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -21,6 +19,8 @@ namespace AwesomeAnalyzer
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
             DiagnosticDescriptors.DisposedRule0004.Id
         );
+
+        public override FixAllProvider GetFixAllProvider() => null;
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

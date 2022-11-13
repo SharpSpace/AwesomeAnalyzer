@@ -18,6 +18,8 @@ namespace AwesomeAnalyzer
     {
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticDescriptors.AddAwaitRule0101.Id);
 
+        public override FixAllProvider GetFixAllProvider() => null;
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
