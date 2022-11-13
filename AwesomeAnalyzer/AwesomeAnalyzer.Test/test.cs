@@ -1,6 +1,8 @@
 ﻿
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AwesomeAnalyzer.Test
@@ -32,9 +34,11 @@ namespace AwesomeAnalyzer.Test
 
         public int E { get; set; }
 
-        public string F { get; set; }
+        public string[] F { get; set; } = Array.Empty<string>();
 
-        public bool G { get; set; }
+        public List<string> Property { get; set; }
+
+        private IEnumerable<string> H() => 1 == 1 ? null : Enumerable.Empty<string>();
 
         public static void D() { }
 
@@ -49,6 +53,16 @@ namespace AwesomeAnalyzer.Test
         private async Task C(Func<Task<string>> funcAsync) => await funcAsync();
 
         public event OnEvent Event;
+
+        private IEnumerable<string> Method()
+        {
+            return new List<string>();
+        }
+
+        private IEnumerable<int> Method2()
+        {
+            return new int[0];
+        }
     }
 }
 

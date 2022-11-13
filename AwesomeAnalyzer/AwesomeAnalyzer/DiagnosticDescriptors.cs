@@ -16,6 +16,16 @@ namespace AwesomeAnalyzer
             description: "Class should have modifier sealed."
         );
 
+        public static readonly DiagnosticDescriptor NullListRule0002 = new DiagnosticDescriptor(
+            "JJ0002",
+            "?",
+            "?",
+            "Naming",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "?"
+        );
+
         public static readonly DiagnosticDescriptor MakeConstRule0003 = new DiagnosticDescriptor(
             "JJ0003",
             "Variable can be a const",
