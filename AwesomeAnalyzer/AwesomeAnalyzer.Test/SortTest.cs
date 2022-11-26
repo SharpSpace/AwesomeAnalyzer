@@ -182,6 +182,40 @@ sealed class Program
         }
 
         [TestMethod]
+        public async Task TestSort5_Diagnostic()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+sealed class Program
+{
+    private string {|JJ1001:_b|};
+
+    private string {|JJ1001:_a|};
+}
+
+sealed class Program2
+{
+    private string {|JJ1001:_b|};
+
+    private string {|JJ1001:_a|};
+}",
+                @"
+sealed class Program
+{
+    private string _a;
+
+    private string _b;
+}
+
+sealed class Program2
+{
+    private string _a;
+
+    private string _b;
+}"
+            );
+        }
+
+        [TestMethod]
         public async Task TestSortMember1_Diagnostic()
         {
             await VerifyCS.VerifyCodeFixAsync(@"

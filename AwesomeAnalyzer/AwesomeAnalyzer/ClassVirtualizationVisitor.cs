@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace AwesomeAnalyzer
 {
@@ -50,5 +51,7 @@ namespace AwesomeAnalyzer
         public List<ClassInformation> BaseClasses { get; set; }
 
         public string IdentifierName => $"{this.NameSpaceName}.{this.ClassName}";
+        
+        public TextSpan FullSpan { get; set; }
     }
 }

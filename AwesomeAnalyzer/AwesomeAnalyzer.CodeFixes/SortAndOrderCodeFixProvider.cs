@@ -62,44 +62,50 @@ namespace AwesomeAnalyzer
             var sortVirtualizationVisitor = new SortVirtualizationVisitor();
             sortVirtualizationVisitor.Visit(root);
 
-            var oldCode = (
-                from keyValuePair in sortVirtualizationVisitor.Members 
-                from item in keyValuePair.Value 
-                select (
-                    Order: keyValuePair.Key, 
-                    Code: oldSource.Substring(item.FullSpan.Start, item.FullSpan.Length), 
-                    item.FullSpan, 
-                    item.Name,
-                    item.ModifiersOrder
-                )
-            ).ToList();
+            var oldCode = sortVirtualizationVisitor.Members
+                .SelectMany(
+                    x => x.Value, 
+                    (x, item) => (
+                        item.ClassName, 
+                        Order: x.Key, 
+                        Code: oldSource.Substring(item.FullSpan.Start, item.FullSpan.Length), 
+                        item.FullSpan, 
+                        item.Name, 
+                        item.ModifiersOrder
+                    )
+                ).ToList();
 
-            var minStartIndex = int.MaxValue;
             var newSource = oldSource;
             foreach (var item in oldCode.OrderByDescending(x => x.FullSpan.Start))
             {
                 token.ThrowIfCancellationRequested();
                 newSource = newSource.Remove(item.FullSpan.Start, item.FullSpan.Length);
 
-                if (item.FullSpan.Start < minStartIndex)
-                {
-                    minStartIndex = item.FullSpan.Start;
-                }
             }
 
-            var count = 0;
+            var classMemberGroup = sortVirtualizationVisitor.Classes.ToDictionary(
+                x => x.ClassName,
+                y => sortVirtualizationVisitor.Members.SelectMany(x => x.Value).Where(x => x.FullSpan.IntersectsWith(y.FullSpan)).Min(x => x.FullSpan.Start)
+            );
+
+            var count = classMemberGroup.ToDictionary(
+                item => item.Key,
+                item => 0
+            );
+
             foreach (var tuple in oldCode
-                .OrderByDescending(x => x.Order)
-                 .ThenByDescending(x => x.ModifiersOrder)
-                 .ThenByDescending(x => x.Name))
+                .OrderBy(x => x.ClassName)
+                .ThenByDescending(x => x.Order)
+                .ThenByDescending(x => x.ModifiersOrder)
+                .ThenByDescending(x => x.Name))
             {
                 token.ThrowIfCancellationRequested();
-                count++;
-                var code = count != 1 
+                count[tuple.ClassName]++;
+                var code = count[tuple.ClassName] != 1 
                     ? $"    {tuple.Code.Trim()}{Environment.NewLine}{Environment.NewLine}" 
                     : $"    {tuple.Code.Trim()}{Environment.NewLine}";
 
-                newSource = newSource.Insert(minStartIndex, code);
+                newSource = newSource.Insert(classMemberGroup[tuple.ClassName], code);
             }
 
             //return document.WithText(SourceText.From(newSource));

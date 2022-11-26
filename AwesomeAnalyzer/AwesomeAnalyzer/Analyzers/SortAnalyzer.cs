@@ -52,27 +52,34 @@ namespace AwesomeAnalyzer.Analyzers
             var sortVirtualizationVisitor = new SortVirtualizationVisitor();
             sortVirtualizationVisitor.Visit(context.SemanticModel.SyntaxTree.GetRoot());
             var members = sortVirtualizationVisitor.Members;
+            var classes = sortVirtualizationVisitor.Classes;
             //context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Node.SyntaxTree).
 
             switch (context.Node)
             {
                 case EnumDeclarationSyntax enumDeclarationSyntax:
                     AnalyzeOrderAndSort(
+                        classes,
                         members,
                         context,
                         SortVirtualizationVisitor.Types.Enum,
                         enumDeclarationSyntax.Identifier,
-                        enumDeclarationSyntax.FullSpan, DiagnosticDescriptors.EnumOrderRule1009, DiagnosticDescriptors.EnumSortRule1008
+                        enumDeclarationSyntax.FullSpan, 
+                        DiagnosticDescriptors.EnumOrderRule1009, 
+                        DiagnosticDescriptors.EnumSortRule1008
                     );
 
                     break;
                 case FieldDeclarationSyntax fieldDeclarationSyntax:
                     AnalyzeOrderAndSort(
+                        classes,
                         members,
                         context,
                         SortVirtualizationVisitor.Types.Field,
                         fieldDeclarationSyntax.Declaration.Variables[0].Identifier,
-                        fieldDeclarationSyntax.FullSpan, DiagnosticDescriptors.FieldOrderRule1002, DiagnosticDescriptors.FieldSortRule1001
+                        fieldDeclarationSyntax.FullSpan,
+                        DiagnosticDescriptors.FieldOrderRule1002,
+                        DiagnosticDescriptors.FieldSortRule1001
                     );
 
                     return;
@@ -83,60 +90,78 @@ namespace AwesomeAnalyzer.Analyzers
                             constructorDeclarationSyntax.FullSpan
                         ))
                     {
-                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ConstructorOrderRule1005,
-                            constructorDeclarationSyntax.Identifier.GetLocation(),
-                            messageArgs: new[] { constructorDeclarationSyntax.Identifier.ValueText }
-                        ));
+                        context.ReportDiagnostic(
+                            Diagnostic.Create(
+                                DiagnosticDescriptors.ConstructorOrderRule1005,
+                                constructorDeclarationSyntax.Identifier.GetLocation(),
+                                messageArgs: new[] { constructorDeclarationSyntax.Identifier.ValueText }
+                            )
+                        );
                     }
 
                     return;
                 case DelegateDeclarationSyntax delegateDeclarationSyntax:
                     AnalyzeOrderAndSort(
+                        classes,
                         members,
                         context,
                         SortVirtualizationVisitor.Types.Delegate,
                         delegateDeclarationSyntax.Identifier,
-                        delegateDeclarationSyntax.FullSpan, DiagnosticDescriptors.DelegateOrderRule1011, DiagnosticDescriptors.DelegateSortRule1010
+                        delegateDeclarationSyntax.FullSpan,
+                        DiagnosticDescriptors.DelegateOrderRule1011,
+                        DiagnosticDescriptors.DelegateSortRule1010
                     );
 
                     return;
                 case EventFieldDeclarationSyntax eventFieldDeclarationSyntax:
                     AnalyzeOrderAndSort(
+                        classes,
                         members,
                         context,
                         SortVirtualizationVisitor.Types.EventField,
                         eventFieldDeclarationSyntax.Declaration.Variables[0].Identifier,
-                        eventFieldDeclarationSyntax.FullSpan, DiagnosticDescriptors.EventOrderRule1013, DiagnosticDescriptors.EventSortRule1012
+                        eventFieldDeclarationSyntax.FullSpan,
+                        DiagnosticDescriptors.EventOrderRule1013,
+                        DiagnosticDescriptors.EventSortRule1012
                     );
 
                     return;
                 case EventDeclarationSyntax eventDeclarationSyntax:
                     AnalyzeOrderAndSort(
+                        classes,
                         members,
                         context,
                         SortVirtualizationVisitor.Types.Event,
                         eventDeclarationSyntax.Identifier,
-                        eventDeclarationSyntax.FullSpan, DiagnosticDescriptors.EventOrderRule1013, DiagnosticDescriptors.EventSortRule1012
+                        eventDeclarationSyntax.FullSpan,
+                        DiagnosticDescriptors.EventOrderRule1013,
+                        DiagnosticDescriptors.EventSortRule1012
                     );
 
                     return;
                 case PropertyDeclarationSyntax propertyDeclarationSyntax:
                     AnalyzeOrderAndSort(
+                        classes,
                         members,
                         context,
                         SortVirtualizationVisitor.Types.Property,
                         propertyDeclarationSyntax.Identifier,
-                        propertyDeclarationSyntax.FullSpan, DiagnosticDescriptors.PropertyOrderRule1007, DiagnosticDescriptors.PropertySortRule1006
+                        propertyDeclarationSyntax.FullSpan,
+                        DiagnosticDescriptors.PropertyOrderRule1007,
+                        DiagnosticDescriptors.PropertySortRule1006
                     );
 
                     return;
                 case MethodDeclarationSyntax methodDeclarationSyntax:
                     AnalyzeOrderAndSort(
+                        classes,
                         members,
                         context,
                         SortVirtualizationVisitor.Types.Methods,
                         methodDeclarationSyntax.Identifier,
-                        methodDeclarationSyntax.FullSpan, DiagnosticDescriptors.MethodOrderRule1004, DiagnosticDescriptors.MethodSortRule1003
+                        methodDeclarationSyntax.FullSpan,
+                        DiagnosticDescriptors.MethodOrderRule1004,
+                        DiagnosticDescriptors.MethodSortRule1003
                     );
 
                     return;
@@ -144,6 +169,7 @@ namespace AwesomeAnalyzer.Analyzers
         }
 
         private void AnalyzeOrderAndSort(
+            List<ClassInformation> classInformations, 
             Dictionary<SortVirtualizationVisitor.Types, List<TypesInformation>> members,
             SyntaxNodeAnalysisContext context,
             SortVirtualizationVisitor.Types types,
@@ -154,10 +180,10 @@ namespace AwesomeAnalyzer.Analyzers
         )
         {
             if (AnalyzeOrder(
-                    members,
-                    types,
-                    fullSpan
-                ))
+                members,
+                types,
+                fullSpan
+            ))
             {
                 context.ReportDiagnostic(
                     Diagnostic.Create(
@@ -169,15 +195,11 @@ namespace AwesomeAnalyzer.Analyzers
             }
 
             if (AnalyzeSort(
-                    members[types],
-                    fullSpan
-                ))
+                classInformations,
+                members[types],
+                fullSpan
+            ))
             {
-                if (types == SortVirtualizationVisitor.Types.Methods)
-                {
-
-                }
-
                 context.ReportDiagnostic(
                     Diagnostic.Create(
                         sortRule,
@@ -189,16 +211,37 @@ namespace AwesomeAnalyzer.Analyzers
         }
 
         private static bool AnalyzeSort(
+            List<ClassInformation> classes,
             IList<TypesInformation> members,
             TextSpan fullSpan
         )
         {
-            var member = members.Single(x => x.FullSpan.Start == fullSpan.Start);
-            var currentIndexOf = members.IndexOf(member);
+            var classMemberGroup = classes.ToDictionary(
+                x => x, 
+                y => members.Where(x => x.FullSpan.IntersectsWith(y.FullSpan)).ToList()
+            );
 
-            var sortedList = members.OrderBy(x => x.ModifiersOrder).ThenBy(x => x.Name).ToList();
-            var sortedIndexOf = sortedList.IndexOf(member);
-            return currentIndexOf != sortedIndexOf;
+            foreach (var classMembers in classMemberGroup)
+            {
+                var member = classMembers.Value.SingleOrDefault(x => x.FullSpan.Start == fullSpan.Start);
+                if (member == null) continue;
+
+                var currentIndexOf = classMembers.Value.IndexOf(member);
+
+                var sortedList = classMembers.Value
+                    .OrderBy(x => x.ClassName)
+                    .ThenBy(x => x.ModifiersOrder)
+                    .ThenBy(x => x.Name)
+                    .ToList();
+                var sortedIndexOf = sortedList.IndexOf(member);
+
+                if (currentIndexOf != sortedIndexOf)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool AnalyzeOrder(
