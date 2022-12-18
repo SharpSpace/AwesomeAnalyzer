@@ -53,7 +53,7 @@ namespace AwesomeAnalyzer
             var semanticModel = await document.GetSemanticModelAsync(token).ConfigureAwait(false);
             if (semanticModel == null) return document.Project.Solution;
 
-            var symbolInfo = semanticModel.GetSymbolInfo(declaration);
+            var symbolInfo = semanticModel.GetSymbolInfo(declaration)!;
 
             return await Renamer.RenameSymbolAsync(
                 document.Project.Solution,

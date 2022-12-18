@@ -1,19 +1,16 @@
-﻿using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
+﻿using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
     AwesomeAnalyzer.Analyzers.AddAwaitAnalyzer,
     AwesomeAnalyzer.AddAwaitCodeFixProvider>;
 
-namespace AwesomeAnalyzer.Test
+namespace AwesomeAnalyzer.Test;
+
+[TestClass]
+public sealed class AddAwaitTest
 {
-    [TestClass]
-    public sealed class AddAwaitTest
+    [TestMethod]
+    public async Task TestMissingAwait1_NoDiagnostic()
     {
-        [TestMethod]
-        public async Task TestMissingAwait1_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Threading.Tasks;
 
 namespace Test
@@ -25,12 +22,12 @@ namespace Test
         private async Task CAsync() => await Task.CompletedTask;
     }
 }");
-        }
+    }
 
-        [TestMethod]
-        public async Task TestMissingAwait2_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+    [TestMethod]
+    public async Task TestMissingAwait2_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Threading.Tasks;
 
 namespace Test
@@ -48,13 +45,13 @@ namespace Test
         public static async Task<string> CAsync() => await Task.FromResult(""Test"");
     }
 }");
-        }
+    }
 
 
-        [TestMethod]
-        public async Task TestMissingAwait3_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+    [TestMethod]
+    public async Task TestMissingAwait3_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(@"
 namespace MyNamespace
 {
     using System.Threading.Tasks;
@@ -64,12 +61,12 @@ namespace MyNamespace
         Task MethodAsync();
     }
 }");
-        }
+    }
 
-        [TestMethod]
-        public async Task TestMissingAwait4_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+    [TestMethod]
+    public async Task TestMissingAwait4_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(@"
 namespace MyNamespace
 {
     using System.Threading.Tasks;
@@ -79,12 +76,12 @@ namespace MyNamespace
         public Task<string> MethodAsync() { return Task.FromResult(""Async""); }
     }
 }");
-        }
+    }
 
-        [TestMethod]
-        public async Task TestMissingAwait1_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+    [TestMethod]
+    public async Task TestMissingAwait1_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(@"
 using System.Threading.Tasks;
 
 namespace Test
@@ -96,7 +93,7 @@ namespace Test
         private async Task CAsync() => await Task.CompletedTask;
     }
 }",
-                fixedSource: @"
+            fixedSource: @"
 using System.Threading.Tasks;
 
 namespace Test
@@ -108,6 +105,5 @@ namespace Test
         private async Task CAsync() => await Task.CompletedTask;
     }
 }");
-        }
     }
 }

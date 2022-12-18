@@ -1,12 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-
-namespace AwesomeAnalyzer
+﻿namespace AwesomeAnalyzer
 {
     public class ClassVirtualizationVisitor : CSharpSyntaxRewriter
     {
@@ -34,7 +26,7 @@ namespace AwesomeAnalyzer
                 BaseClasses = node.BaseList?.Types.Select(x => new ClassInformation
                 {
                     ClassName = x.ToString(),
-                    NameSpaceName = ((NamespaceDeclarationSyntax)x.Parent.Parent.Parent).Name.ToString()
+                    NameSpaceName = ((NamespaceDeclarationSyntax)x.Parent!.Parent!.Parent!).Name.ToString()
                 }).ToList()
             });
 

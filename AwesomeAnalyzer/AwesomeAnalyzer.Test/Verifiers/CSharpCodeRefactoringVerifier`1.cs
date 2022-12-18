@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Testing;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace AwesomeAnalyzer.Test
 {

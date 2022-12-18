@@ -1,111 +1,107 @@
-﻿using System.Threading.Tasks;
-
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
+﻿using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
     AwesomeAnalyzer.Analyzers.MakeSealedAnalyzer,
     AwesomeAnalyzer.MakeSealedCodeFixProvider>;
 
-namespace AwesomeAnalyzer.Test
+namespace AwesomeAnalyzer.Test;
+
+[TestClass]
+public class MakeSealedTest
 {
-    [TestClass]
-    public class MakeSealedTest
+    [TestMethod]
+    public async Task ClassTest_NoDiagnostic()
     {
-        [TestMethod]
-        public async Task ClassTest_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"sealed class Program {}");
-        }
+        await VerifyCS.VerifyAnalyzerAsync(@"sealed class Program {}");
+    }
 
-        [TestMethod]
-        public async Task PublicClassTest_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"public sealed class Program {}");
-        }
+    [TestMethod]
+    public async Task PublicClassTest_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(@"public sealed class Program {}");
+    }
 
-        [TestMethod]
-        public async Task PublicStaticClassTest_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"public static class Program {}");
-        }
+    [TestMethod]
+    public async Task PublicStaticClassTest_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(@"public static class Program {}");
+    }
 
-        [TestMethod]
-        public async Task ClassTest_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(
-                source: @"
+    [TestMethod]
+    public async Task ClassTest_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            source: @"
 class [|Program|]
 { }",
-                fixedSource: @"
+            fixedSource: @"
 sealed class [|Program|]
 { }");
-        }
+    }
 
-        [TestMethod]
-        public async Task PublicClassTest_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(
-                source: @"
+    [TestMethod]
+    public async Task PublicClassTest_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            source: @"
 public class [|Program|]
 { }",
-                fixedSource: @"
+            fixedSource: @"
 public sealed class Program
 { }");
-        }
+    }
 
-        [TestMethod]
-        public async Task InternalClassTest_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(
-                source: @"
+    [TestMethod]
+    public async Task InternalClassTest_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            source: @"
 internal class [|Program|]
 { }",
-                fixedSource: @"
+            fixedSource: @"
 internal sealed class Program
 { }");
-        }
+    }
 
-        [TestMethod]
-        public async Task Private2ClassTest_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(
-                source: @"
+    [TestMethod]
+    public async Task Private2ClassTest_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            source: @"
 namespace Sample
 {
     internal class [|Program|] { }
     internal class [|Program2|] { }
 }",
-                fixedSource: @"
+            fixedSource: @"
 namespace Sample
 {
     internal sealed class Program { }
     internal sealed class Program2 { }
 }");
-        }
+    }
 
-        [TestMethod]
-        public async Task ClassBaseClassTest_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(
-                source: @"
+    [TestMethod]
+    public async Task ClassBaseClassTest_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            source: @"
 namespace Sample
 {
     public class Program { }
     public class [|Program2|]: Program { }
 }",
-                fixedSource: @"
+            fixedSource: @"
 namespace Sample
 {
     public class Program { }
     public sealed class Program2: Program { }
 }");
-        }
+    }
 
-        [TestMethod]
-        public async Task ClassBaseClassDiffrentNamespacesTest_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(
-                source: @"
+    [TestMethod]
+    public async Task ClassBaseClassDiffrentNamespacesTest_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            source: @"
 namespace Sample
 {
     public class Program { }
@@ -115,7 +111,7 @@ namespace Sample.Test
 {
     public class [|Program|] { }
 }",
-                fixedSource: @"
+            fixedSource: @"
 namespace Sample
 {
     public class Program { }
@@ -125,7 +121,6 @@ namespace Sample.Test
 {
     public sealed class Program { }
 }");
-        }
-
     }
+
 }

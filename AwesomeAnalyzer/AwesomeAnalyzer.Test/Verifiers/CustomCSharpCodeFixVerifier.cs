@@ -1,13 +1,9 @@
 ﻿using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
-using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
-using Microsoft.CodeAnalysis;
 
 namespace AwesomeAnalyzer.Test
 {

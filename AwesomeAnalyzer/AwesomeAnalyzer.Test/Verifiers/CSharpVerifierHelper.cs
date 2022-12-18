@@ -1,9 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using System;
-using System.Collections.Immutable;
-
-namespace AwesomeAnalyzer.Test
+﻿namespace AwesomeAnalyzer.Test
 {
     internal static class CSharpVerifierHelper
     {

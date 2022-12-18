@@ -61,15 +61,6 @@ namespace AwesomeAnalyzer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type names should be all uppercase..
-        /// </summary>
-        internal static string AnalyzerDescription {
-            get {
-                return ResourceManager.GetString("AnalyzerDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Type name &apos;{0}&apos; contains lowercase letters.
         /// </summary>
         internal static string AnalyzerMessageFormat {

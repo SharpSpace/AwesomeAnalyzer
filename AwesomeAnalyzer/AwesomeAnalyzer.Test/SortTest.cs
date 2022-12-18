@@ -1,21 +1,17 @@
-﻿using System.Threading.Tasks;
-
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
+﻿using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
     AwesomeAnalyzer.Analyzers.SortAnalyzer,
     AwesomeAnalyzer.SortAndOrderCodeFixProvider>;
 
 
-namespace AwesomeAnalyzer.Test
+namespace AwesomeAnalyzer.Test;
+
+[TestClass]
+public sealed class SortTest
 {
-    [TestClass]
-    public sealed class SortTest
+    [TestMethod]
+    public async Task Test1_NoDiagnostic()
     {
-        [TestMethod]
-        public async Task Test1_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        await VerifyCS.VerifyAnalyzerAsync(@"
 sealed class Program
 {
     void A() { }
@@ -24,13 +20,26 @@ sealed class Program
 
     void C() { }
 }"
-            );
-        }
+        );
+    }
 
-        [TestMethod]
-        public async Task TestSort1_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+    [TestMethod]
+    public async Task Test2_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(@"
+class Program 
+{ 
+    public int Method()
+    {
+        return 0;
+    }
+}");
+    }
+
+    [TestMethod]
+    public async Task TestSort1_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(@"
 sealed class Program
 {
     void {|JJ1003:C|}() { }
@@ -39,7 +48,7 @@ sealed class Program
 
     void {|JJ1003:A|}() { }
 }",
-                @"
+            @"
 sealed class Program
 {
     void A() { }
@@ -48,13 +57,13 @@ sealed class Program
 
     void C() { }
 }"
-            );
-        }
+        );
+    }
 
-        [TestMethod]
-        public async Task TestSort2_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+    [TestMethod]
+    public async Task TestSort2_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(@"
 using System;
 
 sealed class Program
@@ -89,7 +98,7 @@ sealed class Program
 
     void C() { }
 }",
-                @"
+            @"
 using System;
 
 sealed class Program
@@ -124,33 +133,33 @@ sealed class Program
 
     void C() { }
 }"
-            );
-        }
+        );
+    }
 
-        [TestMethod]
-        public async Task TestSort3_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+    [TestMethod]
+    public async Task TestSort3_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(@"
 sealed class Program
 {
     private string {|JJ1001:_b|};
 
     private string {|JJ1001:_a|};
 }",
-                @"
+            @"
 sealed class Program
 {
     private string _a;
 
     private string _b;
 }"
-            );
-        }
+        );
+    }
 
-        [TestMethod]
-        public async Task TestSort4_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+    [TestMethod]
+    public async Task TestSort4_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(@"
 sealed class Program
 {
     void {|JJ1003:C|}()
@@ -164,7 +173,7 @@ sealed class Program
 
     void {|JJ1003:A|}() { }
 }",
-                @"
+            @"
 sealed class Program
 {
     void A() { }
@@ -178,13 +187,13 @@ sealed class Program
     {
     }
 }"
-            );
-        }
+        );
+    }
 
-        [TestMethod]
-        public async Task TestSort5_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+    [TestMethod]
+    public async Task TestSort5_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(@"
 sealed class Program
 {
     private string {|JJ1001:_b|};
@@ -198,7 +207,7 @@ sealed class Program2
 
     private string {|JJ1001:_a|};
 }",
-                @"
+            @"
 sealed class Program
 {
     private string _a;
@@ -212,33 +221,33 @@ sealed class Program2
 
     private string _b;
 }"
-            );
-        }
+        );
+    }
 
-        [TestMethod]
-        public async Task TestSortMember1_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+    [TestMethod]
+    public async Task TestSortMember1_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(@"
 sealed class Program
 {
     private const string {|JJ1001:_d|} = ""Const"";
 
     public const string {|JJ1001:_e|} = ""Const"";
 }",
-                @"
+            @"
 sealed class Program
 {
     public const string _e = ""Const"";
 
     private const string _d = ""Const"";
 }"
-            );
-        }
+        );
+    }
 
-        [TestMethod]
-        public async Task TestSortMember2_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+    [TestMethod]
+    public async Task TestSortMember2_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(@"
 sealed class Program
 {
     public string {|JJ1001:_c|};
@@ -255,7 +264,7 @@ sealed class Program
 
     private string _a;
 }",
-                @"
+            @"
 sealed class Program
 {
     public const string _e = ""Const"";
@@ -272,13 +281,13 @@ sealed class Program
 
     private string _a;
 }"
-            );
-        }
+        );
+    }
 
-        [TestMethod]
-        public async Task TestSortMember3_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+    [TestMethod]
+    public async Task TestSortMember3_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(@"
 namespace AwesomeAnalyzer.Test
 {
     sealed class Program
@@ -288,7 +297,7 @@ namespace AwesomeAnalyzer.Test
         public const string {|JJ1001:_e|} = ""Const"";
     }
 }",
-                @"
+            @"
 namespace AwesomeAnalyzer.Test
 {
     sealed class Program
@@ -298,13 +307,13 @@ namespace AwesomeAnalyzer.Test
         private const string _d = ""Const"";
     }
 }"
-            );
-        }
+        );
+    }
 
-        [TestMethod]
-        public async Task TestSortProperty1_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+    [TestMethod]
+    public async Task TestSortProperty1_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(@"
 namespace AwesomeAnalyzer.Test
 {
     sealed class Program
@@ -316,7 +325,7 @@ namespace AwesomeAnalyzer.Test
         public bool {|JJ1006:A|} { get; set; }
     }
 }",
-                @"
+            @"
 namespace AwesomeAnalyzer.Test
 {
     sealed class Program
@@ -328,7 +337,6 @@ namespace AwesomeAnalyzer.Test
         public string C { get; set; }
     }
 }"
-            );
-        }
+        );
     }
-}   
+}

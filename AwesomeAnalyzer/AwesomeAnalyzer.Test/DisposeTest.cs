@@ -1,20 +1,16 @@
-﻿using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
+﻿using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
     AwesomeAnalyzer.Analyzers.DisposedAnalyzer,
     AwesomeAnalyzer.DisposedCodeFixProvider>;
 
-namespace AwesomeAnalyzer.Test
+namespace AwesomeAnalyzer.Test;
+
+[TestClass]
+public sealed class DisposeTest
 {
-    [TestClass]
-    public sealed class DisposeTest
+    [TestMethod]
+    public async Task Test1_NoDiagnostic()
     {
-        [TestMethod]
-        public async Task Test1_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        await VerifyCS.VerifyAnalyzerAsync(@"
 using System.IO;
 
 namespace MyNamespace
@@ -27,12 +23,12 @@ namespace MyNamespace
         }
     }
 }");
-        }
+    }
 
-        [TestMethod]
-        public async Task Test2_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+    [TestMethod]
+    public async Task Test2_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(@"
 using System.IO;
 
 namespace MyNamespace
@@ -46,12 +42,12 @@ namespace MyNamespace
         }
     }
 }");
-        }
+    }
 
-        [TestMethod]
-        public async Task Test1_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+    [TestMethod]
+    public async Task Test1_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(@"
 using System.IO;
 
 namespace MyNamespace
@@ -76,14 +72,14 @@ namespace MyNamespace
         }
     }
 }");
-        }
+    }
 
-        [TestMethod]
-        public async Task Test2_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(
-                LanguageVersion.CSharp8, 
-                @"
+    [TestMethod]
+    public async Task Test2_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            LanguageVersion.CSharp8, 
+            @"
 using System.IO;
 
 namespace MyNamespace
@@ -110,14 +106,14 @@ namespace MyNamespace
         }
     }
 }");
-        }
+    }
 
-        [TestMethod]
-        public async Task Test3_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(
-                LanguageVersion.CSharp8,
-                @"
+    [TestMethod]
+    public async Task Test3_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            LanguageVersion.CSharp8,
+            @"
 using System.IO;
 
 namespace MyNamespace
@@ -152,7 +148,5 @@ namespace MyNamespace
         }
     }
 }");
-        }
     }
 }
-

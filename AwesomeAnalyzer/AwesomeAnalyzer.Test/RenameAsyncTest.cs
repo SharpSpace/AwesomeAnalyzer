@@ -1,40 +1,36 @@
-﻿using System.Threading.Tasks;
-
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
+﻿using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
     AwesomeAnalyzer.Analyzers.RenameAsyncAnalyzer,
     AwesomeAnalyzer.RenameAsyncCodeFixProvider>;
 
-namespace AwesomeAnalyzer.Test
+namespace AwesomeAnalyzer.Test;
+
+[TestClass]
+public sealed class RenameAsyncTest
 {
-    [TestClass]
-    public sealed class RenameAsyncTest
+    [TestMethod]
+    public async Task Test1_NoDiagnostic()
     {
-        [TestMethod]
-        public async Task Test1_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        await VerifyCS.VerifyAnalyzerAsync(@"
 class Program 
 { 
     void Method(){}
 }");
-        }
+    }
 
-        [TestMethod]
-        public async Task Test2_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+    [TestMethod]
+    public async Task Test2_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(@"
 class Program 
 { 
     async void MethodAsync(){}
 }");
-        }
+    }
 
-        [TestMethod]
-        public async Task Test3_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+    [TestMethod]
+    public async Task Test3_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(@"
 namespace MyNamespace
 {
     using System.Threading.Tasks;
@@ -44,12 +40,12 @@ namespace MyNamespace
         public async Task MethodAsync() {}
     }
 }");
-        }
+    }
 
-        [TestMethod]
-        public async Task Test4_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+    [TestMethod]
+    public async Task Test4_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(@"
 namespace MyNamespace
 {
     using System.Threading.Tasks;
@@ -59,12 +55,12 @@ namespace MyNamespace
         public async Task<string> MethodAsync() { return ""Async""; }
     }
 }");
-        }
+    }
 
-        [TestMethod]
-        public async Task Test5_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+    [TestMethod]
+    public async Task Test5_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(@"
 namespace MyNamespace
 {
     using System.Threading.Tasks;
@@ -74,31 +70,31 @@ namespace MyNamespace
         Task MethodAsync();
     }
 }");
-        }
+    }
 
-        [TestMethod]
-        public async Task Test1_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+    [TestMethod]
+    public async Task Test1_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(@"
 class Program 
 { 
     void [|MethodAsync|]()
     {
     }
 }",
-                fixedSource: @"
+            fixedSource: @"
 class Program 
 { 
     void Method()
     {
     }
 }");
-        }
+    }
 
-        [TestMethod]
-        public async Task Test2_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+    [TestMethod]
+    public async Task Test2_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(@"
 class Program 
 { 
     string [|MethodAsync|]()
@@ -106,7 +102,7 @@ class Program
         return ""Async"";
     }
 }",
-                fixedSource: @"
+            fixedSource: @"
 class Program 
 { 
     string Method()
@@ -114,12 +110,12 @@ class Program
         return ""Async"";
     }
 }");
-        }
+    }
 
-        [TestMethod]
-        public async Task Test3_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+    [TestMethod]
+    public async Task Test3_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(@"
 class Program 
 { 
     string [|MethodAsync|]()
@@ -132,7 +128,7 @@ class Program
         this.MethodAsync();
     }
 }",
-                fixedSource: @"
+            fixedSource: @"
 class Program 
 { 
     string Method()
@@ -145,7 +141,6 @@ class Program
         this.Method();
     }
 }");
-        }
-
     }
+
 }

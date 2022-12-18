@@ -25,7 +25,7 @@ namespace AwesomeAnalyzer
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             //context.Document.Project.CompilationOptions
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false)!;
             var languageVersion = ((CSharpParseOptions)(await context.Document.GetSyntaxTreeAsync(context.CancellationToken))?.Options)?.LanguageVersion ?? LanguageVersion.CSharp6;
 
             foreach (var diagnostic in context.Diagnostics)
@@ -58,9 +58,9 @@ namespace AwesomeAnalyzer
 
             if (languageVersion <= LanguageVersion.CSharp8)
             {
-                var children = declaration.Parent.ChildNodes().Where(x => x.FullSpan.Start >= declaration.FullSpan.End).ToList();
+                var children = declaration.Parent!.ChildNodes().Where(x => x.FullSpan.Start >= declaration.FullSpan.End).ToList();
 
-                var oldSource = (await document.GetSyntaxRootAsync(token).ConfigureAwait(false)).ToFullString();
+                var oldSource = (await document.GetSyntaxRootAsync(token).ConfigureAwait(false))!.ToFullString();
 
                 var newSource = oldSource;
                 var blockCode = string.Empty;
@@ -85,7 +85,7 @@ namespace AwesomeAnalyzer
             }
             else
             {
-                var oldSource = (await document.GetSyntaxRootAsync(token).ConfigureAwait(false)).ToFullString();
+                var oldSource = (await document.GetSyntaxRootAsync(token).ConfigureAwait(false))!.ToFullString();
                 var newSource = oldSource.Insert(declaration.SpanStart, "using ");
 
                 return document.WithText(SourceText.From(newSource));

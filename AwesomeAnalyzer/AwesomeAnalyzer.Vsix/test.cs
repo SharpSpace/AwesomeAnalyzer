@@ -54,11 +54,24 @@ namespace AwesomeAnalyzer.Test
 
 namespace Test
 {
+    
     sealed class Program
     {
-        void A()
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CS0029: Cannot implicitly convert type 'string' to 'int'", Justification = "Test")]
+        public int Method()
         {
-            using var reader = new StreamReader("");
+            //var a = "0";
+            //int i = a; //int.TryParse("0", out var value) ? value : 0;
+
+            return 0;
+        }
+    }
+
+    class Program2
+    {
+        public int Method()
+        {
+            return int.Parse("1");
         }
     }
 }

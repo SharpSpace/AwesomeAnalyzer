@@ -1,20 +1,16 @@
-﻿using System.Threading.Tasks;
-
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
+﻿using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
     AwesomeAnalyzer.Analyzers.MakeConstAnalyzer,
     AwesomeAnalyzer.MakeConstCodeFixProvider>;
 
-namespace AwesomeAnalyzer.Test
+namespace AwesomeAnalyzer.Test;
+
+[TestClass]
+public class MakeConstUnitTest
 {
-    [TestClass]
-    public class MakeConstUnitTest
+    [TestMethod]
+    public async Task VariableIsAssigned_NoDiagnostic()
     {
-        [TestMethod]
-        public async Task VariableIsAssigned_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 class Program
 {
@@ -25,12 +21,12 @@ class Program
     }
 }
 ");
-        }
+    }
 
-        [TestMethod]
-        public async Task VariableIsAlreadyConst_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+    [TestMethod]
+    public async Task VariableIsAlreadyConst_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 class Program
 {
@@ -41,12 +37,12 @@ class Program
     }
 }
 ");
-        }
+    }
 
-        [TestMethod]
-        public async Task NoInitializer_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+    [TestMethod]
+    public async Task NoInitializer_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 class Program
 {
@@ -58,12 +54,12 @@ class Program
     }
 }
 ");
-        }
+    }
 
-        [TestMethod]
-        public async Task InitializerIsNotConstant_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+    [TestMethod]
+    public async Task InitializerIsNotConstant_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 class Program
 {
@@ -74,12 +70,12 @@ class Program
     }
 }
 ");
-        }
+    }
 
-        [TestMethod]
-        public async Task MultipleInitializers_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+    [TestMethod]
+    public async Task MultipleInitializers_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 class Program
 {
@@ -91,12 +87,12 @@ class Program
     }
 }
 ");
-        }
+    }
 
-        [TestMethod]
-        public async Task DeclarationIsInvalid_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+    [TestMethod]
+    public async Task DeclarationIsInvalid_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 class Program
 {
@@ -106,12 +102,12 @@ class Program
     }
 }
 ");
-        }
+    }
 
-        [TestMethod]
-        public async Task DeclarationIsNotString_NoDiagnostic()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+    [TestMethod]
+    public async Task DeclarationIsNotString_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 class Program
 {
@@ -121,12 +117,12 @@ class Program
     }
 }
 ");
-        }
+    }
 
-        [TestMethod]
-        public async Task LocalIntCouldBeConstant_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+    [TestMethod]
+    public async Task LocalIntCouldBeConstant_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(@"
 using System;
 class Program
 {
@@ -147,12 +143,12 @@ class Program
     }
 }
 ");
-        }
+    }
 
-        [TestMethod]
-        public async Task StringCouldBeConstant_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+    [TestMethod]
+    public async Task StringCouldBeConstant_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(@"
 using System;
 class Program
 {
@@ -171,12 +167,12 @@ class Program
     }
 }
 ");
-        }
+    }
 
-        [TestMethod]
-        public async Task VarIntDeclarationCouldBeConstant_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+    [TestMethod]
+    public async Task VarIntDeclarationCouldBeConstant_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(@"
 using System;
 class Program
 {
@@ -195,12 +191,12 @@ class Program
     }
 }
 ");
-        }
+    }
 
-        [TestMethod]
-        public async Task VarStringDeclarationCouldBeConstant_Diagnostic()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+    [TestMethod]
+    public async Task VarStringDeclarationCouldBeConstant_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(@"
 using System;
 class Program
 {
@@ -219,6 +215,5 @@ class Program
     }
 }
 ");
-        }
     }
 }

@@ -44,7 +44,9 @@ namespace AwesomeAnalyzer
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         "Sort document",
-                        token => SortDocumentAsync(context.Document, root, token, oldSource),
+                        token => SortDocumentAsync(context.Document, root, oldSource,
+                            token
+                        ),
                         equivalenceKey: "SortCodeFixTitle"
                     ),
                     diagnostic
@@ -55,8 +57,8 @@ namespace AwesomeAnalyzer
         private static Task<Document> SortDocumentAsync(
             Document document,
             SyntaxNode root,
-            CancellationToken token,
-            string oldSource
+            string oldSource,
+            CancellationToken token
         )
         {
             var sortVirtualizationVisitor = new SortVirtualizationVisitor();
@@ -90,7 +92,7 @@ namespace AwesomeAnalyzer
 
             var count = classMemberGroup.ToDictionary(
                 item => item.Key,
-                item => 0
+                _ => 0
             );
 
             foreach (var tuple in oldCode

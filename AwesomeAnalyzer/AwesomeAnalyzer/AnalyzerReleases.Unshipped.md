@@ -24,3 +24,4 @@ JJ1010 | Order | Warning | SortAnalyzer
 JJ1011 | Order | Warning | SortAnalyzer
 JJ1012 | Order | Warning | SortAnalyzer
 JJ1013 | Order | Warning | SortAnalyzer
+JJ2001 | Order | Warning | DiagnosticDescriptors
