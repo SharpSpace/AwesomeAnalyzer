@@ -9,6 +9,25 @@ public sealed class ParseAnalyzer : DiagnosticAnalyzer
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
         ImmutableArray.Create(DiagnosticDescriptors.ParseIntRule2001);
 
+    public static readonly ImmutableArray<dynamic> Types = ImmutableArray.CreateRange(
+        new dynamic[]
+            {
+                new TryParseTypes<bool>("bool", true, false),
+                new TryParseTypes<byte>("byte", 0, (byte)0),
+                //new TryParseTypes<char>("char", 'c', char.MaxValue),
+                new TryParseTypes<decimal>("decimal", 1m, 0m),
+                new TryParseTypes<double>("double", 2d, 0d),
+                new TryParseTypes<float>("float", 3f, 0f),
+                new TryParseTypes<int>("int", 10, 0),
+                new TryParseTypes<long>("long", 100, 0),
+                new TryParseTypes<sbyte>("sbyte", 1, 0),
+                new TryParseTypes<short>("short", 1, 0),
+                new TryParseTypes<uint>("uint", 10, 0),
+                new TryParseTypes<ulong>("ulong", 100, 0),
+                new TryParseTypes<ushort>("ushort", 1, 0)
+            }
+    );
+
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
@@ -48,8 +67,9 @@ public sealed class ParseAnalyzer : DiagnosticAnalyzer
 
         var expectedType = GetExpectedType(context, valueExpression);
         if (expectedType is null or 
-            IdentifierNameSyntax { Identifier.ValueText: "var" } or 
-            PredefinedTypeSyntax { Keyword.ValueText: not "int" })
+            IdentifierNameSyntax { Identifier.ValueText: "var" } ||
+            (expectedType is PredefinedTypeSyntax predefinedTypeSyntax && Types.Any(x => x.TypeName == predefinedTypeSyntax.Keyword.ValueText) == false)
+        )
         {
             return;
         }
@@ -117,4 +137,35 @@ public sealed class ParseAnalyzer : DiagnosticAnalyzer
         _variableTypesCache[valueExpression] = variableType;
         return variableType;
     }
+}
+
+public interface ITryParseTypes
+{
+    public string TypeName { get; }
+
+    public string TestValueString { get; }
+
+    public string DefaultValueString { get; }
+}
+
+public readonly record struct TryParseTypes<T>(string TypeName, T TestValue, T DefaultValue) // : ITryParseTypes
+{
+    //public string TestValueString => TypeName switch
+    //{
+    //    "decimal" => "\"" + TestValue.ToString().ToLower() + "\"",
+    //    _ => TestValue.ToString().ToLower()
+    //};
+
+    public string TestValueString => $"\"{TestValue.ToString().ToLower()}\"";
+
+    public string DefaultValueString => DefaultValue.ToString().ToLower();
+
+    public string Cast => TypeName switch
+    {
+        "byte" => "(byte)",
+        "sbyte" => "(sbyte)",
+        "short" => "(short)",
+        "ushort" => "(ushort)",
+        _ => string.Empty
+    };
 }

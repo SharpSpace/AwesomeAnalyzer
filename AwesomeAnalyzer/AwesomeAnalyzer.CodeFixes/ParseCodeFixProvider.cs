@@ -3,6 +3,7 @@ using System.Composition;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AwesomeAnalyzer.Analyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -67,40 +68,7 @@ public sealed class ParseCodeFixProvider : CodeFixProvider
     )
     {
         if (localDeclaration.Parent.Parent is not VariableDeclarationSyntax variableDeclarationSyntax) return Task.FromResult(document);
-        var isNullable = false;
-        if (variableDeclarationSyntax.Type is NullableTypeSyntax nullableTypeSyntax)
-        {
-            isNullable = true;
-            if (nullableTypeSyntax.ElementType is not PredefinedTypeSyntax predefinedTypeSyntax) return Task.FromResult(document);
-            if (predefinedTypeSyntax.Keyword.ValueText != "int") return Task.FromResult(document);
-        }
-        else
-        {
-            if (variableDeclarationSyntax.Type is not PredefinedTypeSyntax predefinedTypeSyntax) return Task.FromResult(document);
-            if (predefinedTypeSyntax.Keyword.ValueText != "int") return Task.FromResult(document);
-        }
-
-        var newSource = new StringBuilder(
-            oldSource.Substring(
-                0,
-                localDeclaration.Value.SpanStart
-            )
-        );
-
-        newSource.Append($"int.TryParse({localDeclaration.Value}, out var value) ? value : ");
-        newSource.Append(isNullable ? "null" : "0");
-
-        newSource.Append(
-            oldSource.Substring(
-                localDeclaration.Value.Span.End
-            )
-        );
-
-        return Task.FromResult(document.WithText(
-            SourceText.From(
-                newSource.ToString()
-            )
-        ));
+        return ParseAsync(document, oldSource, variableDeclarationSyntax.Type, localDeclaration.Value.Span, localDeclaration.Value);
     }
 
     private Task<Document> ParseAsync(
@@ -110,30 +78,65 @@ public sealed class ParseCodeFixProvider : CodeFixProvider
     )
     {
         if (localDeclaration.Parent?.Parent is not MethodDeclarationSyntax methodDeclarationSyntax) return Task.FromResult(document);
+        return ParseAsync(
+            document,
+            oldSource,
+            methodDeclarationSyntax.ReturnType,
+            localDeclaration.Expression.Span,
+            localDeclaration.Expression
+        );
+    }
+
+    private static Task<Document> ParseAsync(
+        Document document,
+        string oldSource,
+        TypeSyntax typeSyntax,
+        TextSpan span,
+        ExpressionSyntax expressionSyntax
+    )
+    {
         var isNullable = false;
-        if (methodDeclarationSyntax.ReturnType is NullableTypeSyntax nullableTypeSyntax)
+        string type;
+        if (typeSyntax is NullableTypeSyntax nullableTypeSyntax)
         {
             isNullable = true;
             if (nullableTypeSyntax.ElementType is not PredefinedTypeSyntax predefinedTypeSyntax) return Task.FromResult(document);
-            if (predefinedTypeSyntax.Keyword.ValueText != "int") return Task.FromResult(document);
+            if (ParseAnalyzer.Types.Any(x => x.TypeName == predefinedTypeSyntax.Keyword.ValueText) == false) return Task.FromResult(document);
+            type = predefinedTypeSyntax.Keyword.ValueText;
         }
         else
         {
-            if (methodDeclarationSyntax.ReturnType is not PredefinedTypeSyntax predefinedTypeSyntax) return Task.FromResult(document);
-            if (predefinedTypeSyntax.Keyword.ValueText != "int") return Task.FromResult(document);
+            if (typeSyntax is not PredefinedTypeSyntax predefinedTypeSyntax) return Task.FromResult(document);
+            if (ParseAnalyzer.Types.Any(x => x.TypeName == predefinedTypeSyntax.Keyword.ValueText) == false) return Task.FromResult(document);
+            type = predefinedTypeSyntax.Keyword.ValueText;
         }
 
         var newSource = new StringBuilder(
-            oldSource[..localDeclaration.Expression.SpanStart]
+            oldSource[..span.Start]
         );
 
-        newSource.Append($"int.TryParse({localDeclaration.Expression}, out var value) ? value : ");
-        newSource.Append(isNullable ? "null" : "0");
+        var itemType = ParseAnalyzer.Types.Single(x => x.TypeName == type);
+
+        newSource.Append(type);
+        newSource.Append($".TryParse({expressionSyntax}, out var value) ? value : ");
+        if (isNullable == false)
+        {
+            newSource.Append(itemType.Cast);
+        }
+        newSource.Append(isNullable ? "null" : itemType.DefaultValueString);
 
         newSource.Append(
-            oldSource[localDeclaration.Expression.Span.End..]
+            oldSource.Substring(
+                span.End
+            )
         );
 
-        return Task.FromResult(document.WithText(SourceText.From(newSource.ToString())));
+        return Task.FromResult(
+            document.WithText(
+                SourceText.From(
+                    newSource.ToString()
+                )
+            )
+        );
     }
 }

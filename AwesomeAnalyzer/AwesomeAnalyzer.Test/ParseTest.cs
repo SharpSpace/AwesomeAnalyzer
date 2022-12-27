@@ -1,4 +1,8 @@
-﻿using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
+﻿using System.Diagnostics;
+using System.Linq;
+using System.Text.Json;
+using AwesomeAnalyzer.Analyzers;
+using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
     AwesomeAnalyzer.Analyzers.ParseAnalyzer,
     AwesomeAnalyzer.ParseCodeFixProvider>;
 
@@ -72,7 +76,6 @@ public sealed class ParseTest
                 }
                 """);
     }
-
 
     [TestMethod]
     public async Task TestInt2_Diagnostic()
@@ -196,5 +199,159 @@ public sealed class ParseTest
                     }
                 }
                 """);
+    }
+
+    [TestMethod]
+    public async Task TestDecimal1_Diagnostic()
+    {
+        var item = ParseAnalyzer.Types.Single(x => x.TypeName == "decimal");
+        await VerifyCS.VerifyCodeFixAsync($$"""
+                class Program 
+                { 
+                    public void Method()
+                    {
+                        {{item.TypeName}} i = {|CS0029:{|JJ2001:{{item.TestValueString}}|}|};
+                    }
+                }
+                """,
+            fixedSource: $$"""
+                class Program 
+                { 
+                    public void Method()
+                    {
+                        {{item.TypeName}} i = {{item.TypeName}}.TryParse({{item.TestValueString}}, out var value) ? value : {{item.DefaultValueString}};
+                    }
+                }
+                """);
+    }
+
+    [TestMethod]
+    public async Task TestDecimal20_Diagnostic()
+    {
+
+        await VerifyCS.VerifyCodeFixAsync("""
+                class Program 
+                { 
+                    public void Method()
+                    {
+                        var s = "1";
+                        decimal i = {|CS0029:{|JJ2001:s|}|};
+                    }
+                }
+                """,
+            fixedSource: """
+                class Program 
+                { 
+                    public void Method()
+                    {
+                        var s = "1";
+                        decimal i = decimal.TryParse(s, out var value) ? value : 0;
+                    }
+                }
+                """);
+    }
+
+    [TestMethod]
+    public async Task TestByte1_Diagnostic()
+    {
+        var item = ParseAnalyzer.Types.Single(x => x.TypeName == "byte");
+        await VerifyCS.VerifyCodeFixAsync($$"""
+                class Program 
+                { 
+                    public void Method()
+                    {
+                        {{item.TypeName}} i = {|CS0029:{|JJ2001:{{item.TestValueString}}|}|};
+                    }
+                }
+                """,
+            fixedSource: $$"""
+                class Program 
+                { 
+                    public void Method()
+                    {
+                        {{item.TypeName}} i = {{item.TypeName}}.TryParse({{item.TestValueString}}, out var value) ? value : {{item.Cast}}{{item.DefaultValueString}};
+                    }
+                }
+                """);
+    }
+
+    //[TestMethod]
+    //public async Task TestChar1_Diagnostic()
+    //{
+    //    var item = ParseAnalyzer.Types.Single(x => x.TypeName == "char");
+    //    await VerifyCS.VerifyCodeFixAsync($$"""
+    //            class Program 
+    //            { 
+    //                public void Method()
+    //                {
+    //                    {{item.TypeName}} i = {|CS0029:{|JJ2001:{{item.TestValueString}}|}|};
+    //                }
+    //            }
+    //            """,
+    //        fixedSource: $$"""
+    //            class Program 
+    //            { 
+    //                public void Method()
+    //                {
+    //                    {{item.TypeName}} i = {{item.TypeName}}.TryParse({{item.TestValueString}}, out var value) ? value : {{item.Cast}}{{item.DefaultValueString}};
+    //                }
+    //            }
+    //            """);
+    //}
+
+    [TestMethod]
+    public async Task Test1_Diagnostic()
+    {
+        foreach (var item in ParseAnalyzer.Types)
+        {
+            Debug.WriteLine(JsonSerializer.Serialize((object)item, new JsonSerializerOptions { WriteIndented = true }));
+
+            await VerifyCS.VerifyCodeFixAsync($$"""
+                class Program 
+                { 
+                    public void Method()
+                    {
+                        {{item.TypeName}} i = {|CS0029:{|JJ2001:{{item.TestValueString}}|}|};
+                    }
+                }
+                """,
+                fixedSource: $$"""
+                class Program 
+                { 
+                    public void Method()
+                    {
+                        {{item.TypeName}} i = {{item.TypeName}}.TryParse({{item.TestValueString}}, out var value) ? value : {{item.Cast}}{{item.DefaultValueString}};
+                    }
+                }
+                """);
+        }
+    }
+
+    [TestMethod]
+    public async Task Test2_Diagnostic()
+    {
+        foreach (var item in ParseAnalyzer.Types)
+        {
+            Debug.WriteLine(JsonSerializer.Serialize((object)item, new JsonSerializerOptions { WriteIndented = true }));
+
+            await VerifyCS.VerifyCodeFixAsync($$"""
+                class Program 
+                { 
+                    public void Method()
+                    {
+                        {{item.TypeName}}? i = {|CS0029:{|JJ2001:{{item.TestValueString}}|}|};
+                    }
+                }
+                """,
+                fixedSource: $$"""
+                class Program 
+                { 
+                    public void Method()
+                    {
+                        {{item.TypeName}}? i = {{item.TypeName}}.TryParse({{item.TestValueString}}, out var value) ? value : null;
+                    }
+                }
+                """);
+        }
     }
 }
