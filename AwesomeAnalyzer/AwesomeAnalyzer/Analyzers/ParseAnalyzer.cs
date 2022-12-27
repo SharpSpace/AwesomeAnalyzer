@@ -7,7 +7,7 @@ public sealed class ParseAnalyzer : DiagnosticAnalyzer
     private readonly Dictionary<ExpressionSyntax, ITypeSymbol> _variableTypesCache = new();
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-        ImmutableArray.Create(DiagnosticDescriptors.ParseIntRule2001);
+        ImmutableArray.Create(DiagnosticDescriptors.ParseStringRule0005);
 
     public static readonly ImmutableArray<dynamic> Types = ImmutableArray.CreateRange(
         new dynamic[]
@@ -76,7 +76,7 @@ public sealed class ParseAnalyzer : DiagnosticAnalyzer
 
         context.ReportDiagnostic(
             Diagnostic.Create(
-                DiagnosticDescriptors.ParseIntRule2001,
+                DiagnosticDescriptors.ParseStringRule0005,
                 valueExpression.GetLocation()
             )
         );

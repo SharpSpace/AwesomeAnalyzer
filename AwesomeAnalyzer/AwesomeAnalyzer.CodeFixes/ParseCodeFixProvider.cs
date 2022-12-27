@@ -9,13 +9,14 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using System;
 
 namespace AwesomeAnalyzer;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider)), Shared]
 public sealed class ParseCodeFixProvider : CodeFixProvider
 {
-    public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticDescriptors.ParseIntRule2001.Id);
+    public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticDescriptors.ParseStringRule0005.Id);
 
     public override FixAllProvider GetFixAllProvider() => null;
 
@@ -40,7 +41,7 @@ public sealed class ParseCodeFixProvider : CodeFixProvider
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         "Add Parse",
-                        _ => ParseAsync(context.Document, declaration, oldSource),
+                        _ => Task.FromResult(Parse(context.Document, declaration, oldSource)),
                         equivalenceKey: "ParseCodeFixTitle"
                     ),
                     diagnostic
@@ -52,7 +53,7 @@ public sealed class ParseCodeFixProvider : CodeFixProvider
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         "Add Parse",
-                        token => ParseAsync(context.Document, declaration, oldSource),
+                        _ => Task.FromResult(Parse(context.Document, declaration, oldSource)),
                         equivalenceKey: "ParseCodeFixTitle"
                     ),
                     diagnostic
@@ -61,33 +62,35 @@ public sealed class ParseCodeFixProvider : CodeFixProvider
         }
     }
 
-    private Task<Document> ParseAsync(
+    private static Document Parse(
         Document document,
         EqualsValueClauseSyntax localDeclaration,
         string oldSource
     )
     {
-        if (localDeclaration.Parent.Parent is not VariableDeclarationSyntax variableDeclarationSyntax) return Task.FromResult(document);
-        return ParseAsync(document, oldSource, variableDeclarationSyntax.Type, localDeclaration.Value.Span, localDeclaration.Value);
+        return localDeclaration.Parent.Parent is VariableDeclarationSyntax variableDeclarationSyntax 
+            ? Parse(document, oldSource, variableDeclarationSyntax.Type, localDeclaration.Value.Span, localDeclaration.Value)
+            : document;
     }
 
-    private Task<Document> ParseAsync(
+    private static Document Parse(
         Document document,
         ReturnStatementSyntax localDeclaration,
         string oldSource
     )
     {
-        if (localDeclaration.Parent?.Parent is not MethodDeclarationSyntax methodDeclarationSyntax) return Task.FromResult(document);
-        return ParseAsync(
-            document,
-            oldSource,
-            methodDeclarationSyntax.ReturnType,
-            localDeclaration.Expression.Span,
-            localDeclaration.Expression
-        );
+        return localDeclaration.Parent?.Parent is MethodDeclarationSyntax methodDeclarationSyntax
+            ? Parse(
+                document,
+                oldSource,
+                methodDeclarationSyntax.ReturnType,
+                localDeclaration.Expression.Span,
+                localDeclaration.Expression
+            )
+            : document;
     }
 
-    private static Task<Document> ParseAsync(
+    private static Document Parse(
         Document document,
         string oldSource,
         TypeSyntax typeSyntax,
@@ -100,14 +103,14 @@ public sealed class ParseCodeFixProvider : CodeFixProvider
         if (typeSyntax is NullableTypeSyntax nullableTypeSyntax)
         {
             isNullable = true;
-            if (nullableTypeSyntax.ElementType is not PredefinedTypeSyntax predefinedTypeSyntax) return Task.FromResult(document);
-            if (ParseAnalyzer.Types.Any(x => x.TypeName == predefinedTypeSyntax.Keyword.ValueText) == false) return Task.FromResult(document);
+            if (nullableTypeSyntax.ElementType is not PredefinedTypeSyntax predefinedTypeSyntax) return document;
+            if (ParseAnalyzer.Types.Any(x => x.TypeName == predefinedTypeSyntax.Keyword.ValueText) == false) return document;
             type = predefinedTypeSyntax.Keyword.ValueText;
         }
         else
         {
-            if (typeSyntax is not PredefinedTypeSyntax predefinedTypeSyntax) return Task.FromResult(document);
-            if (ParseAnalyzer.Types.Any(x => x.TypeName == predefinedTypeSyntax.Keyword.ValueText) == false) return Task.FromResult(document);
+            if (typeSyntax is not PredefinedTypeSyntax predefinedTypeSyntax) return document;
+            if (ParseAnalyzer.Types.Any(x => x.TypeName == predefinedTypeSyntax.Keyword.ValueText) == false) return document;
             type = predefinedTypeSyntax.Keyword.ValueText;
         }
 
@@ -126,16 +129,14 @@ public sealed class ParseCodeFixProvider : CodeFixProvider
         newSource.Append(isNullable ? "null" : itemType.DefaultValueString);
 
         newSource.Append(
-            oldSource.Substring(
+            oldSource.AsSpan(
                 span.End
             )
         );
 
-        return Task.FromResult(
-            document.WithText(
-                SourceText.From(
-                    newSource.ToString()
-                )
+        return document.WithText(
+            SourceText.From(
+                newSource.ToString()
             )
         );
     }

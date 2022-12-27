@@ -34,6 +34,16 @@ public static class DiagnosticDescriptors
         description: "Statement is missing using because type implements IDisposable."
     );
 
+    public static readonly DiagnosticDescriptor ParseStringRule0005 = new DiagnosticDescriptor(
+        "JJ2001",
+        "Add TryParse",
+        "Add TryParse",
+        Category,
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: "Add TryParse."
+    );
+
     public static readonly DiagnosticDescriptor RenameAsyncRule0100 = new DiagnosticDescriptor(
         "JJ0100",
         "Method contains Async prefix",
@@ -179,15 +189,5 @@ public static class DiagnosticDescriptors
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: "Order methods in correct order."
-    );
-
-    public static readonly DiagnosticDescriptor ParseIntRule2001 = new DiagnosticDescriptor(
-        "JJ2001",
-        "Add Parse",
-        "Add Parse", 
-        Category,
-        DiagnosticSeverity.Warning,
-        isEnabledByDefault: true,
-        description: "Add Parse."
     );
 }
