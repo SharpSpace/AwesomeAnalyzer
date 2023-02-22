@@ -97,7 +97,7 @@ namespace AwesomeAnalyzer
                     }
                 }
             }
-            
+
             // Produce the new local declaration.
             var newLocal = trimmedLocal.WithModifiers(newModifiers)
                                        .WithDeclaration(variableDeclaration);

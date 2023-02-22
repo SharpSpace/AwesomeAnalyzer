@@ -1,47 +1,63 @@
-﻿namespace AwesomeAnalyzer.Analyzers;
+﻿using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-public sealed class DisposedAnalyzer : DiagnosticAnalyzer
+namespace AwesomeAnalyzer.Analyzers
 {
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-        DiagnosticDescriptors.DisposedRule0004
-    );
-
-    public override void Initialize(AnalysisContext context)
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public sealed class DisposedAnalyzer : DiagnosticAnalyzer
     {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
+        private const string TextUsing = "using";
+        private const string TextIDisposable = "IDisposable";
 
-        context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ObjectCreationExpression);
-    }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+            DiagnosticDescriptors.DisposedRule0004
+        );
 
-    private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
-    {
-        if (context.Node is not ObjectCreationExpressionSyntax objectCreationExpressionSyntax) return;
-        if (objectCreationExpressionSyntax.Parent is not EqualsValueClauseSyntax equalsValueClauseSyntax) return;
-        if (equalsValueClauseSyntax.Parent is not VariableDeclaratorSyntax variableDeclaratorSyntax) return;
-        if (variableDeclaratorSyntax.Parent is not VariableDeclarationSyntax variableDeclarationSyntax) return;
+        public override void Initialize(AnalysisContext context)
+        {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
 
-        var localDeclarationStatementSyntax = variableDeclarationSyntax.Parent as LocalDeclarationStatementSyntax;
-        if (localDeclarationStatementSyntax is { UsingKeyword.ValueText: "using" }
-        ) return;
+            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ObjectCreationExpression);
+        }
 
-        if (!(localDeclarationStatementSyntax?.Parent is BlockSyntax blockSyntax)) return;
+        private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        {
+            if (!(context.Node is ObjectCreationExpressionSyntax objectCreationExpressionSyntax)) return;
+            if (!(objectCreationExpressionSyntax.Parent is EqualsValueClauseSyntax equalsValueClauseSyntax)) return;
+            if (!(equalsValueClauseSyntax.Parent is VariableDeclaratorSyntax variableDeclaratorSyntax)) return;
+            if (!(variableDeclaratorSyntax.Parent is VariableDeclarationSyntax variableDeclarationSyntax)) return;
+            if (!(variableDeclarationSyntax.Parent is LocalDeclarationStatementSyntax localDeclarationStatementSyntax)) return;
 
-        var expressionStatementSyntaxes = blockSyntax.Statements.OfType<ExpressionStatementSyntax>();
-        var expression = $"{variableDeclaratorSyntax.Identifier.ValueText}.Dispose()";
-        if (expressionStatementSyntaxes.Any(x => x.Expression.ToString() == expression)) return;
+            if (localDeclarationStatementSyntax.UsingKeyword.ValueText == TextUsing) return;
 
-        var typeSymbol = context.SemanticModel.GetTypeInfo(objectCreationExpressionSyntax).Type;
-        if (typeSymbol == null) return;
+            if (!(localDeclarationStatementSyntax?.Parent is BlockSyntax blockSyntax)) return;
 
-        var interfaces = typeSymbol.AllInterfaces;
-        if (interfaces.Any(x => x.Name == "IDisposable") == false) return;
+            var expression = variableDeclaratorSyntax.Identifier.ValueText;
+            if (blockSyntax.Statements
+                .OfType<ExpressionStatementSyntax>()
+                .Any(x => 
+                    x.Expression.ToString().StartsWith(expression)
+                )
+            ) return;
 
-        context.ReportDiagnostic(Diagnostic.Create(
-            DiagnosticDescriptors.DisposedRule0004,
-            variableDeclarationSyntax.GetLocation(),
-            messageArgs: variableDeclarationSyntax.ToString()
-        ));
+            var typeSymbol = ModelExtensions.GetTypeInfo(context.SemanticModel, objectCreationExpressionSyntax).Type;
+            if (typeSymbol == null) return;
+
+            var interfaces = typeSymbol.AllInterfaces;
+            if (interfaces.Any(x => x.Name == TextIDisposable) == false) return;
+
+            context.ReportDiagnostic(Diagnostic.Create(
+                DiagnosticDescriptors.DisposedRule0004,
+                variableDeclarationSyntax.GetLocation(),
+                messageArgs: variableDeclarationSyntax.ToString()
+            ));
+        }
     }
 }

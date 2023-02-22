@@ -66,7 +66,7 @@ namespace AwesomeAnalyzer
 
             var oldCode = sortVirtualizationVisitor.Members
                 .SelectMany(
-                    x => x.Value, 
+                    x => x.Value,
                     (x, item) => (
                         item.ClassName, 
                         Order: x.Key, 
@@ -86,8 +86,8 @@ namespace AwesomeAnalyzer
             }
 
             var classMemberGroup = sortVirtualizationVisitor.Classes.ToDictionary(
-                x => x.ClassName,
-                y => sortVirtualizationVisitor.Members.SelectMany(x => x.Value).Where(x => x.FullSpan.IntersectsWith(y.FullSpan)).Min(x => x.FullSpan.Start)
+                x => x.Value.ClassName,
+                y => sortVirtualizationVisitor.Members.SelectMany(x => x.Value).Where(x => x.FullSpan.IntersectsWith(y.Key)).Min(x => x.FullSpan.Start)
             );
 
             var count = classMemberGroup.ToDictionary(

@@ -2,7 +2,6 @@
     AwesomeAnalyzer.Analyzers.SortAnalyzer,
     AwesomeAnalyzer.SortAndOrderCodeFixProvider>;
 
-
 namespace AwesomeAnalyzer.Test;
 
 [TestClass]
@@ -11,332 +10,352 @@ public sealed class SortTest
     [TestMethod]
     public async Task Test1_NoDiagnostic()
     {
-        await VerifyCS.VerifyAnalyzerAsync(@"
-sealed class Program
-{
-    void A() { }
+        await VerifyCS.VerifyAnalyzerAsync("""
+            sealed class Program
+            {
+                void A() { }
 
-    void B() { }
+                void B() { }
 
-    void C() { }
-}"
+                void C() { }
+            }
+            """
         );
     }
 
     [TestMethod]
     public async Task Test2_NoDiagnostic()
     {
-        await VerifyCS.VerifyAnalyzerAsync(@"
-class Program 
-{ 
-    public int Method()
-    {
-        return 0;
-    }
-}");
+        await VerifyCS.VerifyAnalyzerAsync("""
+            class Program 
+            { 
+                public int Method()
+                {
+                    return 0;
+                }
+            }
+            """);
     }
 
     [TestMethod]
     public async Task TestSort1_Diagnostic()
     {
-        await VerifyCS.VerifyCodeFixAsync(@"
-sealed class Program
-{
-    void {|JJ1003:C|}() { }
+        await VerifyCS.VerifyCodeFixAsync("""
+            sealed class Program
+            {
+                void {|JJ1003:C|}() { }
 
-    void B() { }
+                void B() { }
 
-    void {|JJ1003:A|}() { }
-}",
-            @"
-sealed class Program
-{
-    void A() { }
+                void {|JJ1003:A|}() { }
+            }
+            """,
+            """
+            sealed class Program
+            {
+                void A() { }
 
-    void B() { }
+                void B() { }
 
-    void C() { }
-}"
+                void C() { }
+            }
+            """
         );
     }
 
     [TestMethod]
     public async Task TestSort2_Diagnostic()
     {
-        await VerifyCS.VerifyCodeFixAsync(@"
-using System;
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
 
-sealed class Program
-{
-    public string {|JJ1007:F|} { get; set; }
+            sealed class Program
+            {
+                public string {|JJ1007:F|} { get; set; }
 
-    private static void {|JJ1004:D|}() { }
+                private static void {|JJ1004:D|}() { }
 
-    public event OnEvent {|JJ1013:Event|};
+                public event OnEvent {|JJ1013:Event|};
 
-    public delegate void {|JJ1011:OnEvent|}(object sender, EventArgs args);
+                public delegate void {|JJ1011:OnEvent|}(object sender, EventArgs args);
 
-    private string {|JJ1002:_a|};
+                private string {|JJ1002:_a|};
 
-    void {|JJ1004:A|}() { }
+                void {|JJ1004:A|}() { }
 
-    private string {|JJ1002:_b|};
+                private string {|JJ1002:_b|};
 
-    void {|JJ1004:B|}()
-    {
-        var a = ""a"";
-    }
+                void {|JJ1004:B|}()
+                {
+                    var a = "a";
+                }
 
-    private enum {|JJ1009:MyEnum|}
-    {
-        a, b, c
-    }
+                private enum {|JJ1009:MyEnum|}
+                {
+                    a, b, c
+                }
 
-    private string {|JJ1002:_c|};
+                private string {|JJ1002:_c|};
 
-    public {|JJ1005:Program|}() { }
+                public {|JJ1005:Program|}() { }
 
-    void C() { }
-}",
-            @"
-using System;
+                void C() { }
+            }
+            """,
+            """
+            using System;
 
-sealed class Program
-{
-    private string _a;
+            sealed class Program
+            {
+                private string _a;
 
-    private string _b;
+                private string _b;
 
-    private string _c;
+                private string _c;
 
-    public Program() { }
+                public Program() { }
 
-    public delegate void OnEvent(object sender, EventArgs args);
+                public delegate void OnEvent(object sender, EventArgs args);
 
-    public event OnEvent Event;
+                public event OnEvent Event;
 
-    private enum MyEnum
-    {
-        a, b, c
-    }
+                private enum MyEnum
+                {
+                    a, b, c
+                }
 
-    public string F { get; set; }
+                public string F { get; set; }
 
-    private static void D() { }
+                private static void D() { }
 
-    void A() { }
+                void A() { }
 
-    void B()
-    {
-        var a = ""a"";
-    }
+                void B()
+                {
+                    var a = "a";
+                }
 
-    void C() { }
-}"
+                void C() { }
+            }
+            """
         );
     }
 
     [TestMethod]
     public async Task TestSort3_Diagnostic()
     {
-        await VerifyCS.VerifyCodeFixAsync(@"
-sealed class Program
-{
-    private string {|JJ1001:_b|};
+        await VerifyCS.VerifyCodeFixAsync("""
+            sealed class Program
+            {
+                private string {|JJ1001:_b|};
 
-    private string {|JJ1001:_a|};
-}",
-            @"
-sealed class Program
-{
-    private string _a;
+                private string {|JJ1001:_a|};
+            }
+            """,
+            """
+            sealed class Program
+            {
+                private string _a;
 
-    private string _b;
-}"
+                private string _b;
+            }
+            """
         );
     }
 
     [TestMethod]
     public async Task TestSort4_Diagnostic()
     {
-        await VerifyCS.VerifyCodeFixAsync(@"
-sealed class Program
-{
-    void {|JJ1003:C|}()
-    {
-    }
+        await VerifyCS.VerifyCodeFixAsync("""
+            sealed class Program
+            {
+                void {|JJ1003:C|}()
+                {
+                }
 
-    void B()
-    {
-        var a = ""a"";
-    }
+                void B()
+                {
+                    var a = "a";
+                }
 
-    void {|JJ1003:A|}() { }
-}",
-            @"
-sealed class Program
-{
-    void A() { }
+                void {|JJ1003:A|}() { }
+            }
+            """,
+            """
+            sealed class Program
+            {
+                void A() { }
 
-    void B()
-    {
-        var a = ""a"";
-    }
+                void B()
+                {
+                    var a = "a";
+                }
 
-    void C()
-    {
-    }
-}"
+                void C()
+                {
+                }
+            }
+            """
         );
     }
 
     [TestMethod]
     public async Task TestSort5_Diagnostic()
     {
-        await VerifyCS.VerifyCodeFixAsync(@"
-sealed class Program
-{
-    private string {|JJ1001:_b|};
+        await VerifyCS.VerifyCodeFixAsync("""
+            sealed class Program
+            {
+                private string {|JJ1001:_b|};
 
-    private string {|JJ1001:_a|};
-}
+                private string {|JJ1001:_a|};
+            }
 
-sealed class Program2
-{
-    private string {|JJ1001:_b|};
+            sealed class Program2
+            {
+                private string {|JJ1001:_b|};
 
-    private string {|JJ1001:_a|};
-}",
-            @"
-sealed class Program
-{
-    private string _a;
+                private string {|JJ1001:_a|};
+            }
+            """,
+            """
+            sealed class Program
+            {
+                private string _a;
 
-    private string _b;
-}
+                private string _b;
+            }
 
-sealed class Program2
-{
-    private string _a;
+            sealed class Program2
+            {
+                private string _a;
 
-    private string _b;
-}"
+                private string _b;
+            }
+            """
         );
     }
 
     [TestMethod]
     public async Task TestSortMember1_Diagnostic()
     {
-        await VerifyCS.VerifyCodeFixAsync(@"
-sealed class Program
-{
-    private const string {|JJ1001:_d|} = ""Const"";
+        await VerifyCS.VerifyCodeFixAsync("""
+            sealed class Program
+            {
+                private const string {|JJ1001:_d|} = "Const";
 
-    public const string {|JJ1001:_e|} = ""Const"";
-}",
-            @"
-sealed class Program
-{
-    public const string _e = ""Const"";
+                public const string {|JJ1001:_e|} = "Const";
+            }
+            """,
+            """
+            sealed class Program
+            {
+                public const string _e = "Const";
 
-    private const string _d = ""Const"";
-}"
+                private const string _d = "Const";
+            }
+            """
         );
     }
 
     [TestMethod]
     public async Task TestSortMember2_Diagnostic()
     {
-        await VerifyCS.VerifyCodeFixAsync(@"
-sealed class Program
-{
-    public string {|JJ1001:_c|};
+        await VerifyCS.VerifyCodeFixAsync("""
+            sealed class Program
+            {
+                public string {|JJ1001:_c|};
 
-    private const string _d = ""Const"";
+                private const string _d = "Const";
 
-    public const string {|JJ1001:_e|} = ""Const"";
+                public const string {|JJ1001:_e|} = "Const";
 
-    private readonly string {|JJ1001:_b|};
+                private readonly string {|JJ1001:_b|};
 
-    public readonly string {|JJ1001:_f|};
+                public readonly string {|JJ1001:_f|};
 
-    public static string {|JJ1001:_g|};
+                public static string {|JJ1001:_g|};
 
-    private string _a;
-}",
-            @"
-sealed class Program
-{
-    public const string _e = ""Const"";
+                private string _a;
+            }
+            """,
+            """
+            sealed class Program
+            {
+                public const string _e = "Const";
 
-    private const string _d = ""Const"";
+                private const string _d = "Const";
 
-    public static string _g;
+                public static string _g;
 
-    public readonly string _f;
+                public readonly string _f;
 
-    public string _c;
+                public string _c;
 
-    private readonly string _b;
+                private readonly string _b;
 
-    private string _a;
-}"
+                private string _a;
+            }
+            """
         );
     }
 
     [TestMethod]
     public async Task TestSortMember3_Diagnostic()
     {
-        await VerifyCS.VerifyCodeFixAsync(@"
-namespace AwesomeAnalyzer.Test
-{
-    sealed class Program
-    {
-        private const string {|JJ1001:_d|} = ""Const"";
+        await VerifyCS.VerifyCodeFixAsync("""
+            namespace AwesomeAnalyzer.Test
+            {
+                sealed class Program
+                {
+                    private const string {|JJ1001:_d|} = "Const";
 
-        public const string {|JJ1001:_e|} = ""Const"";
-    }
-}",
-            @"
-namespace AwesomeAnalyzer.Test
-{
-    sealed class Program
-    {
-        public const string _e = ""Const"";
+                    public const string {|JJ1001:_e|} = "Const";
+                }
+            }
+            """,
+            """
+            namespace AwesomeAnalyzer.Test
+            {
+                sealed class Program
+                {
+                    public const string _e = "Const";
 
-        private const string _d = ""Const"";
-    }
-}"
+                    private const string _d = "Const";
+                }
+            }
+            """
         );
     }
 
     [TestMethod]
     public async Task TestSortProperty1_Diagnostic()
     {
-        await VerifyCS.VerifyCodeFixAsync(@"
-namespace AwesomeAnalyzer.Test
-{
-    sealed class Program
-    {
-        public string {|JJ1006:C|} { get; set; }
+        await VerifyCS.VerifyCodeFixAsync("""
+            namespace AwesomeAnalyzer.Test
+            {
+                sealed class Program
+                {
+                    public string {|JJ1006:C|} { get; set; }
 
-        public int B { get; set; }
+                    public int B { get; set; }
 
-        public bool {|JJ1006:A|} { get; set; }
-    }
-}",
-            @"
-namespace AwesomeAnalyzer.Test
-{
-    sealed class Program
-    {
-        public bool A { get; set; }
+                    public bool {|JJ1006:A|} { get; set; }
+                }
+            }
+            """,
+            """
+            namespace AwesomeAnalyzer.Test
+            {
+                sealed class Program
+                {
+                    public bool A { get; set; }
 
-        public int B { get; set; }
+                    public int B { get; set; }
 
-        public string C { get; set; }
-    }
-}"
+                    public string C { get; set; }
+                }
+            }
+            """
         );
     }
 }

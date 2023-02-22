@@ -15,6 +15,10 @@ namespace AwesomeAnalyzer
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider)), Shared]
     public sealed class AddAsyncPrefixCodeFixProvider : CodeFixProvider
     {
+        private const string TextAsync = "Async";
+        
+        private static readonly SymbolRenameOptions _symbolRenameOptions = new SymbolRenameOptions();
+
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
             DiagnosticDescriptors.AddAsyncRule0102.Id
         );
@@ -23,45 +27,44 @@ namespace AwesomeAnalyzer
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var document = context.Document;
+            var root = await document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            if (root == null) return;
 
-            foreach (var diagnostic in context.Diagnostics)
-            {
-                var declaration = root.FindToken(diagnostic.Location.SourceSpan.Start)
-                    .Parent
-                    .AncestorsAndSelf()
-                    .OfType<IdentifierNameSyntax>()
-                    .First();
+            var diagnostic = context.Diagnostics.FirstOrDefault();
+            var declaration = (IdentifierNameSyntax)root
+                .FindToken(diagnostic.Location.SourceSpan.Start)
+                .Parent;
 
-                context.RegisterCodeFix(
-                    CodeAction.Create(
-                        "Add Async Prefix",
-                        token => AddAsyncPrefixAsync(context.Document, declaration, token),
-                        equivalenceKey: "AddAsyncCodeFixTitle"
-                    ),
-                    diagnostic
-                );
-            }
+            var semanticModel = await document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+            if (semanticModel == null) return;
+
+            context.RegisterCodeFix(
+                CodeAction.Create(
+                    "Add Async Prefix",
+                    token => AddAsyncPrefixAsync(document, declaration, semanticModel, token),
+                    equivalenceKey: "AddAsyncCodeFixTitle"
+                ),
+                context.Diagnostics
+            );
         }
 
-        private async Task<Solution> AddAsyncPrefixAsync(
-            Document document,
+        private static Task<Solution> AddAsyncPrefixAsync(
+            TextDocument document,
             SimpleNameSyntax declaration,
+            SemanticModel semanticModel,
             CancellationToken token
         )
         {
-            var semanticModel = await document.GetSemanticModelAsync(token).ConfigureAwait(false);
-            if (semanticModel == null) return document.Project.Solution;
+            var symbolInfo = semanticModel.GetSymbolInfo(declaration, token);
 
-            var symbolInfo = semanticModel.GetSymbolInfo(declaration)!;
-
-            return await Renamer.RenameSymbolAsync(
+            return Renamer.RenameSymbolAsync(
                 document.Project.Solution,
                 symbolInfo.Symbol,
-                new SymbolRenameOptions(),
-                $"{declaration.Identifier.ValueText}Async",
+                _symbolRenameOptions,
+                $"{declaration.Identifier.ValueText}{TextAsync}",
                 token
-            ).ConfigureAwait(false);
+            );
         }
     }
 }

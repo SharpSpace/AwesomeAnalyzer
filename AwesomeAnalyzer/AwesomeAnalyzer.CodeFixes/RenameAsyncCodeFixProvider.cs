@@ -16,6 +16,10 @@ namespace AwesomeAnalyzer
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider)), Shared]
     public sealed class RenameAsyncCodeFixProvider : CodeFixProvider
     {
+        private const string TextAsync = "Async";
+
+        private static readonly SymbolRenameOptions SymbolRenameOptions = new SymbolRenameOptions();
+
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticDescriptors.RenameAsyncRule0100.Id);
 
         public override FixAllProvider GetFixAllProvider() => null;
@@ -55,8 +59,8 @@ namespace AwesomeAnalyzer
             return await Renamer.RenameSymbolAsync(
                 document.Project.Solution,
                 symbol,
-                new SymbolRenameOptions(),
-                localDeclaration.Identifier.ValueText.Replace("Async", string.Empty),
+                SymbolRenameOptions,
+                localDeclaration.Identifier.ValueText.Replace(TextAsync, string.Empty),
                 token
             ).ConfigureAwait(false);
         }

@@ -1,39 +1,59 @@
-﻿namespace AwesomeAnalyzer.Analyzers;
+﻿using System.Collections.Immutable;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-public sealed class RenameAsyncAnalyzer : DiagnosticAnalyzer
+namespace AwesomeAnalyzer.Analyzers
 {
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-        DiagnosticDescriptors.RenameAsyncRule0100
-    );
-
-    public override void Initialize(AnalysisContext context)
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public sealed class RenameAsyncAnalyzer : DiagnosticAnalyzer
     {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
+        private const string TextAsync = "Async";
+        private const string Textasync = "async";
+        private const string TextTask = "Task";
 
-        context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.MethodDeclaration);
-    }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+            DiagnosticDescriptors.RenameAsyncRule0100
+        );
 
-    private void AnalyzeNode(SyntaxNodeAnalysisContext context)
-    {
-        if (context.Node is not MethodDeclarationSyntax methodDeclarationSyntax) return;
-
-        if (methodDeclarationSyntax.Modifiers.Any(modifier => modifier.ValueText == "async")) return;
-        if (!methodDeclarationSyntax.Identifier.ValueText.EndsWith("Async")) return;
-
-        //if (methodDeclarationSyntax.HasParent<InterfaceDeclarationSyntax>() != null) return;
-
-        if (methodDeclarationSyntax.ReturnType is IdentifierNameSyntax identifierNameSyntax &&
-            identifierNameSyntax.Identifier.ValueText != "Task")
+        public override void Initialize(AnalysisContext context)
         {
-            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.RenameAsyncRule0100, methodDeclarationSyntax.Identifier.GetLocation()));
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
+
+            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.MethodDeclaration);
         }
 
-        if (!(methodDeclarationSyntax.ReturnType is IdentifierNameSyntax)
-        )
+        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.RenameAsyncRule0100, methodDeclarationSyntax.Identifier.GetLocation()));
+            if (!(context.Node is MethodDeclarationSyntax methodDeclarationSyntax)) return;
+
+            if (methodDeclarationSyntax.Modifiers.Any(modifier => modifier.ValueText == Textasync)) return;
+            if (!methodDeclarationSyntax.Identifier.ValueText.EndsWith(TextAsync)) return;
+
+            //if (methodDeclarationSyntax.HasParent<InterfaceDeclarationSyntax>() != null) return;
+
+            if (methodDeclarationSyntax.ReturnType is IdentifierNameSyntax identifierNameSyntax &&
+                identifierNameSyntax.Identifier.ValueText != TextTask)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    DiagnosticDescriptors.RenameAsyncRule0100, 
+                    methodDeclarationSyntax.Identifier.GetLocation(),
+                    methodDeclarationSyntax.Identifier.ValueText
+                ));
+            }
+
+            if (!(methodDeclarationSyntax.ReturnType is IdentifierNameSyntax)
+            )
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    DiagnosticDescriptors.RenameAsyncRule0100, 
+                    methodDeclarationSyntax.Identifier.GetLocation(),
+                    methodDeclarationSyntax.Identifier.ValueText
+                ));
+            }
         }
     }
 }

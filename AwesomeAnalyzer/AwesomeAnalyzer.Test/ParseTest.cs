@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using System.Linq;
-using System.Text.Json;
+﻿using System.Linq;
 using AwesomeAnalyzer.Analyzers;
 using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
     AwesomeAnalyzer.Analyzers.ParseAnalyzer,
@@ -54,9 +52,36 @@ public sealed class ParseTest
     }
 
     [TestMethod]
+    public async Task Test4_NoDiagnosticAsync()
+    {
+        await VerifyCS.VerifyAnalyzerAsync("""
+                class Program 
+                { 
+                    public int Method(string s = "")
+                    {
+                        return 0;
+                    }
+                }
+                """);
+    }
+
+    [TestMethod]
+    public async Task Test5_NoDiagnosticAsync()
+    {
+        await VerifyCS.VerifyAnalyzerAsync("""
+                class Program 
+                { 
+                    public int Method(bool b = false)
+                    {
+                        return 0;
+                    }
+                }
+                """);
+    }
+
+    [TestMethod]
     public async Task TestInt1_Diagnostic()
     {
-            
         await VerifyCS.VerifyCodeFixAsync("""
                 class Program 
                 { 
@@ -80,7 +105,6 @@ public sealed class ParseTest
     [TestMethod]
     public async Task TestInt2_Diagnostic()
     {
-
         await VerifyCS.VerifyCodeFixAsync("""
                 class Program 
                 { 
@@ -104,7 +128,6 @@ public sealed class ParseTest
     [TestMethod]
     public async Task TestInt10_Diagnostic()
     {
-
         await VerifyCS.VerifyCodeFixAsync("""
                 class Program 
                 { 
@@ -128,7 +151,6 @@ public sealed class ParseTest
     [TestMethod]
     public async Task TestInt11_Diagnostic()
     {
-
         await VerifyCS.VerifyCodeFixAsync("""
                 class Program 
                 { 
@@ -152,7 +174,6 @@ public sealed class ParseTest
     [TestMethod]
     public async Task TestInt20_Diagnostic()
     {
-
         await VerifyCS.VerifyCodeFixAsync("""
                 class Program 
                 { 
@@ -178,7 +199,6 @@ public sealed class ParseTest
     [TestMethod]
     public async Task TestInt21_Diagnostic()
     {
-
         await VerifyCS.VerifyCodeFixAsync("""
                 class Program 
                 { 
@@ -228,7 +248,6 @@ public sealed class ParseTest
     [TestMethod]
     public async Task TestDecimal20_Diagnostic()
     {
-
         await VerifyCS.VerifyCodeFixAsync("""
                 class Program 
                 { 
@@ -304,8 +323,6 @@ public sealed class ParseTest
     {
         foreach (var item in ParseAnalyzer.Types)
         {
-            Debug.WriteLine(JsonSerializer.Serialize((object)item, new JsonSerializerOptions { WriteIndented = true }));
-
             await VerifyCS.VerifyCodeFixAsync($$"""
                 class Program 
                 { 
@@ -332,8 +349,6 @@ public sealed class ParseTest
     {
         foreach (var item in ParseAnalyzer.Types)
         {
-            Debug.WriteLine(JsonSerializer.Serialize((object)item, new JsonSerializerOptions { WriteIndented = true }));
-
             await VerifyCS.VerifyCodeFixAsync($$"""
                 class Program 
                 { 

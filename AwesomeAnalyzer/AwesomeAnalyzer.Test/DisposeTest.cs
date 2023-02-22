@@ -78,7 +78,7 @@ namespace MyNamespace
     public async Task Test2_Diagnostic()
     {
         await VerifyCS.VerifyCodeFixAsync(
-            LanguageVersion.CSharp8, 
+            LanguageVersion.CSharp8,
             @"
 using System.IO;
 

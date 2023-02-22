@@ -1,35 +1,49 @@
-﻿namespace AwesomeAnalyzer.Analyzers;
+﻿using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-public sealed class AddAsyncAnalyzer : DiagnosticAnalyzer
+namespace AwesomeAnalyzer.Analyzers
 {
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-        DiagnosticDescriptors.AddAsyncRule0102
-    );
-
-    public override void Initialize(AnalysisContext context)
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public sealed class AddAsyncAnalyzer : DiagnosticAnalyzer
     {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
+        private const string TextAsync = "Async";
+        private const string TextTask = "Task";
 
-        context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.InvocationExpression);
-    }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+            DiagnosticDescriptors.AddAsyncRule0102
+        );
 
-    private void AnalyzeNode(SyntaxNodeAnalysisContext context)
-    {
-        if (context.Node is not InvocationExpressionSyntax invocationExpressionSyntax) return;
+        public override void Initialize(AnalysisContext context)
+        {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
 
-        if (invocationExpressionSyntax.Expression is not IdentifierNameSyntax identifierNameSyntax) return;
+            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.InvocationExpression);
+        }
 
-        if (identifierNameSyntax.Identifier.ValueText.EndsWith("Async")) return;
+        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        {
+            var invocationExpressionSyntax = context.Node as InvocationExpressionSyntax;
+            if (!(invocationExpressionSyntax?.Expression is IdentifierNameSyntax identifierNameSyntax)) return;
 
-        var typeSymbol = context.SemanticModel.GetTypeInfo(invocationExpressionSyntax)!;
-        if (typeSymbol.Type!.Name != "Task") return;
+            if (identifierNameSyntax.Span.Length > TextAsync.Length) return;
 
-        context.ReportDiagnostic(Diagnostic.Create(
-            DiagnosticDescriptors.AddAsyncRule0102,
-            identifierNameSyntax.Identifier.GetLocation(),
-            messageArgs: identifierNameSyntax.Identifier.ValueText
-        ));
+            var identifierValueText = identifierNameSyntax.Identifier.ValueText.AsSpan();
+            if (identifierValueText.EndsWith(TextAsync.AsSpan())) return;
+
+            var typeSymbol = ModelExtensions.GetTypeInfo(context.SemanticModel, invocationExpressionSyntax);
+            if (typeSymbol.Type == null) return;
+            if (typeSymbol.Type.Name != TextTask) return;
+
+            context.ReportDiagnostic(Diagnostic.Create(
+                DiagnosticDescriptors.AddAsyncRule0102,
+                identifierNameSyntax.Identifier.GetLocation(),
+                messageArgs: identifierValueText.ToString()
+            ));
+        }
     }
 }

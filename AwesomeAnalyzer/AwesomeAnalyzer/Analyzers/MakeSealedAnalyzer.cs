@@ -1,50 +1,62 @@
-﻿namespace AwesomeAnalyzer.Analyzers;
+﻿using System.Collections.Immutable;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-public sealed class MakeSealedAnalyzer : DiagnosticAnalyzer
+namespace AwesomeAnalyzer.Analyzers
 {
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.MakeSealedRule0001);
-
-    public override void Initialize(AnalysisContext context)
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public sealed class MakeSealedAnalyzer : DiagnosticAnalyzer
     {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.MakeSealedRule0001);
 
-        //context.RegisterSymbolStartAction(AnalyzeSymbolStart, SymbolKind.TypeParameter);
-        context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
-    }
-
-    private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
-    {
-        var classDeclarationSyntax = (ClassDeclarationSyntax)context.Node;
-
-        if (classDeclarationSyntax.Modifiers.Any(SyntaxKind.StaticKeyword))
+        public override void Initialize(AnalysisContext context)
         {
-            return;
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
+
+            //context.RegisterSymbolStartAction(AnalyzeSymbolStart, SymbolKind.TypeParameter);
+            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
         }
 
-        if (classDeclarationSyntax.Modifiers.Any(SyntaxKind.SealedKeyword))
+        private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            return;
+            var classDeclarationSyntax = (ClassDeclarationSyntax)context.Node;
+
+            if (classDeclarationSyntax.Modifiers.Any(SyntaxKind.StaticKeyword))
+            {
+                return;
+            }
+
+            if (classDeclarationSyntax.Modifiers.Any(SyntaxKind.SealedKeyword))
+            {
+                return;
+            }
+
+            var identifier = classDeclarationSyntax.Identifier.ValueText;
+            if (classDeclarationSyntax.Parent is NamespaceDeclarationSyntax namespaceDeclarationSyntax)
+            {
+                identifier = $"{namespaceDeclarationSyntax.Name}.{classDeclarationSyntax.Identifier.ValueText}";
+            }
+
+            var classVirtualizationVisitor = new ClassVirtualizationVisitor();
+            classVirtualizationVisitor.Visit(context.SemanticModel.SyntaxTree.GetRoot());
+
+            if (classVirtualizationVisitor.Classes
+                .Where(x => x.BaseClasses != null)
+                .Any(x => x.BaseClasses.Any(y => y.IdentifierName == identifier))
+            )
+            {
+                return;
+            }
+
+            context.ReportDiagnostic(Diagnostic.Create(
+                DiagnosticDescriptors.MakeSealedRule0001, 
+                classDeclarationSyntax.Identifier.GetLocation(),
+                classDeclarationSyntax.Identifier.ValueText
+            ));
         }
-
-        var identifier = classDeclarationSyntax.Identifier.ValueText;
-        if (classDeclarationSyntax.Parent is NamespaceDeclarationSyntax namespaceDeclarationSyntax)
-        {
-            identifier = $"{namespaceDeclarationSyntax.Name}.{classDeclarationSyntax.Identifier.ValueText}";
-        }
-
-        var classVirtualizationVisitor = new ClassVirtualizationVisitor();
-        classVirtualizationVisitor.Visit(context.SemanticModel.SyntaxTree.GetRoot());
-
-        if (classVirtualizationVisitor.Classes
-            .Where(x => x.BaseClasses != null)
-            .Any(x => x.BaseClasses.Any(y => y.IdentifierName == identifier))
-        )
-        {
-            return;
-        }
-
-        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MakeSealedRule0001, classDeclarationSyntax.Identifier.GetLocation()));
     }
 }

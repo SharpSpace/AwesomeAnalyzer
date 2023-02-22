@@ -1,20 +1,23 @@
-﻿namespace AwesomeAnalyzer;
+﻿using Microsoft.CodeAnalysis;
 
-public static class Helper
+namespace AwesomeAnalyzer
 {
-    public static T HasParent<T>(this SyntaxNode syntaxNode)
+    public static class Helper
     {
-        var method = syntaxNode.Parent;
-        while (true)
+        public static T HasParent<T>(this SyntaxNode syntaxNode)
         {
-            if (method is T or null)
+            var method = syntaxNode.Parent;
+            while (true)
             {
-                break;
+                if (method is T || method == null)
+                {
+                    break;
+                }
+
+                method = method.Parent;
             }
 
-            method = method.Parent;
+            return method is T node ? node : default;
         }
-
-        return method is T node ? node : default;
     }
 }

@@ -1,16 +1,21 @@
-﻿namespace AwesomeAnalyzer.Analyzers;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-public sealed class ParseAnalyzer : DiagnosticAnalyzer
+namespace AwesomeAnalyzer.Analyzers
 {
-    private readonly Dictionary<ExpressionSyntax, TypeSyntax> _expectedTypesCache = new();
-    private readonly Dictionary<ExpressionSyntax, ITypeSymbol> _variableTypesCache = new();
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public sealed class ParseAnalyzer : DiagnosticAnalyzer
+    {
+        private const string TextString = "String";
+        private const string TextVar = "var";
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-        ImmutableArray.Create(DiagnosticDescriptors.ParseStringRule0005);
-
-    public static readonly ImmutableArray<dynamic> Types = ImmutableArray.CreateRange(
-        new dynamic[]
+        public static readonly ImmutableArray<dynamic> Types = ImmutableArray.CreateRange(
+            new dynamic[]
             {
                 new TryParseTypes<bool>("bool", true, false),
                 new TryParseTypes<byte>("byte", 0, (byte)0),
@@ -26,146 +31,123 @@ public sealed class ParseAnalyzer : DiagnosticAnalyzer
                 new TryParseTypes<ulong>("ulong", 100, 0),
                 new TryParseTypes<ushort>("ushort", 1, 0)
             }
-    );
+        );
 
-    public override void Initialize(AnalysisContext context)
-    {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
+        private readonly Dictionary<ExpressionSyntax, TypeSyntax> _expectedTypesCache = new Dictionary<ExpressionSyntax, TypeSyntax>();
 
-        context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.EqualsValueClause);
-        context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ReturnStatement);
-    }
+        private readonly Dictionary<ExpressionSyntax, ITypeSymbol> _variableTypesCache = new Dictionary<ExpressionSyntax, ITypeSymbol>();
 
-    private void AnalyzeNode(SyntaxNodeAnalysisContext context)
-    {
-        if (context.Node is EqualsValueClauseSyntax equalsValueClauseSyntax)
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+            ImmutableArray.Create(DiagnosticDescriptors.ParseStringRule0005);
+
+        public override void Initialize(AnalysisContext context)
         {
-            AnalyzeNode(context, equalsValueClauseSyntax.Value);
-        }
-        else if (context.Node is ReturnStatementSyntax returnStatementSyntax)
-        {
-            AnalyzeNode(context, returnStatementSyntax.Expression);
-        }
-    }
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
 
-    private void AnalyzeNode(
-        SyntaxNodeAnalysisContext context,
-        ExpressionSyntax valueExpression
-    )
-    {
-        if (valueExpression is not IdentifierNameSyntax and not LiteralExpressionSyntax)
-        {
-            return;
+            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.EqualsValueClause);
+            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ReturnStatement);
         }
 
-        var variableType = GetVariableType(context, valueExpression);
-        if (variableType is not { Name: "String" })
+        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            return;
+            if (context.Node is EqualsValueClauseSyntax equalsValueClauseSyntax)
+            {
+                if (equalsValueClauseSyntax.Parent is ParameterSyntax) return;
+
+                AnalyzeNode(context, equalsValueClauseSyntax.Value);
+            }
+            else if (context.Node is ReturnStatementSyntax returnStatementSyntax)
+            {
+                AnalyzeNode(context, returnStatementSyntax.Expression);
+            }
         }
 
-        var expectedType = GetExpectedType(context, valueExpression);
-        if (expectedType is null or 
-            IdentifierNameSyntax { Identifier.ValueText: "var" } ||
-            (expectedType is PredefinedTypeSyntax predefinedTypeSyntax && Types.Any(x => x.TypeName == predefinedTypeSyntax.Keyword.ValueText) == false)
+        private void AnalyzeNode(
+            SyntaxNodeAnalysisContext context,
+            ExpressionSyntax valueExpression
         )
         {
-            return;
+            if (!(valueExpression is IdentifierNameSyntax) && !(valueExpression is LiteralExpressionSyntax))
+            {
+                return;
+            }
+
+            var variableType = GetVariableType(context, valueExpression);
+            if (variableType?.Name != TextString)
+            {
+                return;
+            }
+
+            switch (GetExpectedType(context, valueExpression))
+            {
+                case null:
+                case IdentifierNameSyntax identifierNameSyntax when identifierNameSyntax.Identifier.ValueText == TextVar:
+                case PredefinedTypeSyntax predefinedTypeSyntax when Types.Any(x => x.TypeName == predefinedTypeSyntax.Keyword.ValueText) == false:
+                    return;
+            }
+
+            context.ReportDiagnostic(
+                Diagnostic.Create(
+                    DiagnosticDescriptors.ParseStringRule0005,
+                    valueExpression.GetLocation()
+                )
+            );
         }
 
-        context.ReportDiagnostic(
-            Diagnostic.Create(
-                DiagnosticDescriptors.ParseStringRule0005,
-                valueExpression.GetLocation()
-            )
-        );
-    }
-
-    private TypeSyntax GetExpectedType(SyntaxNodeAnalysisContext context, ExpressionSyntax valueExpression)
-    {
-        if (_expectedTypesCache.TryGetValue(valueExpression, out var expectedType))
+        private TypeSyntax GetExpectedType(SyntaxNodeAnalysisContext context, ExpressionSyntax valueExpression)
         {
+            if (_expectedTypesCache.TryGetValue(valueExpression, out var expectedType))
+            {
+                return expectedType;
+            }
+
+            if (valueExpression is IdentifierNameSyntax identifierNameSyntax)
+            {
+                var symbol = ModelExtensions.GetSymbolInfo(context.SemanticModel, identifierNameSyntax, context.CancellationToken).Symbol;
+                if (symbol == null)
+                {
+                    return null;
+                }
+
+                var typeString = symbol.ContainingSymbol.ToDisplayString();
+                expectedType = SyntaxFactory.ParseTypeName(typeString);
+            }
+            else
+            {
+                var parent = valueExpression.Parent;
+                while (!(parent is MethodDeclarationSyntax)
+                    && !(parent is PropertyDeclarationSyntax)
+                    && !(parent is FieldDeclarationSyntax)
+                    && !(parent is LocalDeclarationStatementSyntax)
+                )
+                {
+                    parent = parent.Parent;
+                }
+
+                switch (parent)
+                {
+                    case MethodDeclarationSyntax methodDeclaration: expectedType = methodDeclaration.ReturnType; break;
+                    case PropertyDeclarationSyntax propertyDeclaration: expectedType = propertyDeclaration.Type; break;
+                    case FieldDeclarationSyntax fieldDeclaration: expectedType = fieldDeclaration.Declaration.Type; break;
+                    case LocalDeclarationStatementSyntax localDeclaration: expectedType = localDeclaration.Declaration.Type; break;
+                }
+            }
+
+            _expectedTypesCache[valueExpression] = expectedType;
             return expectedType;
         }
 
-        if (valueExpression is IdentifierNameSyntax identifierNameSyntax)
+        private ITypeSymbol GetVariableType(SyntaxNodeAnalysisContext context, ExpressionSyntax valueExpression)
         {
-            var symbol = context.SemanticModel.GetSymbolInfo(identifierNameSyntax, context.CancellationToken).Symbol;
-            if (symbol == null)
+            if (_variableTypesCache.TryGetValue(valueExpression, out var variableType))
             {
-                return null;
+                return variableType;
             }
 
-            var typeString = symbol.ContainingSymbol.ToDisplayString();
-            expectedType = SyntaxFactory.ParseTypeName(typeString);
-        }
-        else
-        {
-            var parent = valueExpression.Parent;
-            while (parent is not MethodDeclarationSyntax 
-                and not PropertyDeclarationSyntax 
-                and not FieldDeclarationSyntax 
-                and not LocalDeclarationStatementSyntax
-            )
-            {
-                parent = parent!.Parent;
-            }
-
-            expectedType = parent switch
-            {
-                MethodDeclarationSyntax methodDeclaration => methodDeclaration.ReturnType,
-                PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Type,
-                FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Declaration.Type,
-                LocalDeclarationStatementSyntax localDeclaration => localDeclaration.Declaration.Type,
-                _ => null
-            };
-        }
-
-        _expectedTypesCache[valueExpression] = expectedType;
-        return expectedType;
-    }
-
-    private ITypeSymbol GetVariableType(SyntaxNodeAnalysisContext context, ExpressionSyntax valueExpression)
-    {
-        if (_variableTypesCache.TryGetValue(valueExpression, out var variableType))
-        {
+            variableType = ModelExtensions.GetTypeInfo(context.SemanticModel, valueExpression, context.CancellationToken).Type;
+            _variableTypesCache[valueExpression] = variableType;
             return variableType;
         }
-
-        variableType = context.SemanticModel.GetTypeInfo(valueExpression, context.CancellationToken).Type;
-        _variableTypesCache[valueExpression] = variableType;
-        return variableType;
     }
-}
-
-public interface ITryParseTypes
-{
-    public string TypeName { get; }
-
-    public string TestValueString { get; }
-
-    public string DefaultValueString { get; }
-}
-
-public readonly record struct TryParseTypes<T>(string TypeName, T TestValue, T DefaultValue) // : ITryParseTypes
-{
-    //public string TestValueString => TypeName switch
-    //{
-    //    "decimal" => "\"" + TestValue.ToString().ToLower() + "\"",
-    //    _ => TestValue.ToString().ToLower()
-    //};
-
-    public string TestValueString => $"\"{TestValue.ToString().ToLower()}\"";
-
-    public string DefaultValueString => DefaultValue.ToString().ToLower();
-
-    public string Cast => TypeName switch
-    {
-        "byte" => "(byte)",
-        "sbyte" => "(sbyte)",
-        "short" => "(short)",
-        "ushort" => "(ushort)",
-        _ => string.Empty
-    };
 }

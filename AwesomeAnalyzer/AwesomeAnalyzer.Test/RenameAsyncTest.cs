@@ -10,137 +10,148 @@ public sealed class RenameAsyncTest
     [TestMethod]
     public async Task Test1_NoDiagnostic()
     {
-        await VerifyCS.VerifyAnalyzerAsync(@"
-class Program 
-{ 
-    void Method(){}
-}");
+        await VerifyCS.VerifyAnalyzerAsync("""
+            class Program 
+            { 
+                void Method(){}
+            }
+            """);
     }
 
     [TestMethod]
     public async Task Test2_NoDiagnostic()
     {
-        await VerifyCS.VerifyAnalyzerAsync(@"
-class Program 
-{ 
-    async void MethodAsync(){}
-}");
+        await VerifyCS.VerifyAnalyzerAsync("""
+            class Program 
+            { 
+                async void MethodAsync(){}
+            }
+            """);
     }
 
     [TestMethod]
     public async Task Test3_NoDiagnostic()
     {
-        await VerifyCS.VerifyAnalyzerAsync(@"
-namespace MyNamespace
-{
-    using System.Threading.Tasks;
+        await VerifyCS.VerifyAnalyzerAsync("""
+            namespace MyNamespace
+            {
+                using System.Threading.Tasks;
 
-    class Program
-    {
-        public async Task MethodAsync() {}
-    }
-}");
+                class Program
+                {
+                    public async Task MethodAsync() {}
+                }
+            }
+            """);
     }
 
     [TestMethod]
     public async Task Test4_NoDiagnostic()
     {
-        await VerifyCS.VerifyAnalyzerAsync(@"
-namespace MyNamespace
-{
-    using System.Threading.Tasks;
+        await VerifyCS.VerifyAnalyzerAsync("""
+            namespace MyNamespace
+            {
+                using System.Threading.Tasks;
 
-    class Program
-    {
-        public async Task<string> MethodAsync() { return ""Async""; }
-    }
-}");
+                class Program
+                {
+                    public async Task<string> MethodAsync() { return "Async"; }
+                }
+            }
+            """);
     }
 
     [TestMethod]
     public async Task Test5_NoDiagnostic()
     {
-        await VerifyCS.VerifyAnalyzerAsync(@"
-namespace MyNamespace
-{
-    using System.Threading.Tasks;
+        await VerifyCS.VerifyAnalyzerAsync("""
+            namespace MyNamespace
+            {
+                using System.Threading.Tasks;
 
-    interface Program 
-    { 
-        Task MethodAsync();
-    }
-}");
+                interface Program 
+                { 
+                    Task MethodAsync();
+                }
+            }
+            """);
     }
 
     [TestMethod]
     public async Task Test1_Diagnostic()
     {
-        await VerifyCS.VerifyCodeFixAsync(@"
-class Program 
-{ 
-    void [|MethodAsync|]()
-    {
-    }
-}",
-            fixedSource: @"
-class Program 
-{ 
-    void Method()
-    {
-    }
-}");
+        await VerifyCS.VerifyCodeFixAsync("""
+            class Program 
+            { 
+                void [|MethodAsync|]()
+                {
+                }
+            }
+            """,
+            fixedSource: """
+            class Program 
+            { 
+                void Method()
+                {
+                }
+            }
+            """);
     }
 
     [TestMethod]
     public async Task Test2_Diagnostic()
     {
-        await VerifyCS.VerifyCodeFixAsync(@"
-class Program 
-{ 
-    string [|MethodAsync|]()
-    {
-        return ""Async"";
-    }
-}",
-            fixedSource: @"
-class Program 
-{ 
-    string Method()
-    {
-        return ""Async"";
-    }
-}");
+        await VerifyCS.VerifyCodeFixAsync("""
+            class Program 
+            { 
+                string [|MethodAsync|]()
+                {
+                    return "Async";
+                }
+            }
+            """,
+            fixedSource: """
+            class Program 
+            { 
+                string Method()
+                {
+                    return "Async";
+                }
+            }
+            """);
     }
 
     [TestMethod]
     public async Task Test3_Diagnostic()
     {
-        await VerifyCS.VerifyCodeFixAsync(@"
-class Program 
-{ 
-    string [|MethodAsync|]()
-    {
-        return ""Async"";
-    }
+        await VerifyCS.VerifyCodeFixAsync("""
+            class Program 
+            { 
+                string [|MethodAsync|]()
+                {
+                    return "Async";
+                }
 
-    private void B()
-    {
-        this.MethodAsync();
-    }
-}",
-            fixedSource: @"
-class Program 
-{ 
-    string Method()
-    {
-        return ""Async"";
-    }
+                private void B()
+                {
+                    this.MethodAsync();
+                }
+            }
+            """,
+            fixedSource: """
+            class Program 
+            { 
+                string Method()
+                {
+                    return "Async";
+                }
 
-    private void B()
-    {
-        this.Method();
-    }
-}");
+                private void B()
+                {
+                    this.Method();
+                }
+            }
+            """);
     }
 
 }

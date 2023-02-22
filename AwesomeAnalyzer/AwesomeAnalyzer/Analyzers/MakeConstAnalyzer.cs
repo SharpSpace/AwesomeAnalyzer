@@ -1,60 +1,69 @@
-﻿namespace AwesomeAnalyzer.Analyzers;
+﻿using System.Collections.Immutable;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-public sealed class MakeConstAnalyzer : DiagnosticAnalyzer
+namespace AwesomeAnalyzer.Analyzers
 {
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-        DiagnosticDescriptors.MakeConstRule0003
-    );
-
-    public override void Initialize(AnalysisContext context)
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public sealed class MakeConstAnalyzer : DiagnosticAnalyzer
     {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
-        context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.LocalDeclarationStatement);
-    }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+            DiagnosticDescriptors.MakeConstRule0003
+        );
 
-    private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
-    {
-        var localDeclaration = (LocalDeclarationStatementSyntax)context.Node;
-
-        if (localDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword)) return;
-
-        var variableTypeName = localDeclaration.Declaration.Type;
-        var variableType = context.SemanticModel.GetTypeInfo(variableTypeName, context.CancellationToken).ConvertedType!;
-
-        foreach (var initializer in localDeclaration.Declaration.Variables.Select(s => s.Initializer))
+        public override void Initialize(AnalysisContext context)
         {
-            if (initializer == null) return;
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
+            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.LocalDeclarationStatement);
+        }
 
-            var constantValue = context.SemanticModel.GetConstantValue(initializer.Value, context.CancellationToken);
-            if (!constantValue.HasValue) return;
+        private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        {
+            var localDeclaration = (LocalDeclarationStatementSyntax)context.Node;
 
-            var conversion = context.SemanticModel.ClassifyConversion(initializer.Value, variableType);
-            if (!conversion.Exists || conversion.IsUserDefined) return;
+            if (localDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword)) return;
 
-            if (constantValue.Value is string)
+            var variableTypeName = localDeclaration.Declaration.Type;
+            var variableType = ModelExtensions.GetTypeInfo(context.SemanticModel, variableTypeName, context.CancellationToken).ConvertedType;
+
+            foreach (var initializer in localDeclaration.Declaration.Variables.Select(s => s.Initializer))
             {
-                if (variableType.SpecialType != SpecialType.System_String) return;
+                if (initializer == null) return;
+
+                var constantValue = context.SemanticModel.GetConstantValue(initializer.Value, context.CancellationToken);
+                if (!constantValue.HasValue) return;
+
+                var conversion = context.SemanticModel.ClassifyConversion(initializer.Value, variableType);
+                if (!conversion.Exists || conversion.IsUserDefined) return;
+
+                if (constantValue.Value is string)
+                {
+                    if (variableType.SpecialType != SpecialType.System_String) return;
+                }
+                else if (variableType.IsReferenceType && constantValue.Value != null)
+                {
+                    return;
+                }
             }
-            else if (variableType.IsReferenceType && constantValue.Value != null)
+
+            var dataFlowAnalysis = ModelExtensions.AnalyzeDataFlow(context.SemanticModel, localDeclaration);
+
+            if (localDeclaration.Declaration.Variables
+                .Select(x => ModelExtensions.GetDeclaredSymbol(context.SemanticModel, x, context.CancellationToken))
+                .Any(x => dataFlowAnalysis.WrittenOutside.Contains(x)))
             {
                 return;
             }
+
+            context.ReportDiagnostic(Diagnostic.Create(
+                DiagnosticDescriptors.MakeConstRule0003,
+                context.Node.GetLocation(),
+                string.Join(",", localDeclaration.Declaration.Variables.Select(x => x.Identifier.ValueText))
+            ));
         }
-
-        var dataFlowAnalysis = context.SemanticModel.AnalyzeDataFlow(localDeclaration)!;
-
-        if (localDeclaration.Declaration.Variables
-            .Select(x => context.SemanticModel.GetDeclaredSymbol(x, context.CancellationToken))
-            .Any(x => dataFlowAnalysis.WrittenOutside.Contains(x)))
-        {
-            return;
-        }
-
-        context.ReportDiagnostic(Diagnostic.Create(
-            DiagnosticDescriptors.MakeConstRule0003,
-            context.Node.GetLocation()
-        ));
     }
 }

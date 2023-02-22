@@ -16,6 +16,10 @@ namespace AwesomeAnalyzer
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider)), Shared]
     public sealed class AddAwaitCodeFixProvider : CodeFixProvider
     {
+        private const string TextAsync = "async";
+        private const string TextTask = "Task";
+        private const string TextAwait = "await ";
+        
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticDescriptors.AddAwaitRule0101.Id);
 
         public override FixAllProvider GetFixAllProvider() => null;
@@ -30,7 +34,9 @@ namespace AwesomeAnalyzer
                     .Parent
                     .AncestorsAndSelf()
                     .OfType<InvocationExpressionSyntax>()
-                    .First();
+                .First();
+
+                if (declaration.Parent is AwaitExpressionSyntax) continue;
 
                 context.RegisterCodeFix(
                     CodeAction.Create(
@@ -49,19 +55,17 @@ namespace AwesomeAnalyzer
             CancellationToken token
         )
         {
-            if (declaration.Parent is AwaitExpressionSyntax) return document;
-
             var methodDeclarationSyntax = declaration.HasParent<MethodDeclarationSyntax>();
 
             var oldSource = (await document.GetSyntaxRootAsync(token).ConfigureAwait(false)).ToFullString();
             string newSource;
-            if (methodDeclarationSyntax != null && 
-                methodDeclarationSyntax.Modifiers.Any(x => x.ValueText == "async") == false
+            if (methodDeclarationSyntax != null &&
+                methodDeclarationSyntax.Modifiers.Any(x => x.ValueText == TextAsync) == false
             )
             {
                 var methodCode = methodDeclarationSyntax.ToString();
 
-                var newType = SyntaxFactory.ParseTypeName("Task")
+                var newType = SyntaxFactory.ParseTypeName(TextTask)
                     .WithLeadingTrivia(SyntaxFactory.Space)
                     .WithAdditionalAnnotations(Simplifier.Annotation)
                     .WithTrailingTrivia(methodDeclarationSyntax.ReturnType.GetTrailingTrivia());
@@ -73,15 +77,14 @@ namespace AwesomeAnalyzer
                     .ToString();
 
                 var oldDeclaration = declaration.ToString();
-                newMethodCode = newMethodCode.Replace(oldDeclaration, $"await {oldDeclaration}");
+                newMethodCode = newMethodCode.Replace(oldDeclaration, $"{TextAwait}{oldDeclaration}");
 
                 newSource = oldSource.Replace(methodCode, newMethodCode);
             }
             else
             {
-                newSource = oldSource.Insert(declaration.SpanStart, "await ");
+                newSource = oldSource.Insert(declaration.SpanStart, TextAwait);
             }
-
 
             return document.WithText(SourceText.From(newSource));
         }

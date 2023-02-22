@@ -29,98 +29,110 @@ public class MakeSealedTest
     public async Task ClassTest_Diagnostic()
     {
         await VerifyCS.VerifyCodeFixAsync(
-            source: @"
-class [|Program|]
-{ }",
-            fixedSource: @"
-sealed class [|Program|]
-{ }");
+            source: """
+            class {|JJ0001:Program|}
+            { }
+            """,
+            fixedSource: """
+            sealed class Program
+            { }
+            """);
     }
 
     [TestMethod]
     public async Task PublicClassTest_Diagnostic()
     {
         await VerifyCS.VerifyCodeFixAsync(
-            source: @"
-public class [|Program|]
-{ }",
-            fixedSource: @"
-public sealed class Program
-{ }");
+            source: """
+            public class {|JJ0001:Program|}
+            { }
+            """,
+            fixedSource: """
+            public sealed class Program
+            { }
+            """);
     }
 
     [TestMethod]
     public async Task InternalClassTest_Diagnostic()
     {
         await VerifyCS.VerifyCodeFixAsync(
-            source: @"
-internal class [|Program|]
-{ }",
-            fixedSource: @"
-internal sealed class Program
-{ }");
+            source: """
+            internal class {|JJ0001:Program|}
+            { }
+            """,
+            fixedSource: """
+            internal sealed class Program
+            { }
+            """);
     }
 
     [TestMethod]
     public async Task Private2ClassTest_Diagnostic()
     {
         await VerifyCS.VerifyCodeFixAsync(
-            source: @"
-namespace Sample
-{
-    internal class [|Program|] { }
-    internal class [|Program2|] { }
-}",
-            fixedSource: @"
-namespace Sample
-{
-    internal sealed class Program { }
-    internal sealed class Program2 { }
-}");
+            source: """
+            namespace Sample
+            {
+                internal class {|JJ0001:Program|} { }
+                internal class {|JJ0001:Program2|} { }
+            }
+            """,
+            fixedSource: """
+            namespace Sample
+            {
+                internal sealed class Program { }
+                internal sealed class Program2 { }
+            }
+            """);
     }
 
     [TestMethod]
     public async Task ClassBaseClassTest_Diagnostic()
     {
         await VerifyCS.VerifyCodeFixAsync(
-            source: @"
-namespace Sample
-{
-    public class Program { }
-    public class [|Program2|]: Program { }
-}",
-            fixedSource: @"
-namespace Sample
-{
-    public class Program { }
-    public sealed class Program2: Program { }
-}");
+            source: """
+            namespace Sample
+            {
+                public class Program { }
+                public class {|JJ0001:Program2|}: Program { }
+            }
+            """,
+            fixedSource: """
+            namespace Sample
+            {
+                public class Program { }
+                public sealed class Program2: Program { }
+            }
+            """);
     }
 
     [TestMethod]
-    public async Task ClassBaseClassDiffrentNamespacesTest_Diagnostic()
+    public async Task ClassBaseClassDifferentNamespacesTest_Diagnostic()
     {
         await VerifyCS.VerifyCodeFixAsync(
-            source: @"
-namespace Sample
-{
-    public class Program { }
-    public class [|Program2|]: Program { }
-}
-namespace Sample.Test
-{
-    public class [|Program|] { }
-}",
-            fixedSource: @"
-namespace Sample
-{
-    public class Program { }
-    public sealed class Program2: Program { }
-}
-namespace Sample.Test
-{
-    public sealed class Program { }
-}");
+            source: """
+            namespace Sample
+            {
+                public class Program { }
+                public class {|JJ0001:Program2|}: Program { }
+            }
+            namespace Sample.Test
+            {
+                public class {|JJ0001:Program|} { }
+            }
+            """,
+            fixedSource: """
+            namespace Sample
+            {
+                public class Program { }
+                public sealed class Program2: Program { }
+            }
+            namespace Sample.Test
+            {
+                public sealed class Program { }
+            }
+            """);
     }
 
 }
