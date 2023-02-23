@@ -27,12 +27,13 @@ namespace AwesomeAnalyzer
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            if (root == null) return;
 
             foreach (var diagnostic in context.Diagnostics)
             {
                 var declaration = root.FindToken(diagnostic.Location.SourceSpan.Start)
                     .Parent
-                    .AncestorsAndSelf()
+                    ?.AncestorsAndSelf()
                     .OfType<MethodDeclarationSyntax>()
                     .First();
 
@@ -54,7 +55,8 @@ namespace AwesomeAnalyzer
         )
         {
             var semanticModel = await document.GetSemanticModelAsync(token).ConfigureAwait(false);
-            var symbol = semanticModel.GetDeclaredSymbol(localDeclaration, token);
+            var symbol = semanticModel?.GetDeclaredSymbol(localDeclaration, token);
+            if (symbol == null) return document.Project.Solution;
 
             return await Renamer.RenameSymbolAsync(
                 document.Project.Solution,

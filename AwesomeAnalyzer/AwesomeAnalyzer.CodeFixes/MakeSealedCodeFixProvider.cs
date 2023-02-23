@@ -2,7 +2,6 @@
 using System.Composition;
 using System.Linq;
 using System.Threading.Tasks;
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -18,7 +17,7 @@ namespace AwesomeAnalyzer
 
         public override FixAllProvider GetFixAllProvider() => null;
 
-        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
                 CodeAction.Create(
@@ -34,6 +33,8 @@ namespace AwesomeAnalyzer
                 ),
                 context.Diagnostics
             );
+
+            return Task.CompletedTask;
         }
     }
 }

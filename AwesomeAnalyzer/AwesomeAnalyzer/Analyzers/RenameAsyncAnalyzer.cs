@@ -29,31 +29,22 @@ namespace AwesomeAnalyzer.Analyzers
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             if (!(context.Node is MethodDeclarationSyntax methodDeclarationSyntax)) return;
-
-            if (methodDeclarationSyntax.Modifiers.Any(modifier => modifier.ValueText == Textasync)) return;
             if (!methodDeclarationSyntax.Identifier.ValueText.EndsWith(TextAsync)) return;
+            if ((methodDeclarationSyntax.ReturnType is GenericNameSyntax genericNameSyntax &&
+                genericNameSyntax.Identifier.ValueText == TextTask) ||
+                methodDeclarationSyntax.Modifiers.Any(modifier => modifier.ValueText == Textasync)
+                ) return;
 
-            //if (methodDeclarationSyntax.HasParent<InterfaceDeclarationSyntax>() != null) return;
-
-            if (methodDeclarationSyntax.ReturnType is IdentifierNameSyntax identifierNameSyntax &&
-                identifierNameSyntax.Identifier.ValueText != TextTask)
+            if (methodDeclarationSyntax.ReturnType is IdentifierNameSyntax)
             {
-                context.ReportDiagnostic(Diagnostic.Create(
-                    DiagnosticDescriptors.RenameAsyncRule0100, 
-                    methodDeclarationSyntax.Identifier.GetLocation(),
-                    methodDeclarationSyntax.Identifier.ValueText
-                ));
+                return;
             }
 
-            if (!(methodDeclarationSyntax.ReturnType is IdentifierNameSyntax)
-            )
-            {
-                context.ReportDiagnostic(Diagnostic.Create(
-                    DiagnosticDescriptors.RenameAsyncRule0100, 
-                    methodDeclarationSyntax.Identifier.GetLocation(),
-                    methodDeclarationSyntax.Identifier.ValueText
-                ));
-            }
+            context.ReportDiagnostic(Diagnostic.Create(
+                DiagnosticDescriptors.RenameAsyncRule0100,
+                methodDeclarationSyntax.Identifier.GetLocation(),
+                methodDeclarationSyntax.Identifier.ValueText
+            ));
         }
     }
 }

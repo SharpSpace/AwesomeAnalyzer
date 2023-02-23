@@ -4,7 +4,14 @@ namespace AwesomeAnalyzer
 {
     public sealed class TypesInformation
     {
-        public TypesInformation(SortVirtualizationVisitor.Types type, string name, TextSpan fullSpan, string modifiers, int modifiersOrder, string className)
+        public TypesInformation(
+            SortVirtualizationVisitor.Types type,
+            string name,
+            TextSpan fullSpan,
+            string modifiers,
+            int modifiersOrder,
+            string className
+        )
         {
             Type = type;
             Name = name;
@@ -14,9 +21,7 @@ namespace AwesomeAnalyzer
             ClassName = className;
         }
 
-        public SortVirtualizationVisitor.Types Type { get; set; }
-
-        public string Name { get; set; }
+        public string ClassName { get; set; }
 
         public TextSpan FullSpan { get; set; }
 
@@ -24,6 +29,10 @@ namespace AwesomeAnalyzer
 
         public int ModifiersOrder { get; set; }
 
-        public string ClassName { get; set; }
+        public string Name { get; set; }
+
+        public int Order => (((int)Type) * 1000) + ModifiersOrder;
+
+        public SortVirtualizationVisitor.Types Type { get; set; }
     }
 }

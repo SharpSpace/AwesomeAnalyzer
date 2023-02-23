@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Simplification;
 namespace AwesomeAnalyzer
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeConstCodeFixProvider)), Shared]
-    public class MakeConstCodeFixProvider : CodeFixProvider
+    public sealed class MakeConstCodeFixProvider : CodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
             DiagnosticDescriptors.MakeConstRule0003.Id
@@ -30,13 +30,14 @@ namespace AwesomeAnalyzer
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            if (root == null) return;
 
             // TODO: Replace the following code with your own analysis, generating a CodeAction for each fix to suggest
             var diagnostic = context.Diagnostics.First();
             var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             // Find the type declaration identified by the diagnostic.
-            var declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<LocalDeclarationStatementSyntax>().First();
+            var declaration = root.FindToken(diagnosticSpan.Start).Parent?.AncestorsAndSelf().OfType<LocalDeclarationStatementSyntax>().First();
 
             // Register a code action that will invoke the fix.
             context.RegisterCodeFix(
@@ -71,6 +72,7 @@ namespace AwesomeAnalyzer
             if (variableTypeName.IsVar)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                if (semanticModel == null) return document;
 
                 // Special case: Ensure that 'var' isn't actually an alias to another type
                 // (e.g. using var = System.String).
@@ -79,6 +81,7 @@ namespace AwesomeAnalyzer
                 {
                     // Retrieve the type inferred for var.
                     var type = semanticModel.GetTypeInfo(variableTypeName, cancellationToken).ConvertedType;
+                    if (type == null) return document;
 
                     // Special case: Ensure that 'var' isn't actually a type named 'var'.
                     if (type.Name != "var")
@@ -107,6 +110,8 @@ namespace AwesomeAnalyzer
 
             // Replace the old local declaration with the new local declaration.
             var oldRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (oldRoot == null) return document;
+
             var newRoot = oldRoot.ReplaceNode(localDeclaration, formattedLocal);
 
             // Return document with transformed tree.

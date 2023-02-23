@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using System;
 
 namespace AwesomeAnalyzer
 {
@@ -25,7 +24,7 @@ namespace AwesomeAnalyzer
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             if (root == null) return;
 
-            var oldSource = (await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false));
+            var oldSource = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
             foreach (var diagnostic in context.Diagnostics)
             {
@@ -68,7 +67,7 @@ namespace AwesomeAnalyzer
             SyntaxNode oldSource
         )
         {
-            return localDeclaration.Parent.Parent is VariableDeclarationSyntax variableDeclarationSyntax
+            return localDeclaration.Parent?.Parent is VariableDeclarationSyntax variableDeclarationSyntax
                 ? Parse(document, oldSource, variableDeclarationSyntax.Type, localDeclaration.Value.Span, localDeclaration.Value)
                 : document;
         }
@@ -114,7 +113,6 @@ namespace AwesomeAnalyzer
                 type = predefinedTypeSyntax.Keyword.ValueText;
             }
 
-
             var code = new StringBuilder(type);
             code.Append($".TryParse({expressionSyntax}, out var value) ? value : ");
 
@@ -124,12 +122,12 @@ namespace AwesomeAnalyzer
             {
                 code.Append(itemType.Cast);
             }
+
             code.Append(isNullable ? "null" : itemType.DefaultValueString);
 
             return document.WithText(
                 oldSource.GetText().Replace(span.Start, span.Length, code.ToString())
             );
-
         }
     }
 }

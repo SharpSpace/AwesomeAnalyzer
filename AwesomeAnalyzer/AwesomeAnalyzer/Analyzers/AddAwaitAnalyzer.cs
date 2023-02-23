@@ -9,6 +9,8 @@ namespace AwesomeAnalyzer.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class AddAwaitAnalyzer : DiagnosticAnalyzer
     {
+        private const string TextTask = "Task";
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
             DiagnosticDescriptors.AddAwaitRule0101,
             DiagnosticDescriptors.AddAsyncRule0102
@@ -29,13 +31,18 @@ namespace AwesomeAnalyzer.Analyzers
             if (invocationExpressionSyntax.HasParent<AwaitExpressionSyntax>() != null) return;
 
             var typeSymbol = ModelExtensions.GetTypeInfo(context.SemanticModel, invocationExpressionSyntax);
-            if (typeSymbol.Type.Name != "Task") return;
+            if (typeSymbol.Type?.Name != TextTask) return;
+
+            if (invocationExpressionSyntax.HasParent<ConstructorDeclarationSyntax>() != null)
+            {
+                return;
+            }
 
             var methodDeclarationSyntax = invocationExpressionSyntax.HasParent<MethodDeclarationSyntax>();
             if (methodDeclarationSyntax != null)
             {
                 var typeInfo = ModelExtensions.GetTypeInfo(context.SemanticModel, methodDeclarationSyntax.ReturnType);
-                if (typeInfo.Type.Name == "Task") return;
+                if (typeInfo.Type?.Name == TextTask) return;
             }
 
             if (invocationExpressionSyntax.Parent is AssignmentExpressionSyntax) return;

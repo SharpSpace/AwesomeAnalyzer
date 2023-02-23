@@ -29,6 +29,7 @@ namespace AwesomeAnalyzer.Analyzers
 
             var variableTypeName = localDeclaration.Declaration.Type;
             var variableType = ModelExtensions.GetTypeInfo(context.SemanticModel, variableTypeName, context.CancellationToken).ConvertedType;
+            if (variableType == null) return;
 
             foreach (var initializer in localDeclaration.Declaration.Variables.Select(s => s.Initializer))
             {

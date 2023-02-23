@@ -24,6 +24,6 @@ public static partial class VisualBasicAnalyzerVerifier<TAnalyzer>
         };
 
         test.ExpectedDiagnostics.AddRange(expected);
-        await test.RunAsync(CancellationToken.None);
+        await test.RunAsync(CancellationToken.None).ConfigureAwait(false);
     }
 }

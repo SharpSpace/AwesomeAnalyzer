@@ -17,7 +17,6 @@ namespace AwesomeAnalyzer.Analyzers
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
 
-            //context.RegisterSymbolStartAction(AnalyzeSymbolStart, SymbolKind.TypeParameter);
             context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
         }
 
@@ -53,7 +52,7 @@ namespace AwesomeAnalyzer.Analyzers
             }
 
             context.ReportDiagnostic(Diagnostic.Create(
-                DiagnosticDescriptors.MakeSealedRule0001, 
+                DiagnosticDescriptors.MakeSealedRule0001,
                 classDeclarationSyntax.Identifier.GetLocation(),
                 classDeclarationSyntax.Identifier.ValueText
             ));

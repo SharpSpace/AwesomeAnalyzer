@@ -11,13 +11,16 @@ namespace AwesomeAnalyzer
 {
     public sealed class SortVirtualizationVisitor : CSharpSyntaxRewriter
     {
-        private const string TextAsync = "async";
-        private const string TextComma = ",";
-
-        public SortVirtualizationVisitor()
+        public enum ModifiersSort
         {
-            Members = new ConcurrentDictionary<Types, List<TypesInformation>>();
-            Classes = new ConcurrentDictionary<TextSpan, ClassInformation>();
+            PublicConst = 1,
+            PublicStatic = 2,
+            PublicReadOnly = 3,
+            Public = 4,
+            PrivateConst = 5,
+            PrivateStatic = 6,
+            PrivateReadOnly = 7,
+            Private = 8,
         }
 
         public enum Types
@@ -32,22 +35,18 @@ namespace AwesomeAnalyzer
             Methods = 8,
         }
 
-        public enum ModifiersSort
+        private const string TextAsync = "async";
+        private const string TextComma = ",";
+
+        public SortVirtualizationVisitor()
         {
-            PublicConst = 1,
-            PrivateConst = 2,
-            PublicStatic = 3,
-            PublicReadOnly = 4,
-            Public = 5,
-            PrivateStatic = 6,
-            PrivateReadOnly = 7,
-            Private = 8
+            Members = new ConcurrentDictionary<Types, List<TypesInformation>>();
+            Classes = new ConcurrentDictionary<TextSpan, ClassInformation>();
         }
 
         public ConcurrentDictionary<Types, List<TypesInformation>> Members { get; }
 
         public ConcurrentDictionary<TextSpan, ClassInformation> Classes { get; }
-
 
         public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
         {
@@ -58,9 +57,9 @@ namespace AwesomeAnalyzer
             };
 
             Classes.AddOrUpdate(
-                item.FullSpan, 
-                span => item, 
-                (span, information) => information
+                item.FullSpan,
+                _ => item,
+                (_, information) => information
             );
 
             return base.VisitClassDeclaration(node);
@@ -218,12 +217,14 @@ namespace AwesomeAnalyzer
             var modifiersString = string.Join(string.Empty, modifiersText.Where(x => x != TextAsync));
 
             item.Modifiers = string.Join(TextComma, modifiersText);
-            item.ModifiersOrder = string.IsNullOrEmpty(modifiersString) ? (int)ModifiersSort.Private : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true);
+            item.ModifiersOrder = string.IsNullOrEmpty(modifiersString)
+                ? (int)ModifiersSort.Private
+                : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true);
         }
 
         private void AddToList(TypesInformation item, Types constructor)
         {
-            this.Members.AddOrUpdate(
+            Members.AddOrUpdate(
                 constructor,
                 (types) => new List<TypesInformation> { item },
                 (types, list) =>

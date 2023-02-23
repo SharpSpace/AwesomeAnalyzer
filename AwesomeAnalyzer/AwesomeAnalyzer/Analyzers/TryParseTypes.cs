@@ -8,11 +8,6 @@
             TestValue = testValue;
             DefaultValue = defaultValue;
         }
-        //public string TestValueString => TypeName switch
-        //{
-        //    "decimal" => "\"" + TestValue.ToString().ToLower() + "\"",
-        //    _ => TestValue.ToString().ToLower()
-        //};
 
         public string TypeName { get; }
 

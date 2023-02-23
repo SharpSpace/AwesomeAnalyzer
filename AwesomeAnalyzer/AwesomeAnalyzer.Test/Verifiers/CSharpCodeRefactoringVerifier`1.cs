@@ -4,19 +4,19 @@ public static partial class CSharpCodeRefactoringVerifier<TCodeRefactoring>
     where TCodeRefactoring : CodeRefactoringProvider, new()
 {
     /// <inheritdoc cref="CodeRefactoringVerifier{TCodeRefactoring, TTest, TVerifier}.VerifyRefactoringAsync(string, string)"/>
-    public static async Task VerifyRefactoringAsync(string source, string fixedSource)
+    public static Task VerifyRefactoringAsync(string source, string fixedSource)
     {
-        await VerifyRefactoringAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);
+        return VerifyRefactoringAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);
     }
 
     /// <inheritdoc cref="CodeRefactoringVerifier{TCodeRefactoring, TTest, TVerifier}.VerifyRefactoringAsync(string, DiagnosticResult, string)"/>
-    public static async Task VerifyRefactoringAsync(string source, DiagnosticResult expected, string fixedSource)
+    public static Task VerifyRefactoringAsync(string source, DiagnosticResult expected, string fixedSource)
     {
-        await VerifyRefactoringAsync(source, new[] { expected }, fixedSource);
+        return VerifyRefactoringAsync(source, new[] { expected }, fixedSource);
     }
 
     /// <inheritdoc cref="CodeRefactoringVerifier{TCodeRefactoring, TTest, TVerifier}.VerifyRefactoringAsync(string, DiagnosticResult[], string)"/>
-    public static async Task VerifyRefactoringAsync(string source, DiagnosticResult[] expected, string fixedSource)
+    public static Task VerifyRefactoringAsync(string source, DiagnosticResult[] expected, string fixedSource)
     {
         var test = new Test
         {
@@ -25,6 +25,6 @@ public static partial class CSharpCodeRefactoringVerifier<TCodeRefactoring>
         };
 
         test.ExpectedDiagnostics.AddRange(expected);
-        await test.RunAsync(CancellationToken.None);
+        return test.RunAsync(CancellationToken.None);
     }
 }

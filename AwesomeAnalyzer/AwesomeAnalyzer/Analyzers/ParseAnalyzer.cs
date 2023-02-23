@@ -11,15 +11,11 @@ namespace AwesomeAnalyzer.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class ParseAnalyzer : DiagnosticAnalyzer
     {
-        private const string TextString = "String";
-        private const string TextVar = "var";
-
         public static readonly ImmutableArray<dynamic> Types = ImmutableArray.CreateRange(
             new dynamic[]
             {
                 new TryParseTypes<bool>("bool", true, false),
-                new TryParseTypes<byte>("byte", 0, (byte)0),
-                //new TryParseTypes<char>("char", 'c', char.MaxValue),
+                new TryParseTypes<byte>("byte", 0, 0),
                 new TryParseTypes<decimal>("decimal", 1m, 0m),
                 new TryParseTypes<double>("double", 2d, 0d),
                 new TryParseTypes<float>("float", 3f, 0f),
@@ -29,9 +25,13 @@ namespace AwesomeAnalyzer.Analyzers
                 new TryParseTypes<short>("short", 1, 0),
                 new TryParseTypes<uint>("uint", 10, 0),
                 new TryParseTypes<ulong>("ulong", 100, 0),
-                new TryParseTypes<ushort>("ushort", 1, 0)
+                new TryParseTypes<ushort>("ushort", 1, 0),
             }
         );
+
+        private const string TextString = "String";
+
+        private const string TextVar = "var";
 
         private readonly Dictionary<ExpressionSyntax, TypeSyntax> _expectedTypesCache = new Dictionary<ExpressionSyntax, TypeSyntax>();
 
@@ -45,52 +45,50 @@ namespace AwesomeAnalyzer.Analyzers
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
 
-            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.EqualsValueClause);
-            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ReturnStatement);
+            context.RegisterSyntaxNodeAction(AnalyzeEqualsValueClause, SyntaxKind.EqualsValueClause);
+            context.RegisterSyntaxNodeAction(AnalyzeNodeReturnStatement, SyntaxKind.ReturnStatement);
         }
 
-        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        private void AnalyzeEqualsValueClause(SyntaxNodeAnalysisContext context)
         {
-            if (context.Node is EqualsValueClauseSyntax equalsValueClauseSyntax)
-            {
-                if (equalsValueClauseSyntax.Parent is ParameterSyntax) return;
+            var equalsValueClauseSyntax = (EqualsValueClauseSyntax)context.Node;
+            if (equalsValueClauseSyntax.Parent is ParameterSyntax) return;
 
-                AnalyzeNode(context, equalsValueClauseSyntax.Value);
-            }
-            else if (context.Node is ReturnStatementSyntax returnStatementSyntax)
-            {
-                AnalyzeNode(context, returnStatementSyntax.Expression);
-            }
+            AnalyzeNode(context, equalsValueClauseSyntax.Value);
+        }
+
+        private void AnalyzeNodeReturnStatement(SyntaxNodeAnalysisContext context)
+        {
+            var returnStatementSyntax = (ReturnStatementSyntax)context.Node;
+            AnalyzeNode(context, returnStatementSyntax.Expression);
         }
 
         private void AnalyzeNode(
             SyntaxNodeAnalysisContext context,
-            ExpressionSyntax valueExpression
+            ExpressionSyntax sourceValueExpression
         )
         {
-            if (!(valueExpression is IdentifierNameSyntax) && !(valueExpression is LiteralExpressionSyntax))
+            if (!(sourceValueExpression is IdentifierNameSyntax) && !(sourceValueExpression is LiteralExpressionSyntax))
             {
                 return;
             }
 
-            var variableType = GetVariableType(context, valueExpression);
-            if (variableType?.Name != TextString)
+            var targetType = ((sourceValueExpression.Parent?.Parent?.Parent as VariableDeclarationSyntax)?.Type as IdentifierNameSyntax)?.Identifier.ValueText;
+            if (targetType == TextVar)
             {
                 return;
             }
 
-            switch (GetExpectedType(context, valueExpression))
+            var sourceType = GetVariableType(context, sourceValueExpression);
+            if (sourceType?.Name != TextString)
             {
-                case null:
-                case IdentifierNameSyntax identifierNameSyntax when identifierNameSyntax.Identifier.ValueText == TextVar:
-                case PredefinedTypeSyntax predefinedTypeSyntax when Types.Any(x => x.TypeName == predefinedTypeSyntax.Keyword.ValueText) == false:
-                    return;
+                return;
             }
 
             context.ReportDiagnostic(
                 Diagnostic.Create(
                     DiagnosticDescriptors.ParseStringRule0005,
-                    valueExpression.GetLocation()
+                    sourceValueExpression.GetLocation()
                 )
             );
         }
@@ -122,7 +120,7 @@ namespace AwesomeAnalyzer.Analyzers
                     && !(parent is LocalDeclarationStatementSyntax)
                 )
                 {
-                    parent = parent.Parent;
+                    parent = parent?.Parent;
                 }
 
                 switch (parent)

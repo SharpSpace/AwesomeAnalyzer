@@ -11,8 +11,8 @@ public class TestTarget<TAnalyzer, TCodeFix> : CodeFixTest<MSTestVerifier>
         _languageVersion = languageVersion;
         SolutionTransforms.Add((solution, projectId) =>
         {
-            var compilationOptions = solution.GetProject(projectId).CompilationOptions;
-            compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(
+            var compilationOptions = solution.GetProject(projectId)?.CompilationOptions;
+            compilationOptions = compilationOptions?.WithSpecificDiagnosticOptions(
                 compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings)
             );
             solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);

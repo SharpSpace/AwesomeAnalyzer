@@ -3,16 +3,16 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace AwesomeAnalyzer
 {
-    public class ClassInformation
+    public sealed class ClassInformation
     {
+        public List<ClassInformation> BaseClasses { get; set; }
+
         public string ClassName { get; set; }
 
-        public string NameSpaceName { get; set; }
-
-        public List<ClassInformation> BaseClasses { get; set; }
+        public TextSpan FullSpan { get; set; }
 
         public string IdentifierName => $"{this.NameSpaceName}.{this.ClassName}";
 
-        public TextSpan FullSpan { get; set; }
+        public string NameSpaceName { get; set; }
     }
 }

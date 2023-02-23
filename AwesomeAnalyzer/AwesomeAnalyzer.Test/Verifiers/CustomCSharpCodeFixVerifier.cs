@@ -4,7 +4,7 @@ public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
     where TAnalyzer : DiagnosticAnalyzer, new()
     where TCodeFix : CodeFixProvider, new()
 {
-    public static async Task VerifyAnalyzerAsync(LanguageVersion languageVersion, string source, params DiagnosticResult[] expected)
+    public static Task VerifyAnalyzerAsync(LanguageVersion languageVersion, string source, params DiagnosticResult[] expected)
     {
         var test = new TestTarget<TAnalyzer, TCodeFix>(languageVersion)
         {
@@ -12,13 +12,13 @@ public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
         };
 
         test.ExpectedDiagnostics.AddRange(expected);
-        await test.RunAsync(CancellationToken.None);
+        return test.RunAsync(CancellationToken.None);
     }
 
-    public static async Task VerifyCodeFixAsync(LanguageVersion languageVersion, string source, string fixedSource)
-        => await VerifyCodeFixAsync(languageVersion, source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);
+    public static Task VerifyCodeFixAsync(LanguageVersion languageVersion, string source, string fixedSource)
+        => VerifyCodeFixAsync(languageVersion, source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);
 
-    public static async Task VerifyCodeFixAsync(LanguageVersion languageVersion, string source, DiagnosticResult[] expected, string fixedSource)
+    public static Task VerifyCodeFixAsync(LanguageVersion languageVersion, string source, DiagnosticResult[] expected, string fixedSource)
     {
         var test = new TestTarget<TAnalyzer, TCodeFix>(languageVersion)
         {
@@ -27,6 +27,6 @@ public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
         };
 
         test.ExpectedDiagnostics.AddRange(expected);
-        await test.RunAsync(CancellationToken.None);
+        return test.RunAsync(CancellationToken.None);
     }
 }

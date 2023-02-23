@@ -17,7 +17,7 @@ public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
         => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, MSTestVerifier>.Diagnostic(descriptor);
 
     /// <inheritdoc cref="CodeFixVerifier{TAnalyzer, TCodeFix, TTest, TVerifier}.VerifyAnalyzerAsync(string, DiagnosticResult[])"/>
-    public static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
+    public static Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
     {
         var test = new Test
         {
@@ -25,19 +25,19 @@ public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
         };
 
         test.ExpectedDiagnostics.AddRange(expected);
-        await test.RunAsync(CancellationToken.None);
+        return test.RunAsync(CancellationToken.None);
     }
 
     /// <inheritdoc cref="CodeFixVerifier{TAnalyzer, TCodeFix, TTest, TVerifier}.VerifyCodeFixAsync(string, string)"/>
-    public static async Task VerifyCodeFixAsync(string source, string fixedSource)
-        => await VerifyCodeFixAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);
+    public static Task VerifyCodeFixAsync(string source, string fixedSource)
+        => VerifyCodeFixAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);
 
     /// <inheritdoc cref="CodeFixVerifier{TAnalyzer, TCodeFix, TTest, TVerifier}.VerifyCodeFixAsync(string, DiagnosticResult, string)"/>
-    public static async Task VerifyCodeFixAsync(string source, DiagnosticResult expected, string fixedSource)
-        => await VerifyCodeFixAsync(source, new[] { expected }, fixedSource);
+    public static Task VerifyCodeFixAsync(string source, DiagnosticResult expected, string fixedSource)
+        => VerifyCodeFixAsync(source, new[] { expected }, fixedSource);
 
     /// <inheritdoc cref="CodeFixVerifier{TAnalyzer, TCodeFix, TTest, TVerifier}.VerifyCodeFixAsync(string, DiagnosticResult[], string)"/>
-    public static async Task VerifyCodeFixAsync(string source, DiagnosticResult[] expected, string fixedSource)
+    public static Task VerifyCodeFixAsync(string source, DiagnosticResult[] expected, string fixedSource)
     {
         var test = new Test
         {
@@ -46,6 +46,6 @@ public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
         };
 
         test.ExpectedDiagnostics.AddRange(expected);
-        await test.RunAsync(CancellationToken.None);
+        return test.RunAsync(CancellationToken.None);
     }
 }

@@ -8,150 +8,225 @@ namespace AwesomeAnalyzer.Test;
 public sealed class RenameAsyncTest
 {
     [TestMethod]
-    public async Task Test1_NoDiagnostic()
+    public async Task Test_Diagnostic1()
     {
-        await VerifyCS.VerifyAnalyzerAsync("""
-            class Program 
-            { 
-                void Method(){}
-            }
-            """);
-    }
-
-    [TestMethod]
-    public async Task Test2_NoDiagnostic()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
-            class Program 
-            { 
-                async void MethodAsync(){}
-            }
-            """);
-    }
-
-    [TestMethod]
-    public async Task Test3_NoDiagnostic()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
-            namespace MyNamespace
-            {
-                using System.Threading.Tasks;
-
+        await VerifyCS.VerifyCodeFixAsync(
+            """
                 class Program
                 {
-                    public async Task MethodAsync() {}
+                    void [|MethodAsync|]()
+                    {
+                    }
                 }
-            }
-            """);
-    }
-
-    [TestMethod]
-    public async Task Test4_NoDiagnostic()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
-            namespace MyNamespace
-            {
-                using System.Threading.Tasks;
-
+                """,
+            fixedSource: """
                 class Program
                 {
-                    public async Task<string> MethodAsync() { return "Async"; }
+                    void Method()
+                    {
+                    }
                 }
-            }
-            """);
+                """
+        ).ConfigureAwait(false);
     }
 
     [TestMethod]
-    public async Task Test5_NoDiagnostic()
+    public async Task Test_Diagnostic2()
     {
-        await VerifyCS.VerifyAnalyzerAsync("""
-            namespace MyNamespace
-            {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+                class Program
+                {
+                    string [|MethodAsync|]()
+                    {
+                        return "Async";
+                    }
+                }
+                """,
+            fixedSource: """
+                class Program
+                {
+                    string Method()
+                    {
+                        return "Async";
+                    }
+                }
+                """
+        ).ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_Diagnostic3()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+                class Program
+                {
+                    string [|MethodAsync|]()
+                    {
+                        return "Async";
+                    }
+
+                    private void B()
+                    {
+                        this.MethodAsync();
+                    }
+                }
+                """,
+            fixedSource: """
+                class Program
+                {
+                    string Method()
+                    {
+                        return "Async";
+                    }
+
+                    private void B()
+                    {
+                        this.Method();
+                    }
+                }
+                """
+        ).ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_NoDiagnostic1()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+                class Program
+                {
+                    void Method(){}
+                }
+                """
+        ).ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_NoDiagnostic2()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+                class Program
+                {
+                    async void MethodAsync(){}
+                }
+                """
+        ).ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_NoDiagnostic3()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
                 using System.Threading.Tasks;
 
-                interface Program 
-                { 
-                    Task MethodAsync();
+                namespace MyNamespace
+                {
+                    class Program
+                    {
+                        public async Task MethodAsync() {}
+                    }
                 }
-            }
-            """);
+                """
+        ).ConfigureAwait(false);
     }
 
     [TestMethod]
-    public async Task Test1_Diagnostic()
+    public async Task Test_NoDiagnostic4()
     {
-        await VerifyCS.VerifyCodeFixAsync("""
-            class Program 
-            { 
-                void [|MethodAsync|]()
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+                using System.Threading.Tasks;
+
+                namespace MyNamespace
                 {
+                    class Program
+                    {
+                        public async Task<string> MethodAsync() { return "Async"; }
+                    }
                 }
-            }
-            """,
-            fixedSource: """
-            class Program 
-            { 
-                void Method()
-                {
-                }
-            }
-            """);
+                """
+        ).ConfigureAwait(false);
     }
 
     [TestMethod]
-    public async Task Test2_Diagnostic()
+    public async Task Test_NoDiagnostic5()
     {
-        await VerifyCS.VerifyCodeFixAsync("""
-            class Program 
-            { 
-                string [|MethodAsync|]()
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+                using System.Threading.Tasks;
+
+                namespace MyNamespace
                 {
-                    return "Async";
+                    interface Program
+                    {
+                        Task MethodAsync();
+                    }
                 }
-            }
-            """,
-            fixedSource: """
-            class Program 
-            { 
-                string Method()
-                {
-                    return "Async";
-                }
-            }
-            """);
+                """
+        ).ConfigureAwait(false);
     }
 
     [TestMethod]
-    public async Task Test3_Diagnostic()
+    public async Task Test_NoDiagnostic6()
     {
-        await VerifyCS.VerifyCodeFixAsync("""
-            class Program 
-            { 
-                string [|MethodAsync|]()
-                {
-                    return "Async";
-                }
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+                using System.Threading.Tasks;
 
-                private void B()
+                namespace MyNamespace
                 {
-                    this.MethodAsync();
+                    class Program
+                    {
+                        public Task MethodAsync() => Task.CompletedTask;
+                    }
                 }
-            }
-            """,
-            fixedSource: """
-            class Program 
-            { 
-                string Method()
-                {
-                    return "Async";
-                }
-
-                private void B()
-                {
-                    this.Method();
-                }
-            }
-            """);
+                """
+        ).ConfigureAwait(false);
     }
 
+    [TestMethod]
+    public async Task Test_NoDiagnostic7()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+                using System.Threading.Tasks;
+                
+                namespace MyNamespace
+                {
+                    class Program
+                    {
+                        public Task MethodAsync()
+                        {
+                            return Task.CompletedTask;
+                        }
+                    }
+                }
+                """
+        ).ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_NoDiagnostic8()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+                using System.Threading.Tasks;
+                
+                namespace MyNamespace
+                {
+                    class Program
+                    {
+                        public Task<string> MethodAsync()
+                        {
+                            return Task.FromResult(string.Empty);
+                        }
+                    }
+                }
+                """
+        ).ConfigureAwait(false);
+    }
 }

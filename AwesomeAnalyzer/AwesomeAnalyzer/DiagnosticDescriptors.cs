@@ -4,13 +4,11 @@ namespace AwesomeAnalyzer
 {
     public readonly struct DiagnosticDescriptors
     {
-        private const string Category = "Order";
-
         public static readonly DiagnosticDescriptor MakeSealedRule0001 = new DiagnosticDescriptor(
             "JJ0001",
             "Class should have modifier sealed",
             "Class '{0}' should contain modifier sealed",
-            "Naming",
+            TextNaming,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Class should have modifier sealed."
@@ -20,7 +18,7 @@ namespace AwesomeAnalyzer
             "JJ0003",
             "Variable can be a const",
             "Variable '{0}' can be a const",
-            "Usage",
+            TextUsage,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Variable can be a const."
@@ -30,7 +28,7 @@ namespace AwesomeAnalyzer
             "JJ0004",
             "Statement is missing using because type implements IDisposable",
             "Add using to statement '{0}'",
-            "Usage",
+            TextUsage,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Statement is missing using because type implements IDisposable."
@@ -40,7 +38,7 @@ namespace AwesomeAnalyzer
             "JJ2001",
             "Add TryParse",
             "Add TryParse",
-            Category,
+            TextOrder,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Add TryParse."
@@ -50,7 +48,7 @@ namespace AwesomeAnalyzer
             "JJ0100",
             "Method name contains Async prefix",
             "Method name '{0}' contains Async prefix and its not async",
-            "Naming",
+            TextNaming,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Removes Async prefix from method name."
@@ -60,7 +58,7 @@ namespace AwesomeAnalyzer
             "JJ0101",
             "Method call is missing Await",
             "Method call '{0}' is missing Await",
-            "Naming",
+            TextNaming,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Method call is missing Await."
@@ -70,7 +68,7 @@ namespace AwesomeAnalyzer
             "JJ0102",
             "Method name is missing Async prefix",
             "Method name '{0}' is missing Async prefix",
-            "Naming",
+            TextNaming,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Method name is missing Async prefix."
@@ -79,7 +77,8 @@ namespace AwesomeAnalyzer
         public static readonly DiagnosticDescriptor EnumSortRule1008 = new DiagnosticDescriptor(
             "JJ1008",
             "Enum needs to be sorted alphabetically",
-            "Sort enum '{0}'", Category,
+            "Sort enum '{0}'",
+            TextOrder,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Sorts enums alphabetically."
@@ -88,7 +87,8 @@ namespace AwesomeAnalyzer
         public static readonly DiagnosticDescriptor EnumOrderRule1009 = new DiagnosticDescriptor(
             "JJ1009",
             "Enum needs to be in correct order",
-            "Order enum '{0}'", Category,
+            "Order enum '{0}'",
+            TextOrder,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Order enums in correct order."
@@ -97,7 +97,8 @@ namespace AwesomeAnalyzer
         public static readonly DiagnosticDescriptor FieldSortRule1001 = new DiagnosticDescriptor(
             "JJ1001",
             "Field needs to be sorted alphabetically",
-            "Sort field '{0}'", Category,
+            "Sort field '{0}'",
+            TextOrder,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Sorts fields alphabetically."
@@ -106,7 +107,8 @@ namespace AwesomeAnalyzer
         public static readonly DiagnosticDescriptor FieldOrderRule1002 = new DiagnosticDescriptor(
             "JJ1002",
             "Field needs to be in correct order",
-            "Order field '{0}'", Category,
+            "Order field '{0}'",
+            TextOrder,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Order fields in correct order."
@@ -115,7 +117,8 @@ namespace AwesomeAnalyzer
         public static readonly DiagnosticDescriptor ConstructorOrderRule1005 = new DiagnosticDescriptor(
             "JJ1005",
             "Constructor needs to be in correct order",
-            "Order constructor '{0}'", Category,
+            "Order constructor '{0}'",
+            TextOrder,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Order constructor in correct order."
@@ -124,7 +127,8 @@ namespace AwesomeAnalyzer
         public static readonly DiagnosticDescriptor DelegateSortRule1010 = new DiagnosticDescriptor(
             "JJ1010",
             "Delegate needs to be sorted alphabetically",
-            "Sort delegate '{0}'", Category,
+            "Sort delegate '{0}'",
+            TextOrder,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Sorts delegates alphabetically."
@@ -133,7 +137,8 @@ namespace AwesomeAnalyzer
         public static readonly DiagnosticDescriptor DelegateOrderRule1011 = new DiagnosticDescriptor(
             "JJ1011",
             "Delegate needs to be in correct order",
-            "Order delegate '{0}'", Category,
+            "Order delegate '{0}'",
+            TextOrder,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Order delegates in correct order."
@@ -142,7 +147,8 @@ namespace AwesomeAnalyzer
         public static readonly DiagnosticDescriptor EventSortRule1012 = new DiagnosticDescriptor(
             "JJ1012",
             "Event needs to be sorted alphabetically",
-            "Sort event '{0}'", Category,
+            "Sort event '{0}'",
+            TextOrder,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Sorts events alphabetically."
@@ -151,7 +157,8 @@ namespace AwesomeAnalyzer
         public static readonly DiagnosticDescriptor EventOrderRule1013 = new DiagnosticDescriptor(
             "JJ1013",
             "Event needs to be in correct order",
-            "Order event '{0}'", Category,
+            "Order event '{0}'",
+            TextOrder,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Order events in correct order."
@@ -160,7 +167,8 @@ namespace AwesomeAnalyzer
         public static readonly DiagnosticDescriptor PropertySortRule1006 = new DiagnosticDescriptor(
             "JJ1006",
             "Property needs to be sorted alphabetically",
-            "Sort property '{0}'", Category,
+            "Sort property '{0}'",
+            TextOrder,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Sorts properties alphabetically."
@@ -169,7 +177,8 @@ namespace AwesomeAnalyzer
         public static readonly DiagnosticDescriptor PropertyOrderRule1007 = new DiagnosticDescriptor(
             "JJ1007",
             "Property needs to be in correct order",
-            "Order property '{0}'", Category,
+            "Order property '{0}'",
+            TextOrder,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Order properties in correct order."
@@ -178,7 +187,8 @@ namespace AwesomeAnalyzer
         public static readonly DiagnosticDescriptor MethodSortRule1003 = new DiagnosticDescriptor(
             "JJ1003",
             "Method needs to be sorted alphabetically",
-            "Sort method '{0}'", Category,
+            "Sort method '{0}'",
+            TextOrder,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Sorts methods alphabetically."
@@ -187,10 +197,15 @@ namespace AwesomeAnalyzer
         public static readonly DiagnosticDescriptor MethodOrderRule1004 = new DiagnosticDescriptor(
             "JJ1004",
             "Method needs to be in correct order",
-            "Order method '{0}'", Category,
+            "Order method '{0}'",
+            TextOrder,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Order methods in correct order."
         );
+
+        private const string TextOrder = "Order";
+        private const string TextNaming = "Naming";
+        private const string TextUsage = "Usage";
     }
 }

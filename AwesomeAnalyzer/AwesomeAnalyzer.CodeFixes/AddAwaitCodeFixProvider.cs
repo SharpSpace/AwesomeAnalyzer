@@ -19,7 +19,7 @@ namespace AwesomeAnalyzer
         private const string TextAsync = "async";
         private const string TextTask = "Task";
         private const string TextAwait = "await ";
-        
+
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticDescriptors.AddAwaitRule0101.Id);
 
         public override FixAllProvider GetFixAllProvider() => null;
@@ -27,15 +27,17 @@ namespace AwesomeAnalyzer
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            if (root == null) return;
 
             foreach (var diagnostic in context.Diagnostics)
             {
                 var declaration = root.FindToken(diagnostic.Location.SourceSpan.Start)
                     .Parent
-                    .AncestorsAndSelf()
+                    ?.AncestorsAndSelf()
                     .OfType<InvocationExpressionSyntax>()
                 .First();
 
+                if (declaration == null) continue;
                 if (declaration.Parent is AwaitExpressionSyntax) continue;
 
                 context.RegisterCodeFix(
@@ -57,7 +59,12 @@ namespace AwesomeAnalyzer
         {
             var methodDeclarationSyntax = declaration.HasParent<MethodDeclarationSyntax>();
 
-            var oldSource = (await document.GetSyntaxRootAsync(token).ConfigureAwait(false)).ToFullString();
+            var oldSource = (await document.GetSyntaxRootAsync(token).ConfigureAwait(false))?.ToFullString();
+            if (oldSource == null)
+            {
+                return document;
+            }
+
             string newSource;
             if (methodDeclarationSyntax != null &&
                 methodDeclarationSyntax.Modifiers.Any(x => x.ValueText == TextAsync) == false

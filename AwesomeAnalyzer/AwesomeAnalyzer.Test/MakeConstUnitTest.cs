@@ -8,212 +8,249 @@ namespace AwesomeAnalyzer.Test;
 public class MakeConstUnitTest
 {
     [TestMethod]
-    public async Task VariableIsAssigned_NoDiagnostic()
-    {
-        await VerifyCS.VerifyAnalyzerAsync(@"
-using System;
-class Program
-{
-    static void Main()
-    {
-        int i = 0;
-        Console.WriteLine(i++);
-    }
-}
-");
-    }
-
-    [TestMethod]
-    public async Task VariableIsAlreadyConst_NoDiagnostic()
-    {
-        await VerifyCS.VerifyAnalyzerAsync(@"
-using System;
-class Program
-{
-    static void Main()
-    {
-        const int i = 0;
-        Console.WriteLine(i);
-    }
-}
-");
-    }
-
-    [TestMethod]
-    public async Task NoInitializer_NoDiagnostic()
-    {
-        await VerifyCS.VerifyAnalyzerAsync(@"
-using System;
-class Program
-{
-    static void Main()
-    {
-        int i;
-        i = 0;
-        Console.WriteLine(i);
-    }
-}
-");
-    }
-
-    [TestMethod]
-    public async Task InitializerIsNotConstant_NoDiagnostic()
-    {
-        await VerifyCS.VerifyAnalyzerAsync(@"
-using System;
-class Program
-{
-    static void Main()
-    {
-        int i = DateTime.Now.DayOfYear;
-        Console.WriteLine(i);
-    }
-}
-");
-    }
-
-    [TestMethod]
-    public async Task MultipleInitializers_NoDiagnostic()
-    {
-        await VerifyCS.VerifyAnalyzerAsync(@"
-using System;
-class Program
-{
-    static void Main()
-    {
-        int i = 0, j = DateTime.Now.DayOfYear;
-        Console.WriteLine(i);
-        Console.WriteLine(j);
-    }
-}
-");
-    }
-
-    [TestMethod]
     public async Task DeclarationIsInvalid_NoDiagnostic()
     {
-        await VerifyCS.VerifyAnalyzerAsync(@"
-using System;
-class Program
-{
-    static void Main()
-    {
-        int x = {|CS0029:""abc""|};
-    }
-}
-");
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    int x = {|CS0029:"abc"|};
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
     public async Task DeclarationIsNotString_NoDiagnostic()
     {
-        await VerifyCS.VerifyAnalyzerAsync(@"
-using System;
-class Program
-{
-    static void Main()
-    {
-        object s = ""abc"";
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    object s = "abc";
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
-}
-");
+
+    [TestMethod]
+    public async Task InitializerIsNotConstant_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    int i = DateTime.Now.DayOfYear;
+                    Console.WriteLine(i);
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
     public async Task LocalIntCouldBeConstant_Diagnostic()
     {
-        await VerifyCS.VerifyCodeFixAsync(@"
-using System;
-class Program
-{
-    static void Main()
-    {
-        [|int i = 0;|]
-        Console.WriteLine(i);
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    [|int i = 0;|]
+                    Console.WriteLine(i);
+                }
+            }
+            """,
+            """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    const int i = 0;
+                    Console.WriteLine(i);
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
-}
-", @"
-using System;
-class Program
-{
-    static void Main()
+
+    [TestMethod]
+    public async Task MultipleInitializers_NoDiagnostic()
     {
-        const int i = 0;
-        Console.WriteLine(i);
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    int i = 0, j = DateTime.Now.DayOfYear;
+                    Console.WriteLine(i);
+                    Console.WriteLine(j);
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
-}
-");
+
+    [TestMethod]
+    public async Task NoInitializer_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    int i;
+                    i = 0;
+                    Console.WriteLine(i);
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
     public async Task StringCouldBeConstant_Diagnostic()
     {
-        await VerifyCS.VerifyCodeFixAsync(@"
-using System;
-class Program
-{
-    static void Main()
-    {
-        [|string s = ""abc"";|]
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    [|string s = "abc";|]
+                }
+            }
+            """,
+            """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    const string s = "abc";
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
-}
-", @"
-using System;
-class Program
-{
-    static void Main()
+
+    [TestMethod]
+    public async Task VariableIsAlreadyConst_NoDiagnostic()
     {
-        const string s = ""abc"";
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    const int i = 0;
+                    Console.WriteLine(i);
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
-}
-");
+
+    [TestMethod]
+    public async Task VariableIsAssigned_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    int i = 0;
+                    Console.WriteLine(i++);
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
     public async Task VarIntDeclarationCouldBeConstant_Diagnostic()
     {
-        await VerifyCS.VerifyCodeFixAsync(@"
-using System;
-class Program
-{
-    static void Main()
-    {
-        [|var item = 4;|]
-    }
-}
-", @"
-using System;
-class Program
-{
-    static void Main()
-    {
-        const int item = 4;
-    }
-}
-");
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    [|var item = 4;|]
+                }
+            }
+            """,
+            """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    const int item = 4;
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
     public async Task VarStringDeclarationCouldBeConstant_Diagnostic()
     {
-        await VerifyCS.VerifyCodeFixAsync(@"
-using System;
-class Program
-{
-    static void Main()
-    {
-        [|var item = ""abc"";|]
-    }
-}
-", @"
-using System;
-class Program
-{
-    static void Main()
-    {
-        const string item = ""abc"";
-    }
-}
-");
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    [|var item = "abc";|]
+                }
+            }
+            """,
+            """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    const string item = "abc";
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 }

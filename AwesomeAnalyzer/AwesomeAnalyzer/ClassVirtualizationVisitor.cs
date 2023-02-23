@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace AwesomeAnalyzer
 {
-    public class ClassVirtualizationVisitor : CSharpSyntaxRewriter
+    public sealed class ClassVirtualizationVisitor : CSharpSyntaxRewriter
     {
         public ClassVirtualizationVisitor()
         {
@@ -17,8 +17,6 @@ namespace AwesomeAnalyzer
 
         public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
         {
-            //node = (ClassDeclarationSyntax)base.VisitClassDeclaration(node);
-
             string nameSpaceName = null;
             if (node.Parent is NamespaceDeclarationSyntax namespaceDeclarationSyntax)
             {
@@ -32,8 +30,8 @@ namespace AwesomeAnalyzer
                 BaseClasses = node.BaseList?.Types.Select(x => new ClassInformation
                 {
                     ClassName = x.ToString(),
-                    NameSpaceName = x.Parent.Parent.Parent is NamespaceDeclarationSyntax item ? item.Name.ToString() : ((FileScopedNamespaceDeclarationSyntax)x.Parent.Parent.Parent).Name.ToString()
-                }).ToList()
+                    NameSpaceName = x.Parent?.Parent?.Parent is NamespaceDeclarationSyntax item ? item.Name.ToString() : ((FileScopedNamespaceDeclarationSyntax)x.Parent?.Parent?.Parent)?.Name.ToString(),
+                }).ToList(),
             });
 
             return node;

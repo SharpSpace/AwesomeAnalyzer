@@ -2,13 +2,13 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
 namespace AwesomeAnalyzer
@@ -37,14 +37,17 @@ namespace AwesomeAnalyzer
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var oldSource = (await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false))?.ToFullString();
+            var oldSource = (await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false))?.GetText();
 
             foreach (var diagnostic in context.Diagnostics)
             {
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         "Sort document",
-                        token => SortDocumentAsync(context.Document, root, oldSource,
+                        token => SortDocumentAsync(
+                            context.Document,
+                            root,
+                            oldSource,
                             token
                         ),
                         equivalenceKey: "SortCodeFixTitle"
@@ -57,61 +60,58 @@ namespace AwesomeAnalyzer
         private static Task<Document> SortDocumentAsync(
             Document document,
             SyntaxNode root,
-            string oldSource,
+            SourceText oldSource,
             CancellationToken token
         )
         {
             var sortVirtualizationVisitor = new SortVirtualizationVisitor();
             sortVirtualizationVisitor.Visit(root);
 
-            var oldCode = sortVirtualizationVisitor.Members
+            var classList = sortVirtualizationVisitor.Members
                 .SelectMany(
                     x => x.Value,
                     (x, item) => (
-                        item.ClassName, 
-                        Order: x.Key, 
-                        Code: oldSource.Substring(item.FullSpan.Start, item.FullSpan.Length), 
-                        item.FullSpan, 
-                        item.Name, 
-                        item.ModifiersOrder
+                        item.ClassName,
+                        item.FullSpan,
+                        item.Name,
+                        item.Order,
+                        Type: x.Key
                     )
-                ).ToList();
+                )
+                .GroupBy(x => x.ClassName)
+                .Where(x => x.Count() > 1)
+                .ToDictionary(
+                    x => x.Key,
+                    x => x.OrderByDescending(y => y.FullSpan.Start).ToList()
+                );
 
             var newSource = oldSource;
-            foreach (var item in oldCode.OrderByDescending(x => x.FullSpan.Start))
+            var stringBuilder = new StringBuilder();
+            foreach (var item in classList)
             {
                 token.ThrowIfCancellationRequested();
-                newSource = newSource.Remove(item.FullSpan.Start, item.FullSpan.Length);
 
+                stringBuilder.Clear();
+                foreach (var codeItem in item.Value.OrderBy(x => x.Order).ThenBy(x => x.Name))
+                {
+                    stringBuilder.AppendLine(
+                        oldSource.GetSubText(TextSpan.FromBounds(codeItem.FullSpan.Start, codeItem.FullSpan.End))
+                            .ToString()
+                            .TrimStart('\r', '\n')
+                    );
+                }
+
+                var textSpan = TextSpan.FromBounds(
+                    item.Value.Min(y => y.FullSpan.Start),
+                    item.Value.Max(y => y.FullSpan.End)
+                );
+
+                newSource = newSource.Replace(textSpan, stringBuilder.ToString().TrimEnd('\r', '\n') + Environment.NewLine);
             }
 
-            var classMemberGroup = sortVirtualizationVisitor.Classes.ToDictionary(
-                x => x.Value.ClassName,
-                y => sortVirtualizationVisitor.Members.SelectMany(x => x.Value).Where(x => x.FullSpan.IntersectsWith(y.Key)).Min(x => x.FullSpan.Start)
-            );
+            return Task.FromResult(document.WithText(newSource));
 
-            var count = classMemberGroup.ToDictionary(
-                item => item.Key,
-                _ => 0
-            );
-
-            foreach (var tuple in oldCode
-                .OrderBy(x => x.ClassName)
-                .ThenByDescending(x => x.Order)
-                .ThenByDescending(x => x.ModifiersOrder)
-                .ThenByDescending(x => x.Name))
-            {
-                token.ThrowIfCancellationRequested();
-                count[tuple.ClassName]++;
-                var code = count[tuple.ClassName] != 1 
-                    ? $"    {tuple.Code.Trim()}{Environment.NewLine}{Environment.NewLine}" 
-                    : $"    {tuple.Code.Trim()}{Environment.NewLine}";
-
-                newSource = newSource.Insert(classMemberGroup[tuple.ClassName], code);
-            }
-
-            //return document.WithText(SourceText.From(newSource));
-            return Formatter.FormatAsync(document.WithText(SourceText.From(newSource)), cancellationToken: token);
+            // return Formatter.FormatAsync(document.WithText(newSource), cancellationToken: token);
         }
     }
 }

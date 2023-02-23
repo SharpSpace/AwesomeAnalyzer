@@ -1,11 +1,9 @@
 ﻿using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 
 namespace AwesomeAnalyzer.Analyzers
 {
@@ -37,12 +35,12 @@ namespace AwesomeAnalyzer.Analyzers
 
             if (localDeclarationStatementSyntax.UsingKeyword.ValueText == TextUsing) return;
 
-            if (!(localDeclarationStatementSyntax?.Parent is BlockSyntax blockSyntax)) return;
+            if (!(localDeclarationStatementSyntax.Parent is BlockSyntax blockSyntax)) return;
 
             var expression = variableDeclaratorSyntax.Identifier.ValueText;
             if (blockSyntax.Statements
                 .OfType<ExpressionStatementSyntax>()
-                .Any(x => 
+                .Any(x =>
                     x.Expression.ToString().StartsWith(expression)
                 )
             ) return;

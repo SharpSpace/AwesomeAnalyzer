@@ -16,7 +16,7 @@ namespace AwesomeAnalyzer
     public sealed class AddAsyncPrefixCodeFixProvider : CodeFixProvider
     {
         private const string TextAsync = "Async";
-        
+
         private static readonly SymbolRenameOptions _symbolRenameOptions = new SymbolRenameOptions();
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
@@ -57,6 +57,11 @@ namespace AwesomeAnalyzer
         )
         {
             var symbolInfo = semanticModel.GetSymbolInfo(declaration, token);
+
+            if (symbolInfo.Symbol == null)
+            {
+                return Task.FromResult(document.Project.Solution);
+            }
 
             return Renamer.RenameSymbolAsync(
                 document.Project.Solution,
