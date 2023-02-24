@@ -6,7 +6,7 @@ AwesomeAnalyzer is a pack of different Roslyn Analyzers
 
 ## Installation
 
-Download [latest version here](https://github.com/SharpSpace/AwesomeAnalyzer/releases/download/v0.35.3/AwesomeAnalyzer.0.35.3.vsix)
+Download [latest version here](https://github.com/SharpSpace/AwesomeAnalyzer/releases/download/v0.39.0/AwesomeAnalyzer.0.39.0.vsix)
 or on [VisualStudio Marketplace](https://marketplace.visualstudio.com/items?itemName=SharpSpace.AwesomeAnalyzer)
 
 ## Analyzers
@@ -17,6 +17,7 @@ ID | Notes
 [JJ0003](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0003.md) | Variable can be a const.
 [JJ0004](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0004.md) | Statement is missing using because type implements IDisposable.
 [JJ0005](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0005.md) | Convert string to [Type].TryParse()
+[JJ0006](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0006.md) | Remove async and await in method.
 [JJ0100](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0100.md) | Method contains Async prefix.
 [JJ0101](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0101.md) | Method call is missing Await.
 [JJ0102](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0101.md) | Method name is missing Async prefix.

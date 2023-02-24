@@ -130,6 +130,21 @@ public sealed class MakeSealedTest
     }
 
     [TestMethod]
+    public async Task PublicPartialClassTest_Diagnostic()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            source: """
+                public partial class {|JJ0001:Program|}
+                { }
+                """,
+            fixedSource: """
+                public sealed partial class Program
+                { }
+                """
+        ).ConfigureAwait(false);
+    }
+
+    [TestMethod]
     public async Task PublicClassTest_NoDiagnostic()
     {
         await VerifyCS.VerifyAnalyzerAsync(@"public sealed class Program {}").ConfigureAwait(false);

@@ -5,8 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace AwesomeAnalyzer.Analyzers
-{
+namespace AwesomeAnalyzer.Analyzers {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class RenameAsyncAnalyzer : DiagnosticAnalyzer
     {
@@ -28,11 +27,11 @@ namespace AwesomeAnalyzer.Analyzers
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is MethodDeclarationSyntax methodDeclarationSyntax)) return;
+            var methodDeclarationSyntax = (MethodDeclarationSyntax)context.Node;
             if (!methodDeclarationSyntax.Identifier.ValueText.EndsWith(TextAsync)) return;
             if ((methodDeclarationSyntax.ReturnType is GenericNameSyntax genericNameSyntax &&
                 genericNameSyntax.Identifier.ValueText == TextTask) ||
-                methodDeclarationSyntax.Modifiers.Any(modifier => modifier.ValueText == Textasync)
+                methodDeclarationSyntax.Modifiers.Any(x => x.ValueText == Textasync)
                 ) return;
 
             if (methodDeclarationSyntax.ReturnType is IdentifierNameSyntax)

@@ -48,7 +48,7 @@ namespace AwesomeAnalyzer
             }
         }
 
-        private async Task<Solution> MakeAsyncAsync(
+        private static async Task<Solution> MakeAsyncAsync(
             Document document,
             MethodDeclarationSyntax localDeclaration,
             CancellationToken token

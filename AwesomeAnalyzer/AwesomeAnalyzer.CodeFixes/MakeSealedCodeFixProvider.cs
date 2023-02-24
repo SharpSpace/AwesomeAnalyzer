@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Text;
 
 namespace AwesomeAnalyzer
 {
@@ -12,6 +13,8 @@ namespace AwesomeAnalyzer
     public sealed class MakeSealedCodeFixProvider : CodeFixProvider
     {
         private const string TextSealed = "sealed ";
+        private const string TextPartial = "partial ";
+        private const string TextClass = "class ";
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticDescriptors.MakeSealedRule0001.Id);
 
@@ -25,8 +28,18 @@ namespace AwesomeAnalyzer
                     createChangedDocument: async token =>
                     {
                         var text = await context.Document.GetTextAsync(token).ConfigureAwait(false);
+                        var spanStart = context.Diagnostics.First().Location.SourceSpan.Start - TextClass.Length;
+                        if (spanStart > 7)
+                        {
+                            var prevStatement = text.GetSubText(TextSpan.FromBounds(spanStart - TextPartial.Length, spanStart));
+                            if (prevStatement.ToString() == TextPartial)
+                            {
+                                spanStart -= (TextPartial.Length);
+                            }
+                        }
+
                         return context.Document.WithText(
-                            text.Replace(context.Diagnostics.First().Location.SourceSpan.Start - 6, 0, TextSealed)
+                            text.Replace(spanStart, 0, TextSealed)
                         );
                     },
                     equivalenceKey: nameof(CodeFixResources.MakeSealedCodeFixTitle)

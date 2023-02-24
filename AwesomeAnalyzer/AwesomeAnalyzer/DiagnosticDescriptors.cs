@@ -8,7 +8,7 @@ namespace AwesomeAnalyzer
             "JJ0001",
             "Class should have modifier sealed",
             "Class '{0}' should contain modifier sealed",
-            TextNaming,
+            TextPerformance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Class should have modifier sealed."
@@ -18,7 +18,7 @@ namespace AwesomeAnalyzer
             "JJ0003",
             "Variable can be a const",
             "Variable '{0}' can be a const",
-            TextUsage,
+            TextPerformance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Variable can be a const."
@@ -28,7 +28,7 @@ namespace AwesomeAnalyzer
             "JJ0004",
             "Statement is missing using because type implements IDisposable",
             "Add using to statement '{0}'",
-            TextUsage,
+            TextPerformance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Statement is missing using because type implements IDisposable."
@@ -43,6 +43,17 @@ namespace AwesomeAnalyzer
             isEnabledByDefault: true,
             description: "Add TryParse."
         );
+
+        public static DiagnosticDescriptor RemoveAsyncAwaitRule0006 = new DiagnosticDescriptor(
+            "JJ0006",
+            "Remove async and await",
+            "Remove async and await in method '{0}'",
+            TextPerformance,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Remove async and await."
+        );
+
 
         public static readonly DiagnosticDescriptor RenameAsyncRule0100 = new DiagnosticDescriptor(
             "JJ0100",
@@ -207,5 +218,6 @@ namespace AwesomeAnalyzer
         private const string TextOrder = "Order";
         private const string TextNaming = "Naming";
         private const string TextUsage = "Usage";
+        private const string TextPerformance = "Performance";
     }
 }

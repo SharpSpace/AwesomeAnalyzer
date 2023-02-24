@@ -5,7 +5,7 @@
 namespace AwesomeAnalyzer.Test;
 
 [TestClass]
-public class MakeConstUnitTest
+public sealed class MakeConstUnitTest
 {
     [TestMethod]
     public async Task DeclarationIsInvalid_NoDiagnostic()
