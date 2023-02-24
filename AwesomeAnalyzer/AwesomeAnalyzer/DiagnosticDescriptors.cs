@@ -54,7 +54,6 @@ namespace AwesomeAnalyzer
             description: "Remove async and await."
         );
 
-
         public static readonly DiagnosticDescriptor RenameAsyncRule0100 = new DiagnosticDescriptor(
             "JJ0100",
             "Method name contains Async prefix",

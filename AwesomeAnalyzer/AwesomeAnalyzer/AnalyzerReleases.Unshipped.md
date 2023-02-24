@@ -5,9 +5,10 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-JJ0001 | Naming | Warning | MakeSealedAnalyzer
-JJ0003 | Usage | Warning | MakeConstAnalyzer
-JJ0004 | Usage | Warning | DiagnosticDescriptors
+JJ0001 | Performance | Warning | DiagnosticDescriptors
+JJ0003 | Performance | Warning | DiagnosticDescriptors
+JJ0004 | Performance | Warning | DiagnosticDescriptors
+JJ0006 | Performance | Warning | DiagnosticDescriptors
 JJ0100 | Naming | Warning | DiagnosticDescriptors
 JJ0101 | Naming | Warning | DiagnosticDescriptors
 JJ0102 | Naming | Warning | DiagnosticDescriptors
