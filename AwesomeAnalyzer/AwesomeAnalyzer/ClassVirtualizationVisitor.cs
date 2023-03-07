@@ -8,6 +8,8 @@ namespace AwesomeAnalyzer
 {
     public sealed class ClassVirtualizationVisitor : CSharpSyntaxRewriter
     {
+        private Compilation _compilation;
+
         public ClassVirtualizationVisitor()
         {
             this.Classes = new List<ClassInformation>();
@@ -29,12 +31,43 @@ namespace AwesomeAnalyzer
                 NameSpaceName = nameSpaceName,
                 BaseClasses = node.BaseList?.Types.Select(x => new ClassInformation
                 {
-                    ClassName = x.ToString(),
-                    NameSpaceName = x.Parent?.Parent?.Parent is NamespaceDeclarationSyntax item ? item.Name.ToString() : ((FileScopedNamespaceDeclarationSyntax)x.Parent?.Parent?.Parent)?.Name.ToString(),
-                }).ToList(),
+                    ClassName = GetClassName(x),
+                    NameSpaceName = GetNameSpaceName(x),
+                }).ToList() ?? new List<ClassInformation>(),
             });
 
             return node;
+        }
+
+        private static string GetClassName(BaseTypeSyntax x)
+        {
+            if (!(x is SimpleBaseTypeSyntax simpleBaseTypeSyntax))
+            {
+                return x.ToString();
+            }
+
+            if (simpleBaseTypeSyntax.Type is QualifiedNameSyntax qualifiedNameSyntax)
+            {
+                return qualifiedNameSyntax.Right.ToString();
+            }
+
+            if (simpleBaseTypeSyntax.Type is GenericNameSyntax genericNameSyntax)
+            {
+                return genericNameSyntax.Identifier.ValueText;
+            }
+
+            return x.ToString();
+        }
+
+        private string GetNameSpaceName(BaseTypeSyntax x)
+        {
+            var symbolInfo = _compilation.GetSemanticModel(x.SyntaxTree)?.GetSymbolInfo(x.Type);
+            return symbolInfo?.Symbol?.ContainingNamespace.ToDisplayString() ?? string.Empty;
+        }
+
+        public void SetCompilation(Compilation compilation)
+        {
+            _compilation = compilation;
         }
     }
 }

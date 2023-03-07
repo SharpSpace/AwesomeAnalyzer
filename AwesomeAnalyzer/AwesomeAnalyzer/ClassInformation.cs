@@ -5,13 +5,13 @@ namespace AwesomeAnalyzer
 {
     public sealed class ClassInformation
     {
-        public List<ClassInformation> BaseClasses { get; set; }
+        public List<ClassInformation> BaseClasses { get; set; } = new List<ClassInformation>();
 
         public string ClassName { get; set; }
 
         public TextSpan FullSpan { get; set; }
 
-        public string IdentifierName => $"{this.NameSpaceName}.{this.ClassName}";
+        public string IdentifierName => string.IsNullOrWhiteSpace(NameSpaceName) ? ClassName : $"{NameSpaceName}.{ClassName}";
 
         public string NameSpaceName { get; set; }
     }

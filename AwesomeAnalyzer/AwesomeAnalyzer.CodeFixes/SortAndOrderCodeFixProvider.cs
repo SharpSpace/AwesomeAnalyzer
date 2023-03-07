@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
+using AwesomeAnalyzer.Analyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -57,7 +57,7 @@ namespace AwesomeAnalyzer
             }
         }
 
-        private static Task<Document> SortDocumentAsync(
+        private static async Task<Document> SortDocumentAsync(
             Document document,
             SyntaxNode root,
             SourceText oldSource,
@@ -69,8 +69,9 @@ namespace AwesomeAnalyzer
 
             var classList = sortVirtualizationVisitor.Members
                 .SelectMany(
-                    x => x.Value,
-                    (x, item) => (
+                    x => x.Value.Where(y => string.IsNullOrWhiteSpace(y.ClassName) == false),
+                    (x, item) =>
+                    (
                         item.ClassName,
                         item.FullSpan,
                         item.Name,
@@ -83,7 +84,7 @@ namespace AwesomeAnalyzer
                 .ToDictionary(
                     x => x.Key,
                     x => x.OrderByDescending(y => y.FullSpan.Start).ToList()
-                );
+                ).Reverse();
 
             var newSource = oldSource;
             var stringBuilder = new StringBuilder();
@@ -92,12 +93,12 @@ namespace AwesomeAnalyzer
                 token.ThrowIfCancellationRequested();
 
                 stringBuilder.Clear();
-                foreach (var codeItem in item.Value.OrderBy(x => x.Order).ThenBy(x => x.Name))
+                foreach (var codeItem in item.Value.OrderBy(x => x.Order).ThenBy(x => SortAnalyzer.PadNumbers(x.Name)))
                 {
                     stringBuilder.AppendLine(
                         oldSource.GetSubText(TextSpan.FromBounds(codeItem.FullSpan.Start, codeItem.FullSpan.End))
                             .ToString()
-                            .TrimStart('\r', '\n')
+                            .TrimStart(NewLine)
                     );
                 }
 
@@ -106,12 +107,17 @@ namespace AwesomeAnalyzer
                     item.Value.Max(y => y.FullSpan.End)
                 );
 
-                newSource = newSource.Replace(textSpan, stringBuilder.ToString().TrimEnd('\r', '\n') + Environment.NewLine);
+                newSource = newSource.Replace(
+                    textSpan,
+                    $"{stringBuilder.ToString().TrimEnd(NewLine)}{Environment.NewLine}"
+                );
             }
 
-            return Task.FromResult(document.WithText(newSource));
+            return document.WithText(newSource);
 
             // return Formatter.FormatAsync(document.WithText(newSource), cancellationToken: token);
         }
+
+        private static readonly char[] NewLine = new []{ '\r', '\n' };
     }
 }

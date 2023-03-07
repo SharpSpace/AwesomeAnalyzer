@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,7 +13,7 @@ namespace AwesomeAnalyzer.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class SortAnalyzer : DiagnosticAnalyzer
     {
-        private readonly ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics = ImmutableArray.Create(
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
             DiagnosticDescriptors.EnumSortRule1008,
             DiagnosticDescriptors.EnumOrderRule1009,
             DiagnosticDescriptors.FieldSortRule1001,
@@ -28,8 +29,6 @@ namespace AwesomeAnalyzer.Analyzers
             DiagnosticDescriptors.MethodOrderRule1004
         );
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => _supportedDiagnostics;
-
         public override void Initialize(AnalysisContext context)
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
@@ -40,7 +39,6 @@ namespace AwesomeAnalyzer.Analyzers
                     x,
                     SortVirtualizationVisitor.Types.Enum,
                     ((EnumDeclarationSyntax)x.Node).Identifier,
-                    x.Node.FullSpan,
                     DiagnosticDescriptors.EnumOrderRule1009,
                     DiagnosticDescriptors.EnumSortRule1008
                 ),
@@ -51,7 +49,6 @@ namespace AwesomeAnalyzer.Analyzers
                     x,
                     SortVirtualizationVisitor.Types.Field,
                     ((FieldDeclarationSyntax)x.Node).Declaration.Variables[0].Identifier,
-                    x.Node.FullSpan,
                     DiagnosticDescriptors.FieldOrderRule1002,
                     DiagnosticDescriptors.FieldSortRule1001
                 ),
@@ -63,7 +60,6 @@ namespace AwesomeAnalyzer.Analyzers
                     x,
                     SortVirtualizationVisitor.Types.Delegate,
                     ((DelegateDeclarationSyntax)x.Node).Identifier,
-                    x.Node.FullSpan,
                     DiagnosticDescriptors.DelegateOrderRule1011,
                     DiagnosticDescriptors.DelegateSortRule1010
                 ),
@@ -75,7 +71,6 @@ namespace AwesomeAnalyzer.Analyzers
                     x,
                     SortVirtualizationVisitor.Types.EventField,
                     ((EventFieldDeclarationSyntax)x.Node).Declaration.Variables[0].Identifier,
-                    x.Node.FullSpan,
                     DiagnosticDescriptors.EventOrderRule1013,
                     DiagnosticDescriptors.EventSortRule1012
                 ),
@@ -87,7 +82,6 @@ namespace AwesomeAnalyzer.Analyzers
                     x,
                     SortVirtualizationVisitor.Types.Property,
                     ((PropertyDeclarationSyntax)x.Node).Identifier,
-                    x.Node.FullSpan,
                     DiagnosticDescriptors.PropertyOrderRule1007,
                     DiagnosticDescriptors.PropertySortRule1006
                 ),
@@ -99,7 +93,6 @@ namespace AwesomeAnalyzer.Analyzers
                     x,
                     SortVirtualizationVisitor.Types.Methods,
                     ((MethodDeclarationSyntax)x.Node).Identifier,
-                    x.Node.FullSpan,
                     DiagnosticDescriptors.MethodOrderRule1004,
                     DiagnosticDescriptors.MethodSortRule1003
                 ),
@@ -115,22 +108,25 @@ namespace AwesomeAnalyzer.Analyzers
             TextSpan fullSpan
         )
         {
-            var classMemberGroup = classes.ToDictionary(
-                x => x.Key,
-                y => members.Where(x => x.FullSpan.IntersectsWith(y.Key)).ToList()
-            );
+            var classMemberGroup = classes
+                .ToDictionary(
+                    x => x.Key,
+                    y => members.Where(x => x.FullSpan.IntersectsWith(y.Key)).ToList()
+                );
 
             foreach (var classMembers in classMemberGroup)
             {
                 var member = classMembers.Value.SingleOrDefault(x => x.FullSpan.Start == fullSpan.Start);
                 if (member == null) continue;
+                if (string.IsNullOrWhiteSpace(member.ClassName)) continue;
+                if (member.ClassName.Count(x => x == '.') >= 1) return false;
 
-                var currentIndexOf = classMembers.Value.IndexOf(member);
+                var classMemberList = classMembers.Value.Where(x => x.ClassName == member.ClassName).ToList();
+                var currentIndexOf = classMemberList.IndexOf(member);
 
-                var sortedList = classMembers.Value
-                    .OrderBy(x => x.ClassName)
-                    .ThenBy(x => x.Order)
-                    .ThenBy(x => x.Name)
+                var sortedList = classMemberList
+                    .OrderBy(x => x.Order)
+                    .ThenBy(x => PadNumbers(x.Name))
                     .ToList();
                 var sortedIndexOf = sortedList.IndexOf(member);
 
@@ -149,18 +145,25 @@ namespace AwesomeAnalyzer.Analyzers
             TextSpan span
         )
         {
+            if (members.Contains(type) == false)
+            {
+                return false;
+            }
+
             var member = members[type].Single(x => x.FullSpan == span);
+            if (string.IsNullOrWhiteSpace(member.ClassName)) return false;
+            if (member.ClassName.Count(z => z == '.') >= 1) return false;
+
             var memberIndex = (member.FullSpan, member.Order);
-            var membersIndex = members
-                .SelectMany(x => x.Select(y => (y.FullSpan, y.Order)))
-                .ToList();
+            var classMemberList = members.SelectMany(x => x).Where(x => x.ClassName == member.ClassName).ToList();
+            var membersIndex = classMemberList.Select(y => (y.FullSpan, y.Order)).ToList();
+
             if (membersIndex.Any(x => x.Order > memberIndex.Order && x.FullSpan.Start < memberIndex.FullSpan.Start))
             {
                 return true;
             }
-            else if (membersIndex.Any(
-                         x => x.Order < memberIndex.Order && x.FullSpan.Start > memberIndex.FullSpan.Start
-                     ))
+
+            if (membersIndex.Any(x => x.Order < memberIndex.Order && x.FullSpan.Start > memberIndex.FullSpan.Start))
             {
                 return true;
             }
@@ -172,8 +175,13 @@ namespace AwesomeAnalyzer.Analyzers
         {
             var sortVirtualizationVisitor = new SortVirtualizationVisitor();
             sortVirtualizationVisitor.Visit(context.Node.Parent);
+
             var members = sortVirtualizationVisitor.Members
-                .SelectMany(x => x.Value.Select(y => new { x.Key, y }))
+                .SelectMany(x =>
+                    x.Value
+                        .Where(y => string.IsNullOrWhiteSpace(y.ClassName) == false)
+                        .Select(y => new { x.Key, y })
+                )
                 .ToLookup(x => x.Key, x => x.y);
 
             var constructorDeclarationSyntax = (ConstructorDeclarationSyntax)context.Node;
@@ -198,14 +206,29 @@ namespace AwesomeAnalyzer.Analyzers
             SyntaxNodeAnalysisContext context,
             SortVirtualizationVisitor.Types types,
             SyntaxToken syntaxToken,
-            TextSpan fullSpan,
             DiagnosticDescriptor orderRule,
-            DiagnosticDescriptor sortRule)
+            DiagnosticDescriptor sortRule
+        )
         {
             var sortVirtualizationVisitor = new SortVirtualizationVisitor();
-            sortVirtualizationVisitor.Visit(context.Node.Parent);
+
+            var parents = context.Node.FindAllParent(
+                typeof(CompilationUnitSyntax),
+                typeof(NamespaceDeclarationSyntax),
+                typeof(FileScopedNamespaceDeclarationSyntax),
+                typeof(RecordDeclarationSyntax),
+                typeof(ClassDeclarationSyntax),
+                typeof(InterfaceDeclarationSyntax),
+                typeof(StructDeclarationSyntax)
+            );
+
+            var firstParent = parents.OrderBy(x => x.SpanStart).First();
+            sortVirtualizationVisitor.Visit(firstParent);
             var members = sortVirtualizationVisitor.Members
-                .SelectMany(x => x.Value.Select(y => new { x.Key, y }))
+                .SelectMany(x =>
+                    x.Value
+                        .Select(y => new { x.Key, y })
+                )
                 .ToLookup(x => x.Key, x => x.y);
             var classes = sortVirtualizationVisitor.Classes.ToImmutableHashSet();
 
@@ -215,7 +238,7 @@ namespace AwesomeAnalyzer.Analyzers
                 context,
                 types,
                 syntaxToken,
-                fullSpan,
+                context.Node.FullSpan,
                 orderRule,
                 sortRule
             );
@@ -263,5 +286,7 @@ namespace AwesomeAnalyzer.Analyzers
                 );
             }
         }
+
+        public static string PadNumbers(string input) => Regex.Replace(input, "[0-9]+", match => match.Value.PadLeft(10, '0'), RegexOptions.Compiled);
     }
 }

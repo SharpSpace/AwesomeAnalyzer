@@ -44,7 +44,7 @@ namespace AwesomeAnalyzer
             description: "Add TryParse."
         );
 
-        public static DiagnosticDescriptor RemoveAsyncAwaitRule0006 = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor RemoveAsyncAwaitRule0006 = new DiagnosticDescriptor(
             "JJ0006",
             "Remove async and await",
             "Remove async and await in method '{0}'",
@@ -52,6 +52,26 @@ namespace AwesomeAnalyzer
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: "Remove async and await."
+        );
+
+        public static readonly DiagnosticDescriptor DontReturnNullRule0007 = new DiagnosticDescriptor(
+            "JJ0007",
+            "Don't return null",
+            "Don't return null in method '{0}'",
+            TextPerformance,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Don't return null."
+        );
+
+        public static readonly DiagnosticDescriptor SimilarRule0008 = new DiagnosticDescriptor(
+            "JJ0008",
+            "Similar Code Detected",
+            "This code appears to be similar to other code in the project",
+            TextPerformance,
+            DiagnosticSeverity.Info,
+            isEnabledByDefault: true,
+            description: "This code appears to be similar to other code in the project."
         );
 
         public static readonly DiagnosticDescriptor RenameAsyncRule0100 = new DiagnosticDescriptor(

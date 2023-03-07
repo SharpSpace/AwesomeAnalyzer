@@ -88,14 +88,14 @@ public sealed class ParseTest
     {
         await VerifyCS.VerifyAnalyzerAsync(
             """
-                class Program
+            class Program
+            {
+                public int Method()
                 {
-                    public int Method()
-                    {
-                        return 0;
-                    }
+                    return 0;
                 }
-                """
+            }
+            """
         ).ConfigureAwait(false);
     }
 
@@ -148,18 +148,147 @@ public sealed class ParseTest
     }
 
     [TestMethod]
-    public async Task Test_NoDiagnosticAsync6() {
+    public async Task Test_NoDiagnosticAsync6()
+    {
         await VerifyCS.VerifyAnalyzerAsync(
             """
-                class Program
+            class Program
+            {
+                public void Method()
                 {
-                    public void Method()
-                    {
-                        var a = "s";
-                        var b = a;
-                    }
+                    var a = "s";
+                    var b = a;
                 }
-                """
+            }
+            """
+        ).ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_NoDiagnosticAsync7()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            class Program
+            {
+                private const string s = "s";
+            }
+            """
+        ).ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_NoDiagnosticAsync8()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                public async Task<bool> Method()
+                {
+                    await Task.CompletedTask;
+                    return true;
+                }
+            }
+            """
+        ).ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_NoDiagnosticAsync9()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            using System.Collections.Generic;
+
+            class Program
+            {
+                public List<string> Method()
+                {
+                    var s = new List<string>();
+                    return s;
+                }
+            }
+            """
+        ).ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_NoDiagnosticAsync10()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                public async Task<List<string>> Method()
+                {
+                    await Task.CompletedTask;
+                    var s = new List<string>();
+                    return s;
+                }
+            }
+            """
+        ).ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_NoDiagnosticAsync11()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                public dynamic Method()
+                {
+                    return new List<string>();
+                }
+            }
+            """
+        ).ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_NoDiagnosticAsync12()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                public object Method()
+                {
+                    return new List<string>();
+                }
+            }
+            """
+        ).ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_NoDiagnosticAsync13()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            using System.Collections.Generic;
+
+            class Program
+            {
+                public IEnumerable<string> Method()
+                {
+                    return new HashSet<string>();
+                }
+            }
+            """
         ).ConfigureAwait(false);
     }
 

@@ -21,7 +21,7 @@ namespace AwesomeAnalyzer
             DiagnosticDescriptors.DisposedRule0004.Id
         );
 
-        public override FixAllProvider GetFixAllProvider() => null;
+        public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

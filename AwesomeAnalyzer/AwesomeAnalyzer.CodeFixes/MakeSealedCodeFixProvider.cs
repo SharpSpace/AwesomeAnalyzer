@@ -18,7 +18,7 @@ namespace AwesomeAnalyzer
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticDescriptors.MakeSealedRule0001.Id);
 
-        public override FixAllProvider GetFixAllProvider() => null;
+        public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -34,7 +34,7 @@ namespace AwesomeAnalyzer
                             var prevStatement = text.GetSubText(TextSpan.FromBounds(spanStart - TextPartial.Length, spanStart));
                             if (prevStatement.ToString() == TextPartial)
                             {
-                                spanStart -= (TextPartial.Length);
+                                spanStart -= TextPartial.Length;
                             }
                         }
 

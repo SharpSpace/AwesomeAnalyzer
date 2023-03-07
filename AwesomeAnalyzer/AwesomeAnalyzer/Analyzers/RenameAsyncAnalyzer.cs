@@ -5,13 +5,15 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace AwesomeAnalyzer.Analyzers {
+namespace AwesomeAnalyzer.Analyzers
+{
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class RenameAsyncAnalyzer : DiagnosticAnalyzer
     {
         private const string TextAsync = "Async";
         private const string Textasync = "async";
         private const string TextTask = "Task";
+        private const string TextValueTask = "ValueTask";
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
             DiagnosticDescriptors.RenameAsyncRule0100
@@ -29,10 +31,15 @@ namespace AwesomeAnalyzer.Analyzers {
         {
             var methodDeclarationSyntax = (MethodDeclarationSyntax)context.Node;
             if (!methodDeclarationSyntax.Identifier.ValueText.EndsWith(TextAsync)) return;
-            if ((methodDeclarationSyntax.ReturnType is GenericNameSyntax genericNameSyntax &&
-                genericNameSyntax.Identifier.ValueText == TextTask) ||
+            if ((
+                    methodDeclarationSyntax.ReturnType is GenericNameSyntax genericNameSyntax &&
+                    (
+                        genericNameSyntax.Identifier.ValueText == TextTask ||
+                        genericNameSyntax.Identifier.ValueText == TextValueTask
+                    )
+                    ) ||
                 methodDeclarationSyntax.Modifiers.Any(x => x.ValueText == Textasync)
-                ) return;
+            ) return;
 
             if (methodDeclarationSyntax.ReturnType is IdentifierNameSyntax)
             {

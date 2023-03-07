@@ -18,6 +18,8 @@ ID | Notes
 [JJ0004](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0004.md) | Statement is missing using because type implements IDisposable.
 [JJ0005](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0005.md) | Convert string to [Type].TryParse()
 [JJ0006](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0006.md) | Remove async and await in method.
+[JJ0007](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0007.md) | Don't return lists with null from methods.
+[JJ0008](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0008.md) | Similar Code Detected.
 [JJ0100](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0100.md) | Method contains Async prefix.
 [JJ0101](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0101.md) | Method call is missing Await.
 [JJ0102](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0101.md) | Method name is missing Async prefix.

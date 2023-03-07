@@ -15,7 +15,11 @@ namespace AwesomeAnalyzer
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider)), Shared]
     public sealed class RemoveAsyncAwaitCodeFixProvider : CodeFixProvider
     {
+        private const string TextAsync = "async";
+
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticDescriptors.RemoveAsyncAwaitRule0006.Id);
+
+        public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -39,6 +43,7 @@ namespace AwesomeAnalyzer
 
         private async Task<Document> DoCodeFix(Document document, MethodDeclarationSyntax methodDeclarationSyntax, CancellationToken token)
         {
+            MethodDeclarationSyntax newMethodDeclarationSyntax = null;
             if (methodDeclarationSyntax.Body != null)
             {
                 var lastStatement = (ExpressionStatementSyntax)methodDeclarationSyntax.Body.Statements.Last();
@@ -46,11 +51,12 @@ namespace AwesomeAnalyzer
                 var leadingTrivia = lastStatement.GetLeadingTrivia();
                 var trailingTrivia = lastStatement.GetTrailingTrivia();
 
+                var expressionSyntax = RemoveConfigureAwait(awaitExpressionSyntax);
                 var statements = methodDeclarationSyntax.Body.Statements
                     .RemoveAt(methodDeclarationSyntax.Body.Statements.Count - 1)
                     .Add(
                         SyntaxFactory.ReturnStatement(
-                            RemoveConfigureAwait(awaitExpressionSyntax).WithLeadingTrivia(SyntaxFactory.Space)
+                            expressionSyntax.WithLeadingTrivia(SyntaxFactory.Space)
                         )
                         .WithLeadingTrivia(leadingTrivia)
                         .WithTrailingTrivia(trailingTrivia)
@@ -58,19 +64,12 @@ namespace AwesomeAnalyzer
 
                 var body = methodDeclarationSyntax.Body.WithStatements(statements);
 
-                var newMethodDeclarationSyntax = methodDeclarationSyntax
+                newMethodDeclarationSyntax = methodDeclarationSyntax
+                    .WithReturnType(GetReturnType(methodDeclarationSyntax, expressionSyntax))
                     .WithModifiers(
-                        methodDeclarationSyntax.Modifiers.Remove(methodDeclarationSyntax.Modifiers.First(x => x.ValueText == "async"))
+                        methodDeclarationSyntax.Modifiers.Remove(methodDeclarationSyntax.Modifiers.First(x => x.ValueText == TextAsync))
                     )
                     .WithBody(body);
-
-                var sourceText = await document.GetTextAsync(token).ConfigureAwait(false);
-                sourceText = sourceText.Replace(
-                    methodDeclarationSyntax.FullSpan,
-                    newMethodDeclarationSyntax.ToFullString()
-                );
-
-                return document.WithText(sourceText);
             }
 
             if (methodDeclarationSyntax.ExpressionBody != null)
@@ -78,41 +77,64 @@ namespace AwesomeAnalyzer
                 var awaitExpressionSyntax = (AwaitExpressionSyntax)methodDeclarationSyntax.ExpressionBody.Expression;
                 var leadingTrivia = methodDeclarationSyntax.ExpressionBody.Expression.GetLeadingTrivia();
                 var trailingTrivia = methodDeclarationSyntax.ExpressionBody.GetTrailingTrivia();
+
+                var expressionSyntax = RemoveConfigureAwait(awaitExpressionSyntax);
                 var lastStatement = methodDeclarationSyntax.ExpressionBody
                     .WithExpression(
-                        RemoveConfigureAwait(awaitExpressionSyntax)
+                        expressionSyntax
                             .WithLeadingTrivia(leadingTrivia)
                             .WithTrailingTrivia(trailingTrivia)
                     );
 
-                var newMethodDeclarationSyntax = methodDeclarationSyntax
+                newMethodDeclarationSyntax = methodDeclarationSyntax
+                    .WithReturnType(GetReturnType(methodDeclarationSyntax, expressionSyntax))
                     .WithModifiers(
                         methodDeclarationSyntax.Modifiers.Remove(
-                            methodDeclarationSyntax.Modifiers.First(x => x.ValueText == "async")
+                            methodDeclarationSyntax.Modifiers.First(x => x.ValueText == TextAsync)
                         )
                     )
                     .WithExpressionBody(lastStatement);
-
-                var sourceText = await document.GetTextAsync(token).ConfigureAwait(false);
-                sourceText = sourceText.Replace(
-                    methodDeclarationSyntax.FullSpan,
-                    newMethodDeclarationSyntax.ToFullString()
-                );
-
-                return document.WithText(sourceText);
             }
 
-            return document;
+            var sourceText = await document.GetTextAsync(token).ConfigureAwait(false);
+            sourceText = sourceText.Replace(
+                methodDeclarationSyntax.FullSpan,
+                newMethodDeclarationSyntax?.ToFullString() ?? string.Empty
+            );
+
+            return document.WithText(sourceText);
+        }
+
+        private static TypeSyntax GetReturnType(MethodDeclarationSyntax methodDeclarationSyntax, ExpressionSyntax expressionSyntax)
+        {
+            if (expressionSyntax is ObjectCreationExpressionSyntax objectCreationExpressionSyntax)
+            {
+                return objectCreationExpressionSyntax.Type.WithTrailingTrivia(SyntaxFactory.Space);
+            }
+
+            Debug.WriteLine(expressionSyntax.GetType().Name);
+            Debug.WriteLine(expressionSyntax.WithLeadingTrivia().ToFullString());
+
+            return methodDeclarationSyntax.ReturnType;
         }
 
         private static ExpressionSyntax RemoveConfigureAwait(AwaitExpressionSyntax awaitExpressionSyntax)
         {
             var syntax = awaitExpressionSyntax.Expression;
 
-            if (awaitExpressionSyntax.Expression is InvocationExpressionSyntax invocationExpressionSyntax)
+            if (!(awaitExpressionSyntax.Expression is InvocationExpressionSyntax invocationExpressionSyntax))
             {
-                var memberAccessExpressionSyntax2 = (MemberAccessExpressionSyntax)invocationExpressionSyntax.Expression;
-                syntax = memberAccessExpressionSyntax2.Expression;
+                return syntax;
+            }
+
+            if (!(invocationExpressionSyntax.Expression is MemberAccessExpressionSyntax memberAccessExpressionSyntax))
+            {
+                return syntax;
+            }
+
+            if (memberAccessExpressionSyntax.Name.Identifier.ValueText == "ConfigureAwait")
+            {
+                syntax = memberAccessExpressionSyntax.Expression.WithoutTrailingTrivia();
             }
 
             return syntax;

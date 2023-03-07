@@ -12,21 +12,21 @@ public sealed class RenameAsyncTest
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
-                class Program
+            class Program
+            {
+                void [|MethodAsync|]()
                 {
-                    void [|MethodAsync|]()
-                    {
-                    }
                 }
-                """,
+            }
+            """,
             fixedSource: """
-                class Program
+            class Program
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                    }
                 }
-                """
+            }
+            """
         ).ConfigureAwait(false);
     }
 
@@ -35,23 +35,23 @@ public sealed class RenameAsyncTest
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
-                class Program
+            class Program
+            {
+                string [|MethodAsync|]()
                 {
-                    string [|MethodAsync|]()
-                    {
-                        return "Async";
-                    }
+                    return "Async";
                 }
-                """,
+            }
+            """,
             fixedSource: """
-                class Program
+            class Program
+            {
+                string Method()
                 {
-                    string Method()
-                    {
-                        return "Async";
-                    }
+                    return "Async";
                 }
-                """
+            }
+            """
         ).ConfigureAwait(false);
     }
 
@@ -60,33 +60,33 @@ public sealed class RenameAsyncTest
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
-                class Program
+            class Program
+            {
+                string [|MethodAsync|]()
                 {
-                    string [|MethodAsync|]()
-                    {
-                        return "Async";
-                    }
-
-                    private void B()
-                    {
-                        this.MethodAsync();
-                    }
+                    return "Async";
                 }
-                """,
+
+                private void B()
+                {
+                    this.MethodAsync();
+                }
+            }
+            """,
             fixedSource: """
-                class Program
+            class Program
+            {
+                string Method()
                 {
-                    string Method()
-                    {
-                        return "Async";
-                    }
-
-                    private void B()
-                    {
-                        this.Method();
-                    }
+                    return "Async";
                 }
-                """
+
+                private void B()
+                {
+                    this.Method();
+                }
+            }
+            """
         ).ConfigureAwait(false);
     }
 
@@ -95,11 +95,11 @@ public sealed class RenameAsyncTest
     {
         await VerifyCS.VerifyAnalyzerAsync(
             """
-                class Program
-                {
-                    void Method(){}
-                }
-                """
+            class Program
+            {
+                void Method(){}
+            }
+            """
         ).ConfigureAwait(false);
     }
 
@@ -108,11 +108,11 @@ public sealed class RenameAsyncTest
     {
         await VerifyCS.VerifyAnalyzerAsync(
             """
-                class Program
-                {
-                    async void MethodAsync(){}
-                }
-                """
+            class Program
+            {
+                async void MethodAsync(){}
+            }
+            """
         ).ConfigureAwait(false);
     }
 
@@ -121,16 +121,16 @@ public sealed class RenameAsyncTest
     {
         await VerifyCS.VerifyAnalyzerAsync(
             """
-                using System.Threading.Tasks;
+            using System.Threading.Tasks;
 
-                namespace MyNamespace
+            namespace MyNamespace
+            {
+                class Program
                 {
-                    class Program
-                    {
-                        public async Task MethodAsync() {}
-                    }
+                    public async Task MethodAsync() {}
                 }
-                """
+            }
+            """
         ).ConfigureAwait(false);
     }
 
@@ -139,16 +139,16 @@ public sealed class RenameAsyncTest
     {
         await VerifyCS.VerifyAnalyzerAsync(
             """
-                using System.Threading.Tasks;
+            using System.Threading.Tasks;
 
-                namespace MyNamespace
+            namespace MyNamespace
+            {
+                class Program
                 {
-                    class Program
-                    {
-                        public async Task<string> MethodAsync() { return "Async"; }
-                    }
+                    public async Task<string> MethodAsync() { return "Async"; }
                 }
-                """
+            }
+            """
         ).ConfigureAwait(false);
     }
 
@@ -157,16 +157,16 @@ public sealed class RenameAsyncTest
     {
         await VerifyCS.VerifyAnalyzerAsync(
             """
-                using System.Threading.Tasks;
+            using System.Threading.Tasks;
 
-                namespace MyNamespace
+            namespace MyNamespace
+            {
+                interface Program
                 {
-                    interface Program
-                    {
-                        Task MethodAsync();
-                    }
+                    Task MethodAsync();
                 }
-                """
+            }
+            """
         ).ConfigureAwait(false);
     }
 
@@ -175,16 +175,16 @@ public sealed class RenameAsyncTest
     {
         await VerifyCS.VerifyAnalyzerAsync(
             """
-                using System.Threading.Tasks;
+            using System.Threading.Tasks;
 
-                namespace MyNamespace
+            namespace MyNamespace
+            {
+                class Program
                 {
-                    class Program
-                    {
-                        public Task MethodAsync() => Task.CompletedTask;
-                    }
+                    public Task MethodAsync() => Task.CompletedTask;
                 }
-                """
+            }
+            """
         ).ConfigureAwait(false);
     }
 
@@ -193,19 +193,19 @@ public sealed class RenameAsyncTest
     {
         await VerifyCS.VerifyAnalyzerAsync(
             """
-                using System.Threading.Tasks;
-                
-                namespace MyNamespace
+            using System.Threading.Tasks;
+            
+            namespace MyNamespace
+            {
+                class Program
                 {
-                    class Program
+                    public Task MethodAsync()
                     {
-                        public Task MethodAsync()
-                        {
-                            return Task.CompletedTask;
-                        }
+                        return Task.CompletedTask;
                     }
                 }
-                """
+            }
+            """
         ).ConfigureAwait(false);
     }
 
@@ -214,19 +214,84 @@ public sealed class RenameAsyncTest
     {
         await VerifyCS.VerifyAnalyzerAsync(
             """
-                using System.Threading.Tasks;
-                
-                namespace MyNamespace
+            using System.Threading.Tasks;
+            
+            namespace MyNamespace
+            {
+                class Program
                 {
-                    class Program
+                    public Task<string> MethodAsync()
                     {
-                        public Task<string> MethodAsync()
-                        {
-                            return Task.FromResult(string.Empty);
-                        }
+                        return Task.FromResult(string.Empty);
                     }
                 }
-                """
+            }
+            """
+        ).ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_NoDiagnostic9()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            using System.Threading.Tasks;
+            
+            namespace MyNamespace
+            {
+                class Program
+                {
+                    public ValueTask MethodAsync()
+                    {
+                        return new ValueTask();
+                    }
+                }
+            }
+            """
+        ).ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_NoDiagnostic10()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            using System.Threading.Tasks;
+            
+            namespace MyNamespace
+            {
+                class Program
+                {
+                    public ValueTask MethodAsync()
+                    {
+                        return new ValueTask(Task.FromResult(string.Empty));
+                    }
+                }
+            }
+            """
+        ).ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_NoDiagnostic11()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            using System.Threading.Tasks;
+            
+            namespace MyNamespace
+            {
+                class Program
+                {
+                    public ValueTask<Item> MethodAsync()
+                    {
+                        return new ValueTask<Item>();
+                    }
+                }
+
+                sealed class Item { }
+            }
+            """
         ).ConfigureAwait(false);
     }
 }

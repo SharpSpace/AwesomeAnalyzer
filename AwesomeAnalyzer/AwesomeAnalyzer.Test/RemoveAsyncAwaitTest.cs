@@ -48,7 +48,8 @@ public sealed class RemoveAsyncAwaitTest
             {
                 public async Task {|JJ0006:Method|}()
                 {
-                    await Task.CompletedTask.ConfigureAwait(false);
+                    await Task.CompletedTask
+                        .ConfigureAwait(false);
                 }
             }
             """,
@@ -76,7 +77,7 @@ public sealed class RemoveAsyncAwaitTest
 
             sealed class Program
             {
-                public async Task {|JJ0006:Method|}() => await Task.CompletedTask;
+                public async Task<string> {|JJ0006:Method|}() => await Task.FromResult(string.Empty);
             }
             """,
             fixedSource:
@@ -85,7 +86,7 @@ public sealed class RemoveAsyncAwaitTest
             
             sealed class Program
             {
-                public Task Method() => Task.CompletedTask;
+                public Task<string> Method() => Task.FromResult(string.Empty);
             }
             """
         ).ConfigureAwait(false);
@@ -118,7 +119,8 @@ public sealed class RemoveAsyncAwaitTest
     }
 
     [TestMethod]
-    public async Task Test_Diagnostic5() {
+    public async Task Test_Diagnostic5()
+    {
         await VerifyCS.VerifyCodeFixAsync(
             """
             using System.Threading.Tasks;
@@ -141,6 +143,63 @@ public sealed class RemoveAsyncAwaitTest
             }
             """
         ).ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_Diagnostic6()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System.Threading.Tasks;
+
+            sealed class Program
+            {
+                public async Task<string> {|JJ0006:Method|}() => 
+                    await new ValueTask<string>(string.Empty).ConfigureAwait(false);
+            }
+            """,
+            fixedSource:
+            """
+            using System.Threading.Tasks;
+            
+            sealed class Program
+            {
+                public ValueTask<string> Method() => 
+                    new ValueTask<string>(string.Empty);
+            }
+            """
+        ).ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_Diagnostic7()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            //LanguageVersion.CSharp10,
+            """
+            using System.Threading.Tasks;
+
+            sealed class Program
+            {
+                public async Task {|JJ0006:Method|}()
+                {
+                    await new ValueTask<string>(string.Empty);
+                }
+            }
+            """,
+            fixedSource:
+            """
+            using System.Threading.Tasks;
+            
+            sealed class Program
+            {
+                public ValueTask<string> Method()
+                {
+                    return new ValueTask<string>(string.Empty);
+                }
+            }
+            """
+        ).ConfigureAwait(false); //ValueTask.FromResult(string.Empty)
     }
 
     [TestMethod]

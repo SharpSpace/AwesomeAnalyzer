@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -53,6 +52,7 @@ namespace AwesomeAnalyzer.Analyzers
         {
             var equalsValueClauseSyntax = (EqualsValueClauseSyntax)context.Node;
             if (equalsValueClauseSyntax.Parent is ParameterSyntax) return;
+            if (equalsValueClauseSyntax.Value == null) return;
 
             AnalyzeNode(context, equalsValueClauseSyntax.Value);
         }
@@ -73,14 +73,44 @@ namespace AwesomeAnalyzer.Analyzers
                 return;
             }
 
-            var targetType = ((sourceValueExpression.Parent?.Parent?.Parent as VariableDeclarationSyntax)?.Type as IdentifierNameSyntax)?.Identifier.ValueText;
-            if (targetType == TextVar)
+            string targetType;
+
+            var variableDeclarationSyntax = sourceValueExpression.Parent?.Parent?.Parent as VariableDeclarationSyntax;
+            if (variableDeclarationSyntax?.Type is IdentifierNameSyntax identifierNameSyntax)
             {
-                return;
+                targetType = identifierNameSyntax.Identifier.ValueText;
+                if (targetType == TextVar)
+                {
+                    return;
+                }
+            }
+            else
+            {
+                targetType = (variableDeclarationSyntax?.Type as PredefinedTypeSyntax)?.Keyword.ValueText;
             }
 
+            if (targetType == null && sourceValueExpression.HasParent<ReturnStatementSyntax>() != null)
+            {
+                var methodDeclarationSyntax = sourceValueExpression.HasParent<MethodDeclarationSyntax>();
+                targetType = GetVariableType(context, methodDeclarationSyntax.ReturnType).ToString();
+                if (targetType.Contains("Task"))
+                {
+                    targetType = targetType.Replace("System.Threading.Tasks.Task<", string.Empty);
+                    targetType = targetType.Substring(0, targetType.Length - 1);
+                }
+            }
+
+            // Debug.WriteLine("T:" + targetType);
+            if (targetType == "void") return;
+            if (targetType == "dynamic") return;
+            if (targetType == "object") return;
+
             var sourceType = GetVariableType(context, sourceValueExpression);
-            if (sourceType?.Name != TextString)
+            if (sourceType == null) return;
+            if (sourceType.ToString() != "string") return;
+
+            // Debug.WriteLine("S:" + sourceType.ToString());
+            if (string.Equals(sourceType.ToString(), targetType, System.StringComparison.InvariantCultureIgnoreCase))
             {
                 return;
             }

@@ -12,17 +12,17 @@ public sealed class SortTest
     {
         await VerifyCS.VerifyAnalyzerAsync(
             """
-                sealed class Program
-                {
-                    void A() { }
+            sealed class Program
+            {
+                void A() { }
 
-                    void B() { }
+                void B() { }
 
-                    void C() { }
-                }
-                """
-            )
-            .ConfigureAwait(false);
+                void C() { }
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -44,6 +44,373 @@ public sealed class SortTest
 
     [TestMethod]
     public async Task Test_NoDiagnostic3()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            class Program
+            {
+                public int A1 { get; set; }
+
+                public int A9 { get; set; }
+
+                public int A10 { get; set; }
+            }
+            """
+        )
+        .ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_NoDiagnostic4()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            class Program
+            {
+                public int A1 { get; set; }
+
+                public int A9 { get; set; }
+
+                public int A10 { get; set; }
+
+                record AaaProgram
+                {
+                    public int A { get; set; }
+
+                    public int B { get; set; }
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_NoDiagnostic5()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            class Program
+            {
+                public int A1 { get; set; }
+
+                public int A9 { get; set; }
+
+                public int A10 { get; set; }
+
+                class AaaProgram
+                {
+                    public int A { get; set; }
+
+                    public int B { get; set; }
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_NoDiagnostic6()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            public enum MyEnum 
+            {
+                None
+            }
+
+            public class Program
+            {
+                public string A { get; set; }
+
+                public void Method()
+                {
+                }
+            }
+
+            public enum MyEnum2
+            {
+                None
+            }
+            """
+        )
+        .ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_NoDiagnostic7()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            class Program
+            {
+                interface IAaaProgram
+                {
+                    int D { get; }
+            
+                    int E { get; }
+                }
+
+                private readonly struct BbbProgram
+                {
+                    public int F { get; }
+            
+                    public int G { get; }
+                }
+                
+                public int A1 { get; set; }
+
+                public int A9 { get; set; }
+
+                public int A10 { get; set; }
+
+                private readonly struct AaaProgram
+                {
+                    public int A { get; }
+
+                    public int B { get; }
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task TestSort_Diagnostic1()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+                sealed class Program
+                {
+                    void {|JJ1003:C|}() { }
+
+                    void B() { }
+
+                    void {|JJ1003:A|}() { }
+                }
+                """,
+            """
+                sealed class Program
+                {
+                    void A() { }
+
+                    void B() { }
+
+                    void C() { }
+                }
+                """
+            )
+            .ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task TestSort_Diagnostic2()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+
+            sealed class Program
+            {
+                public string {|JJ1007:F|} { get; set; }
+
+                private static void {|JJ1004:D|}() { }
+
+                public event OnEvent {|JJ1013:Event|};
+
+                public delegate void {|JJ1011:OnEvent|}(object sender, EventArgs args);
+
+                private string {|JJ1002:_a|};
+
+                void {|JJ1004:A|}() { }
+
+                private string {|JJ1002:_b|};
+
+                void {|JJ1004:B|}()
+                {
+                    var a = "a";
+                }
+
+                private enum {|JJ1009:MyEnum|}
+                {
+                    a, b, c
+                }
+
+                private string {|JJ1002:_c|};
+
+                public {|JJ1005:Program|}() { }
+
+                void C() { }
+            }
+            """,
+            """
+            using System;
+
+            sealed class Program
+            {
+                private string _a;
+
+                private string _b;
+
+                private string _c;
+
+                public Program() { }
+
+                public delegate void OnEvent(object sender, EventArgs args);
+
+                public event OnEvent Event;
+
+                private enum MyEnum
+                {
+                    a, b, c
+                }
+
+                public string F { get; set; }
+
+                private static void D() { }
+
+                void A() { }
+
+                void B()
+                {
+                    var a = "a";
+                }
+
+                void C() { }
+            }
+            """
+        )
+        .ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task TestSort_Diagnostic3()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+                sealed class Program
+                {
+                    private string {|JJ1001:_b|};
+
+                    private string {|JJ1001:_a|};
+                }
+                """,
+            """
+                sealed class Program
+                {
+                    private string _a;
+
+                    private string _b;
+                }
+                """
+            )
+            .ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task TestSort_Diagnostic4()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+                sealed class Program
+                {
+                    void {|JJ1003:C|}()
+                    {
+                    }
+
+                    void B()
+                    {
+                        var a = "a";
+                    }
+
+                    void {|JJ1003:A|}() { }
+                }
+                """,
+            """
+                sealed class Program
+                {
+                    void A() { }
+
+                    void B()
+                    {
+                        var a = "a";
+                    }
+
+                    void C()
+                    {
+                    }
+                }
+                """
+            )
+            .ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task TestSort_Diagnostic5()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+                sealed class Program
+                {
+                    private string {|JJ1001:_b|};
+
+                    private string {|JJ1001:_a|};
+                }
+
+                sealed class Program2
+                {
+                    private string {|JJ1001:_b|};
+
+                    private string {|JJ1001:_a|};
+                }
+                """,
+            """
+                sealed class Program
+                {
+                    private string _a;
+
+                    private string _b;
+                }
+
+                sealed class Program2
+                {
+                    private string _a;
+
+                    private string _b;
+                }
+                """
+            )
+            .ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task TestSort_Diagnostic6()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+                class Program
+                {
+                    private readonly string {|JJ1002:_a|};
+
+                    private static string {|JJ1002:_b|};
+                }
+                """,
+            """
+                class Program
+                {
+                    private static string _b;
+
+                    private readonly string _a;
+                }
+                """
+            )
+            .ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task TestSort_Diagnostic7()
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
@@ -175,235 +542,163 @@ public sealed class SortTest
     }
 
     [TestMethod]
-    public async Task TestSort_Diagnostic1()
+    public async Task TestSort_Diagnostic8()
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
-                sealed class Program
+            namespace AwesomeAnalyzer.Test
+            {
+                public interface IReportPart
                 {
-                    void {|JJ1003:C|}() { }
-
-                    void B() { }
-
-                    void {|JJ1003:A|}() { }
+                    string PlaceholderName { get; set; }
                 }
-                """,
+
+                /// <summary>
+                /// Header report part base
+                /// </summary>
+                public class ReportHeaderPartBase : IReportPart
+                {
+                    public ReportHeaderPartBase()
+                    {
+                        OriginalPlaceholderName = null;
+                    }
+
+                    public string {|JJ1006:PlaceholderName|} { get; set; }
+
+                    public string {|JJ1006:Title|} { get; set; }
+
+                    public string {|JJ1006:OriginalPlaceholderName|} { get; set; }
+                }
+            
+                /// <summary>
+                /// Footer report part base
+                /// </summary>
+                public class ReportFooterPartBase : IReportPart
+                {
+                    public ReportFooterPartBase()
+                    {
+                        OriginalPlaceholderName = null;
+                    }
+
+                    public string {|JJ1006:PlaceholderName|} { get; set; }
+
+                    public string {|JJ1006:Title|} { get; set; }
+
+                    public string {|JJ1006:OriginalPlaceholderName|} { get; set; }
+                }
+            }
+            """,
             """
-                sealed class Program
+            namespace AwesomeAnalyzer.Test
+            {
+                public interface IReportPart
                 {
-                    void A() { }
-
-                    void B() { }
-
-                    void C() { }
+                    string PlaceholderName { get; set; }
                 }
-                """
-            )
-            .ConfigureAwait(false);
+            
+                /// <summary>
+                /// Header report part base
+                /// </summary>
+                public class ReportHeaderPartBase : IReportPart
+                {
+                    public ReportHeaderPartBase()
+                    {
+                        OriginalPlaceholderName = null;
+                    }
+            
+                    public string OriginalPlaceholderName { get; set; }
+
+                    public string PlaceholderName { get; set; }
+
+                    public string Title { get; set; }
+                }
+            
+                /// <summary>
+                /// Footer report part base
+                /// </summary>
+                public class ReportFooterPartBase : IReportPart
+                {
+                    public ReportFooterPartBase()
+                    {
+                        OriginalPlaceholderName = null;
+                    }
+            
+                    public string OriginalPlaceholderName { get; set; }
+
+                    public string PlaceholderName { get; set; }
+
+                    public string Title { get; set; }
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
-    public async Task TestSort_Diagnostic2()
+    public async Task TestSort_Diagnostic9()
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
-                using System;
-
-                sealed class Program
+            public class HttpResponseMessage {}
+            public class HttpResponseMessageIntegration<TBody> : HttpResponseMessageIntegration
+            {
+                public HttpResponseMessageIntegration()
                 {
-                    public string {|JJ1007:F|} { get; set; }
-
-                    private static void {|JJ1004:D|}() { }
-
-                    public event OnEvent {|JJ1013:Event|};
-
-                    public delegate void {|JJ1011:OnEvent|}(object sender, EventArgs args);
-
-                    private string {|JJ1002:_a|};
-
-                    void {|JJ1004:A|}() { }
-
-                    private string {|JJ1002:_b|};
-
-                    void {|JJ1004:B|}()
-                    {
-                        var a = "a";
-                    }
-
-                    private enum {|JJ1009:MyEnum|}
-                    {
-                        a, b, c
-                    }
-
-                    private string {|JJ1002:_c|};
-
-                    public {|JJ1005:Program|}() { }
-
-                    void C() { }
                 }
-                """,
+
+                public HttpResponseMessageIntegration(TBody data)
+                {
+                    Object = data;
+                }
+
+                public TBody Object { get; set; }
+            }
+
+            public class HttpResponseMessageIntegration : HttpResponseMessage
+            {
+                public string {|JJ1006:Method|} { get; set; }
+
+                public string {|JJ1006:ContentType|} { get; set; }
+
+                public string {|JJ1006:RequestUri|} { get; set; }
+
+                public string RequestContent { get; set; }
+
+                public string {|JJ1006:ExtraInfoJson|} { get; set; }
+            }
+            """,
             """
-                using System;
-
-                sealed class Program
+            public class HttpResponseMessage {}
+            public class HttpResponseMessageIntegration<TBody> : HttpResponseMessageIntegration
+            {
+                public HttpResponseMessageIntegration(TBody data)
                 {
-                    private string _a;
-
-                    private string _b;
-
-                    private string _c;
-
-                    public Program() { }
-
-                    public delegate void OnEvent(object sender, EventArgs args);
-
-                    public event OnEvent Event;
-
-                    private enum MyEnum
-                    {
-                        a, b, c
-                    }
-
-                    public string F { get; set; }
-
-                    private static void D() { }
-
-                    void A() { }
-
-                    void B()
-                    {
-                        var a = "a";
-                    }
-
-                    void C() { }
+                    Object = data;
                 }
-                """
-            )
-            .ConfigureAwait(false);
-    }
+            
+                public HttpResponseMessageIntegration()
+                {
+                }
 
-    [TestMethod]
-    public async Task TestSort_Diagnostic3()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+                public TBody Object { get; set; }
+            }
+
+            public class HttpResponseMessageIntegration : HttpResponseMessage
+            {
+                public string ContentType { get; set; }
+            
+                public string ExtraInfoJson { get; set; }
+            
+                public string Method { get; set; }
+            
+                public string RequestContent { get; set; }
+
+                public string RequestUri { get; set; }
+            }
             """
-                sealed class Program
-                {
-                    private string {|JJ1001:_b|};
-
-                    private string {|JJ1001:_a|};
-                }
-                """,
-            """
-                sealed class Program
-                {
-                    private string _a;
-
-                    private string _b;
-                }
-                """
-            )
-            .ConfigureAwait(false);
-    }
-
-    [TestMethod]
-    public async Task TestSort_Diagnostic4()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
-            """
-                sealed class Program
-                {
-                    void {|JJ1003:C|}()
-                    {
-                    }
-
-                    void B()
-                    {
-                        var a = "a";
-                    }
-
-                    void {|JJ1003:A|}() { }
-                }
-                """,
-            """
-                sealed class Program
-                {
-                    void A() { }
-
-                    void B()
-                    {
-                        var a = "a";
-                    }
-
-                    void C()
-                    {
-                    }
-                }
-                """
-            )
-            .ConfigureAwait(false);
-    }
-
-    [TestMethod]
-    public async Task TestSort_Diagnostic5()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
-            """
-                sealed class Program
-                {
-                    private string {|JJ1001:_b|};
-
-                    private string {|JJ1001:_a|};
-                }
-
-                sealed class Program2
-                {
-                    private string {|JJ1001:_b|};
-
-                    private string {|JJ1001:_a|};
-                }
-                """,
-            """
-                sealed class Program
-                {
-                    private string _a;
-
-                    private string _b;
-                }
-
-                sealed class Program2
-                {
-                    private string _a;
-
-                    private string _b;
-                }
-                """
-            )
-            .ConfigureAwait(false);
-    }
-
-    [TestMethod]
-    public async Task TestSort_Diagnostic6()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
-            """
-                class Program
-                {
-                    private readonly string {|JJ1002:_a|};
-
-                    private static string {|JJ1002:_b|};
-                }
-                """,
-            """
-                class Program
-                {
-                    private static string _b;
-
-                    private readonly string _a;
-                }
-                """
-            )
-            .ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -538,3 +833,27 @@ public sealed class SortTest
             .ConfigureAwait(false);
     }
 }
+
+//public class HttpResponseMessage { }
+//public class HttpResponseMessageIntegration<TBody> : HttpResponseMessageIntegration {
+//    public HttpResponseMessageIntegration() {
+//    }
+
+//    public HttpResponseMessageIntegration(TBody data) {
+//        Object = data;
+//    }
+
+//    public TBody Object { get; init; }
+//}
+
+//public class HttpResponseMessageIntegration : HttpResponseMessage {
+//    public string Method { get; set; }
+
+//    public string ContentType { get; set; }
+
+//    public string RequestUri { get; set; }
+
+//    public string RequestContent { get; set; }
+
+//    public string ExtraInfoJson { get; set; }
+//}

@@ -15,16 +15,27 @@ namespace AwesomeAnalyzer
         {
             PublicConst = 1,
             PublicStatic = 2,
-            PublicReadOnly = 3,
-            Public = 4,
-            PrivateConst = 5,
-            PrivateStatic = 6,
-            PrivateReadOnly = 7,
-            Private = 8,
+            PublicStaticReadOnly = 3,
+            PublicReadOnly = 4,
+            PublicNew = 5,
+            Public = 6,
+            InternalConst = 7,
+            InternalStatic = 8,
+            InternalStaticReadOnly = 9,
+            InternalReadOnly = 10,
+            InternalNew = 11,
+            Internal = 12,
+            PrivateConst = 13,
+            PrivateStatic = 14,
+            PrivateStaticReadOnly = 15,
+            PrivateReadOnly = 16,
+            PrivateNew = 17,
+            Private = 18,
         }
 
         public enum Types
         {
+            Other = 10,
             Field = 1,
             Constructor = 2,
             Delegate = 3,
@@ -48,21 +59,51 @@ namespace AwesomeAnalyzer
 
         public ConcurrentDictionary<TextSpan, ClassInformation> Classes { get; }
 
+        public override SyntaxNode VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
+        {
+            AddClass(node);
+
+            return base.VisitInterfaceDeclaration(node);
+        }
+
+        public override SyntaxNode VisitStructDeclaration(StructDeclarationSyntax node)
+        {
+            AddClass(node);
+
+            return base.VisitStructDeclaration(node);
+        }
+
+        public override SyntaxNode VisitRecordDeclaration(RecordDeclarationSyntax node)
+        {
+            AddClass(node);
+
+            return base.VisitRecordDeclaration(node);
+        }
+
         public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
         {
-            var item = new ClassInformation
-            {
-                ClassName = node.Identifier.ValueText,
-                FullSpan = node.FullSpan,
-            };
-
-            Classes.AddOrUpdate(
-                item.FullSpan,
-                _ => item,
-                (_, information) => information
-            );
+            AddClass(node);
 
             return base.VisitClassDeclaration(node);
+        }
+
+        private void AddClass(TypeDeclarationSyntax node)
+        {
+            var parentClass = GetClassName(node);
+            if (parentClass == string.Empty)
+            {
+                var item = new ClassInformation
+                {
+                    ClassName = $"{node.Identifier.ValueText}{node.TypeParameterList}",
+                    FullSpan = node.FullSpan,
+                };
+
+                Classes.AddOrUpdate(
+                    item.FullSpan,
+                    _ => item,
+                    (_, information) => information
+                );
+            }
         }
 
         public override SyntaxNode VisitEnumDeclaration(EnumDeclarationSyntax node)
@@ -73,7 +114,7 @@ namespace AwesomeAnalyzer
                 node.FullSpan,
                 default,
                 default,
-                node.HasParent<ClassDeclarationSyntax>().Identifier.ValueText
+                GetClassName(node)
             );
 
             SetModifiers(node.Modifiers, item);
@@ -81,6 +122,23 @@ namespace AwesomeAnalyzer
             AddToList(item, Types.Enum);
 
             return base.VisitEnumDeclaration(node);
+        }
+
+        private static string GetClassName(SyntaxNode node)
+        {
+            if (node.Parent is NamespaceDeclarationSyntax || node.Parent is FileScopedNamespaceDeclarationSyntax)
+            {
+                return string.Empty;
+            }
+
+            var parents = node.FindAllParent(
+                typeof(RecordDeclarationSyntax),
+                typeof(ClassDeclarationSyntax),
+                typeof(InterfaceDeclarationSyntax),
+                typeof(StructDeclarationSyntax)
+            ).OfType<TypeDeclarationSyntax>().Reverse();
+
+            return string.Join(".", parents.Select(x => $"{x.Identifier.ValueText}{x.TypeParameterList}"));
         }
 
         public override SyntaxNode VisitFieldDeclaration(FieldDeclarationSyntax node)
@@ -91,7 +149,7 @@ namespace AwesomeAnalyzer
                 node.FullSpan,
                 default,
                 default,
-                node.HasParent<ClassDeclarationSyntax>().Identifier.ValueText
+                GetClassName(node)
             );
 
             SetModifiers(node.Modifiers, item);
@@ -109,7 +167,7 @@ namespace AwesomeAnalyzer
                 node.FullSpan,
                 default,
                 default,
-                node.HasParent<ClassDeclarationSyntax>().Identifier.ValueText
+                GetClassName(node)
             );
 
             AddToList(item, Types.Constructor);
@@ -125,7 +183,7 @@ namespace AwesomeAnalyzer
                 node.FullSpan,
                 default,
                 default,
-                node.HasParent<ClassDeclarationSyntax>().Identifier.ValueText
+                GetClassName(node)
             );
 
             SetModifiers(node.Modifiers, item);
@@ -143,7 +201,7 @@ namespace AwesomeAnalyzer
                 node.FullSpan,
                 default,
                 default,
-                node.HasParent<ClassDeclarationSyntax>().Identifier.ValueText
+                GetClassName(node)
             );
 
             SetModifiers(node.Modifiers, item);
@@ -161,7 +219,7 @@ namespace AwesomeAnalyzer
                 node.FullSpan,
                 default,
                 default,
-                node.HasParent<ClassDeclarationSyntax>().Identifier.ValueText
+                GetClassName(node)
             );
 
             SetModifiers(node.Modifiers, item);
@@ -183,7 +241,7 @@ namespace AwesomeAnalyzer
                 string.IsNullOrEmpty(modifiersString)
                     ? (int)ModifiersSort.Private
                     : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true),
-                node.HasParent<ClassDeclarationSyntax>().Identifier.ValueText
+                GetClassName(node)
             );
 
             AddToList(item, Types.Property);
@@ -203,7 +261,7 @@ namespace AwesomeAnalyzer
                 string.IsNullOrEmpty(modifiersString)
                     ? (int)ModifiersSort.Private
                     : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true),
-                node.HasParent<ClassDeclarationSyntax>().Identifier.ValueText
+                GetClassName(node)
             );
 
             AddToList(item, Types.Methods);
