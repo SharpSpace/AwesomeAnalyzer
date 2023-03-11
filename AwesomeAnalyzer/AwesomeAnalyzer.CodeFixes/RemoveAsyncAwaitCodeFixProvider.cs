@@ -12,12 +12,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace AwesomeAnalyzer
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider))]
+    [Shared]
     public sealed class RemoveAsyncAwaitCodeFixProvider : CodeFixProvider
     {
         private const string TextAsync = "async";
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticDescriptors.RemoveAsyncAwaitRule0006.Id);
+        public override ImmutableArray<string> FixableDiagnosticIds =>
+        ImmutableArray.Create(DiagnosticDescriptors.Rule0006RemoveAsyncAwait.Id);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -41,7 +43,10 @@ namespace AwesomeAnalyzer
             }
         }
 
-        private async Task<Document> DoCodeFix(Document document, MethodDeclarationSyntax methodDeclarationSyntax, CancellationToken token)
+        private async Task<Document> DoCodeFix(
+            Document document,
+            MethodDeclarationSyntax methodDeclarationSyntax,
+            CancellationToken token)
         {
             MethodDeclarationSyntax newMethodDeclarationSyntax = null;
             if (methodDeclarationSyntax.Body != null)
@@ -53,23 +58,25 @@ namespace AwesomeAnalyzer
 
                 var expressionSyntax = RemoveConfigureAwait(awaitExpressionSyntax);
                 var statements = methodDeclarationSyntax.Body.Statements
-                    .RemoveAt(methodDeclarationSyntax.Body.Statements.Count - 1)
-                    .Add(
-                        SyntaxFactory.ReturnStatement(
-                            expressionSyntax.WithLeadingTrivia(SyntaxFactory.Space)
-                        )
-                        .WithLeadingTrivia(leadingTrivia)
-                        .WithTrailingTrivia(trailingTrivia)
-                    );
+                .RemoveAt(methodDeclarationSyntax.Body.Statements.Count - 1)
+                .Add(
+                    SyntaxFactory.ReturnStatement(
+                        expressionSyntax.WithLeadingTrivia(SyntaxFactory.Space)
+                    )
+                    .WithLeadingTrivia(leadingTrivia)
+                    .WithTrailingTrivia(trailingTrivia)
+                );
 
                 var body = methodDeclarationSyntax.Body.WithStatements(statements);
 
                 newMethodDeclarationSyntax = methodDeclarationSyntax
-                    .WithReturnType(GetReturnType(methodDeclarationSyntax, expressionSyntax))
-                    .WithModifiers(
-                        methodDeclarationSyntax.Modifiers.Remove(methodDeclarationSyntax.Modifiers.First(x => x.ValueText == TextAsync))
+                .WithReturnType(GetReturnType(methodDeclarationSyntax, expressionSyntax))
+                .WithModifiers(
+                    methodDeclarationSyntax.Modifiers.Remove(
+                        methodDeclarationSyntax.Modifiers.First(x => x.ValueText == TextAsync)
                     )
-                    .WithBody(body);
+                )
+                .WithBody(body);
             }
 
             if (methodDeclarationSyntax.ExpressionBody != null)
@@ -80,20 +87,20 @@ namespace AwesomeAnalyzer
 
                 var expressionSyntax = RemoveConfigureAwait(awaitExpressionSyntax);
                 var lastStatement = methodDeclarationSyntax.ExpressionBody
-                    .WithExpression(
-                        expressionSyntax
-                            .WithLeadingTrivia(leadingTrivia)
-                            .WithTrailingTrivia(trailingTrivia)
-                    );
+                .WithExpression(
+                    expressionSyntax
+                    .WithLeadingTrivia(leadingTrivia)
+                    .WithTrailingTrivia(trailingTrivia)
+                );
 
                 newMethodDeclarationSyntax = methodDeclarationSyntax
-                    .WithReturnType(GetReturnType(methodDeclarationSyntax, expressionSyntax))
-                    .WithModifiers(
-                        methodDeclarationSyntax.Modifiers.Remove(
-                            methodDeclarationSyntax.Modifiers.First(x => x.ValueText == TextAsync)
-                        )
+                .WithReturnType(GetReturnType(methodDeclarationSyntax, expressionSyntax))
+                .WithModifiers(
+                    methodDeclarationSyntax.Modifiers.Remove(
+                        methodDeclarationSyntax.Modifiers.First(x => x.ValueText == TextAsync)
                     )
-                    .WithExpressionBody(lastStatement);
+                )
+                .WithExpressionBody(lastStatement);
             }
 
             var sourceText = await document.GetTextAsync(token).ConfigureAwait(false);
@@ -105,7 +112,9 @@ namespace AwesomeAnalyzer
             return document.WithText(sourceText);
         }
 
-        private static TypeSyntax GetReturnType(MethodDeclarationSyntax methodDeclarationSyntax, ExpressionSyntax expressionSyntax)
+        private static TypeSyntax GetReturnType(
+            MethodDeclarationSyntax methodDeclarationSyntax,
+            ExpressionSyntax expressionSyntax)
         {
             if (expressionSyntax is ObjectCreationExpressionSyntax objectCreationExpressionSyntax)
             {

@@ -29,12 +29,12 @@ public static partial class VisualBasicCodeFixVerifier<TAnalyzer, TCodeFix>
     }
 
     /// <inheritdoc cref="CodeFixVerifier{TAnalyzer, TCodeFix, TTest, TVerifier}.VerifyCodeFixAsync(string, string)"/>
-    public static async Task VerifyCodeFixAsync(string source, string fixedSource)
-        => await VerifyCodeFixAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource).ConfigureAwait(false);
+    public static Task VerifyCodeFixAsync(string source, string fixedSource)
+        => VerifyCodeFixAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);
 
     /// <inheritdoc cref="CodeFixVerifier{TAnalyzer, TCodeFix, TTest, TVerifier}.VerifyCodeFixAsync(string, DiagnosticResult, string)"/>
-    public static async Task VerifyCodeFixAsync(string source, DiagnosticResult expected, string fixedSource)
-        => await VerifyCodeFixAsync(source, new[] { expected }, fixedSource).ConfigureAwait(false);
+    public static Task VerifyCodeFixAsync(string source, DiagnosticResult expected, string fixedSource)
+        => VerifyCodeFixAsync(source, new[] { expected }, fixedSource);
 
     /// <inheritdoc cref="CodeFixVerifier{TAnalyzer, TCodeFix, TTest, TVerifier}.VerifyCodeFixAsync(string, DiagnosticResult[], string)"/>
     public static Task VerifyCodeFixAsync(string source, DiagnosticResult[] expected, string fixedSource)

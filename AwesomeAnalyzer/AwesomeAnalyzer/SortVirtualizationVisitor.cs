@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -48,9 +49,11 @@ namespace AwesomeAnalyzer
 
         private const string TextAsync = "async";
         private const string TextComma = ",";
+        private readonly CancellationToken _contextCancellationToken;
 
-        public SortVirtualizationVisitor()
+        public SortVirtualizationVisitor(CancellationToken contextCancellationToken)
         {
+            _contextCancellationToken = contextCancellationToken;
             Members = new ConcurrentDictionary<Types, List<TypesInformation>>();
             Classes = new ConcurrentDictionary<TextSpan, ClassInformation>();
         }
@@ -61,6 +64,7 @@ namespace AwesomeAnalyzer
 
         public override SyntaxNode VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
         {
+            if (_contextCancellationToken.IsCancellationRequested) return null;
             AddClass(node);
 
             return base.VisitInterfaceDeclaration(node);
@@ -68,6 +72,7 @@ namespace AwesomeAnalyzer
 
         public override SyntaxNode VisitStructDeclaration(StructDeclarationSyntax node)
         {
+            if (_contextCancellationToken.IsCancellationRequested) return null;
             AddClass(node);
 
             return base.VisitStructDeclaration(node);
@@ -75,6 +80,7 @@ namespace AwesomeAnalyzer
 
         public override SyntaxNode VisitRecordDeclaration(RecordDeclarationSyntax node)
         {
+            if (_contextCancellationToken.IsCancellationRequested) return null;
             AddClass(node);
 
             return base.VisitRecordDeclaration(node);
@@ -82,6 +88,7 @@ namespace AwesomeAnalyzer
 
         public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
         {
+            if (_contextCancellationToken.IsCancellationRequested) return null;
             AddClass(node);
 
             return base.VisitClassDeclaration(node);
@@ -108,6 +115,7 @@ namespace AwesomeAnalyzer
 
         public override SyntaxNode VisitEnumDeclaration(EnumDeclarationSyntax node)
         {
+            if (_contextCancellationToken.IsCancellationRequested) return null;
             var item = new TypesInformation(
                 Types.Enum,
                 node.Identifier.ValueText,
@@ -136,13 +144,16 @@ namespace AwesomeAnalyzer
                 typeof(ClassDeclarationSyntax),
                 typeof(InterfaceDeclarationSyntax),
                 typeof(StructDeclarationSyntax)
-            ).OfType<TypeDeclarationSyntax>().Reverse();
+            )
+            .OfType<TypeDeclarationSyntax>()
+            .Reverse();
 
             return string.Join(".", parents.Select(x => $"{x.Identifier.ValueText}{x.TypeParameterList}"));
         }
 
         public override SyntaxNode VisitFieldDeclaration(FieldDeclarationSyntax node)
         {
+            if (_contextCancellationToken.IsCancellationRequested) return null;
             var item = new TypesInformation(
                 Types.Field,
                 node.Declaration.Variables[0].Identifier.ValueText,
@@ -161,6 +172,7 @@ namespace AwesomeAnalyzer
 
         public override SyntaxNode VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
         {
+            if (_contextCancellationToken.IsCancellationRequested) return null;
             var item = new TypesInformation(
                 Types.Constructor,
                 node.Identifier.ValueText,
@@ -177,6 +189,7 @@ namespace AwesomeAnalyzer
 
         public override SyntaxNode VisitDelegateDeclaration(DelegateDeclarationSyntax node)
         {
+            if (_contextCancellationToken.IsCancellationRequested) return null;
             var item = new TypesInformation(
                 Types.Delegate,
                 node.Identifier.ValueText,
@@ -195,6 +208,7 @@ namespace AwesomeAnalyzer
 
         public override SyntaxNode VisitEventFieldDeclaration(EventFieldDeclarationSyntax node)
         {
+            if (_contextCancellationToken.IsCancellationRequested) return null;
             var item = new TypesInformation(
                 Types.EventField,
                 node.Declaration.Variables[0].Identifier.ValueText,
@@ -213,6 +227,7 @@ namespace AwesomeAnalyzer
 
         public override SyntaxNode VisitEventDeclaration(EventDeclarationSyntax node)
         {
+            if (_contextCancellationToken.IsCancellationRequested) return null;
             var item = new TypesInformation(
                 Types.Event,
                 node.Identifier.ValueText,
@@ -231,6 +246,7 @@ namespace AwesomeAnalyzer
 
         public override SyntaxNode VisitPropertyDeclaration(PropertyDeclarationSyntax node)
         {
+            if (_contextCancellationToken.IsCancellationRequested) return null;
             var modifiers = node.Modifiers.Select(x => x.ValueText).ToList();
             var modifiersString = string.Join(string.Empty, modifiers.Where(x => x != TextAsync));
             var item = new TypesInformation(
@@ -239,8 +255,8 @@ namespace AwesomeAnalyzer
                 node.FullSpan,
                 string.Join(TextComma, modifiers),
                 string.IsNullOrEmpty(modifiersString)
-                    ? (int)ModifiersSort.Private
-                    : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true),
+                ? (int)ModifiersSort.Private
+                : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true),
                 GetClassName(node)
             );
 
@@ -251,6 +267,7 @@ namespace AwesomeAnalyzer
 
         public override SyntaxNode VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
+            if (_contextCancellationToken.IsCancellationRequested) return null;
             var modifiers = node.Modifiers.Select(x => x.ValueText).ToList();
             var modifiersString = string.Join(string.Empty, modifiers.Where(x => x != TextAsync));
             var item = new TypesInformation(
@@ -259,8 +276,8 @@ namespace AwesomeAnalyzer
                 node.FullSpan,
                 string.Join(TextComma, modifiers),
                 string.IsNullOrEmpty(modifiersString)
-                    ? (int)ModifiersSort.Private
-                    : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true),
+                ? (int)ModifiersSort.Private
+                : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true),
                 GetClassName(node)
             );
 
@@ -276,8 +293,8 @@ namespace AwesomeAnalyzer
 
             item.Modifiers = string.Join(TextComma, modifiersText);
             item.ModifiersOrder = string.IsNullOrEmpty(modifiersString)
-                ? (int)ModifiersSort.Private
-                : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true);
+            ? (int)ModifiersSort.Private
+            : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true);
         }
 
         private void AddToList(TypesInformation item, Types constructor)

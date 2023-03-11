@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -10,34 +11,36 @@ namespace AwesomeAnalyzer.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class ParseAnalyzer : DiagnosticAnalyzer
     {
-        public static readonly ImmutableArray<dynamic> Types = ImmutableArray.CreateRange(
-            new dynamic[]
-            {
-                new TryParseTypes<bool>("bool", true, false),
-                new TryParseTypes<byte>("byte", 0, 0),
-                new TryParseTypes<decimal>("decimal", 1m, 0m),
-                new TryParseTypes<double>("double", 2d, 0d),
-                new TryParseTypes<float>("float", 3f, 0f),
-                new TryParseTypes<int>("int", 10, 0),
-                new TryParseTypes<long>("long", 100, 0),
-                new TryParseTypes<sbyte>("sbyte", 1, 0),
-                new TryParseTypes<short>("short", 1, 0),
-                new TryParseTypes<uint>("uint", 10, 0),
-                new TryParseTypes<ulong>("ulong", 100, 0),
-                new TryParseTypes<ushort>("ushort", 1, 0),
-            }
-        );
-
         private const string TextString = "String";
 
         private const string TextVar = "var";
 
-        private readonly Dictionary<ExpressionSyntax, TypeSyntax> _expectedTypesCache = new Dictionary<ExpressionSyntax, TypeSyntax>();
+        public static readonly ImmutableArray<dynamic> Types = ImmutableArray.CreateRange(
+            new dynamic[]
+            {
+            new TryParseTypes<bool>("bool", true, false),
+            new TryParseTypes<byte>("byte", 0, 0),
+            new TryParseTypes<decimal>("decimal", 1m, 0m),
+            new TryParseTypes<double>("double", 2d, 0d),
+            new TryParseTypes<float>("float", 3f, 0f),
+            new TryParseTypes<int>("int", 10, 0),
+            new TryParseTypes<long>("long", 100, 0),
+            new TryParseTypes<sbyte>("sbyte", 1, 0),
+            new TryParseTypes<short>("short", 1, 0),
+            new TryParseTypes<uint>("uint", 10, 0),
+            new TryParseTypes<ulong>("ulong", 100, 0),
+            new TryParseTypes<ushort>("ushort", 1, 0),
+            }
+        );
 
-        private readonly Dictionary<ExpressionSyntax, ITypeSymbol> _variableTypesCache = new Dictionary<ExpressionSyntax, ITypeSymbol>();
+        private static readonly ConcurrentDictionary<ExpressionSyntax, ITypeSymbol> VariableTypesCache =
+        new ConcurrentDictionary<ExpressionSyntax, ITypeSymbol>();
+
+        private readonly Dictionary<ExpressionSyntax, TypeSyntax> _expectedTypesCache =
+        new Dictionary<ExpressionSyntax, TypeSyntax>();
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-            ImmutableArray.Create(DiagnosticDescriptors.ParseStringRule0005);
+        ImmutableArray.Create(DiagnosticDescriptors.Rule0005ParseString);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -50,6 +53,11 @@ namespace AwesomeAnalyzer.Analyzers
 
         private void AnalyzeEqualsValueClause(SyntaxNodeAnalysisContext context)
         {
+            if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0005ParseString.Id))
+            {
+                return;
+            }
+
             var equalsValueClauseSyntax = (EqualsValueClauseSyntax)context.Node;
             if (equalsValueClauseSyntax.Parent is ParameterSyntax) return;
             if (equalsValueClauseSyntax.Value == null) return;
@@ -59,6 +67,11 @@ namespace AwesomeAnalyzer.Analyzers
 
         private void AnalyzeNodeReturnStatement(SyntaxNodeAnalysisContext context)
         {
+            if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0005ParseString.Id))
+            {
+                return;
+            }
+
             var returnStatementSyntax = (ReturnStatementSyntax)context.Node;
             AnalyzeNode(context, returnStatementSyntax.Expression);
         }
@@ -117,7 +130,7 @@ namespace AwesomeAnalyzer.Analyzers
 
             context.ReportDiagnostic(
                 Diagnostic.Create(
-                    DiagnosticDescriptors.ParseStringRule0005,
+                    DiagnosticDescriptors.Rule0005ParseString,
                     sourceValueExpression.GetLocation()
                 )
             );
@@ -132,7 +145,12 @@ namespace AwesomeAnalyzer.Analyzers
 
             if (valueExpression is IdentifierNameSyntax identifierNameSyntax)
             {
-                var symbol = ModelExtensions.GetSymbolInfo(context.SemanticModel, identifierNameSyntax, context.CancellationToken).Symbol;
+                var symbol = ModelExtensions.GetSymbolInfo(
+                    context.SemanticModel,
+                    identifierNameSyntax,
+                    context.CancellationToken
+                )
+                .Symbol;
                 if (symbol == null)
                 {
                     return null;
@@ -144,21 +162,32 @@ namespace AwesomeAnalyzer.Analyzers
             else
             {
                 var parent = valueExpression.Parent;
-                while (!(parent is MethodDeclarationSyntax)
-                    && !(parent is PropertyDeclarationSyntax)
-                    && !(parent is FieldDeclarationSyntax)
-                    && !(parent is LocalDeclarationStatementSyntax)
-                )
+                while (!(parent is MethodDeclarationSyntax) &&
+                       !(parent is PropertyDeclarationSyntax) &&
+                       !(parent is FieldDeclarationSyntax) &&
+                       !(parent is LocalDeclarationStatementSyntax)
+                      )
                 {
                     parent = parent?.Parent;
                 }
 
                 switch (parent)
                 {
-                    case MethodDeclarationSyntax methodDeclaration: expectedType = methodDeclaration.ReturnType; break;
-                    case PropertyDeclarationSyntax propertyDeclaration: expectedType = propertyDeclaration.Type; break;
-                    case FieldDeclarationSyntax fieldDeclaration: expectedType = fieldDeclaration.Declaration.Type; break;
-                    case LocalDeclarationStatementSyntax localDeclaration: expectedType = localDeclaration.Declaration.Type; break;
+                    case MethodDeclarationSyntax methodDeclaration:
+                        expectedType = methodDeclaration.ReturnType;
+                        break;
+
+                    case PropertyDeclarationSyntax propertyDeclaration:
+                        expectedType = propertyDeclaration.Type;
+                        break;
+
+                    case FieldDeclarationSyntax fieldDeclaration:
+                        expectedType = fieldDeclaration.Declaration.Type;
+                        break;
+
+                    case LocalDeclarationStatementSyntax localDeclaration:
+                        expectedType = localDeclaration.Declaration.Type;
+                        break;
                 }
             }
 
@@ -168,14 +197,19 @@ namespace AwesomeAnalyzer.Analyzers
 
         private ITypeSymbol GetVariableType(SyntaxNodeAnalysisContext context, ExpressionSyntax valueExpression)
         {
-            if (_variableTypesCache.TryGetValue(valueExpression, out var variableType))
-            {
-                return variableType;
-            }
+            return VariableTypesCache.GetOrAdd(
+                valueExpression,
+                syntax => ModelExtensions.GetTypeInfo(context.SemanticModel, syntax, context.CancellationToken)
+                .Type
+            );
+            //if (_variableTypesCache.TryGetValue(valueExpression, out var variableType))
+            //{
+            //    return variableType;
+            //}
 
-            variableType = ModelExtensions.GetTypeInfo(context.SemanticModel, valueExpression, context.CancellationToken).Type;
-            _variableTypesCache[valueExpression] = variableType;
-            return variableType;
+            //variableType = ModelExtensions.GetTypeInfo(context.SemanticModel, valueExpression, context.CancellationToken).Type;
+            //_variableTypesCache[valueExpression] = variableType;
+            //return variableType;
         }
     }
 }

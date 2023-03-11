@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using FleetManagement.Service;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,7 +11,7 @@ namespace AwesomeAnalyzer.Analyzers
     public sealed class DontReturnNullAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-            ImmutableArray.Create(DiagnosticDescriptors.DontReturnNullRule0007);
+            ImmutableArray.Create(DiagnosticDescriptors.Rule0007DontReturnNull);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -22,54 +23,62 @@ namespace AwesomeAnalyzer.Analyzers
 
         private void Analyze(SyntaxNodeAnalysisContext context)
         {
-            var returnStatementSyntax = (ReturnStatementSyntax)context.Node;
-
-            if (!(returnStatementSyntax.Expression is LiteralExpressionSyntax literalExpressionSyntax))
+            using (var _ = new MeasureTime())
             {
-                return;
-            }
-
-            if (literalExpressionSyntax.Token.ValueText != "null")
-            {
-                return;
-            }
-
-            var methodDeclarationSyntax = returnStatementSyntax.HasParent<MethodDeclarationSyntax>();
-            if (!(methodDeclarationSyntax.ReturnType is ArrayTypeSyntax))
-            {
-                if (methodDeclarationSyntax.ReturnType is GenericNameSyntax genericNameSyntax)
+                if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0007DontReturnNull.Id))
                 {
-                    if (genericNameSyntax.Identifier.ValueText == "Task")
-                    {
-                        return;
-                    }
+                    return;
+                }
 
-                    if (genericNameSyntax.Identifier.ValueText == "ValueTask")
+                var returnStatementSyntax = (ReturnStatementSyntax)context.Node;
+
+                if (!(returnStatementSyntax.Expression is LiteralExpressionSyntax literalExpressionSyntax))
+                {
+                    return;
+                }
+
+                if (literalExpressionSyntax.Token.ValueText != "null")
+                {
+                    return;
+                }
+
+                var methodDeclarationSyntax = returnStatementSyntax.HasParent<MethodDeclarationSyntax>();
+                if (!(methodDeclarationSyntax.ReturnType is ArrayTypeSyntax))
+                {
+                    if (methodDeclarationSyntax.ReturnType is GenericNameSyntax genericNameSyntax)
                     {
-                        return;
+                        if (genericNameSyntax.Identifier.ValueText == "Task")
+                        {
+                            return;
+                        }
+
+                        if (genericNameSyntax.Identifier.ValueText == "ValueTask")
+                        {
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        if (!(methodDeclarationSyntax.ReturnType is IdentifierNameSyntax identifierNameSyntax))
+                        {
+                            return;
+                        }
+
+                        if (identifierNameSyntax.Identifier.ValueText != "ArrayList")
+                        {
+                            return;
+                        }
                     }
                 }
-                else
-                {
-                    if (!(methodDeclarationSyntax.ReturnType is IdentifierNameSyntax identifierNameSyntax))
-                    {
-                        return;
-                    }
 
-                    if (identifierNameSyntax.Identifier.ValueText != "ArrayList")
-                    {
-                        return;
-                    }
-                }
+                context.ReportDiagnostic(
+                    Diagnostic.Create(
+                        DiagnosticDescriptors.Rule0007DontReturnNull,
+                        returnStatementSyntax.GetLocation(),
+                        methodDeclarationSyntax.Identifier.ValueText
+                    )
+                );
             }
-
-            context.ReportDiagnostic(
-                Diagnostic.Create(
-                    DiagnosticDescriptors.DontReturnNullRule0007,
-                    returnStatementSyntax.GetLocation(),
-                    methodDeclarationSyntax.Identifier.ValueText
-                )
-            );
         }
     }
 }

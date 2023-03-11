@@ -11,7 +11,8 @@ namespace AwesomeAnalyzer
 
         public TextSpan FullSpan { get; set; }
 
-        public string IdentifierName => string.IsNullOrWhiteSpace(NameSpaceName) ? ClassName : $"{NameSpaceName}.{ClassName}";
+        public string IdentifierName =>
+        string.IsNullOrWhiteSpace(NameSpaceName) ? ClassName : $"{NameSpaceName}.{ClassName}";
 
         public string NameSpaceName { get; set; }
     }

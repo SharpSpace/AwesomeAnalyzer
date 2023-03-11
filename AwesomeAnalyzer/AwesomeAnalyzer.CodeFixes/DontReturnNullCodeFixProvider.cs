@@ -10,10 +10,12 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace AwesomeAnalyzer
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider))]
+    [Shared]
     public sealed class DontReturnNullCodeFixProvider : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticDescriptors.DontReturnNullRule0007.Id);
+        public override ImmutableArray<string> FixableDiagnosticIds =>
+        ImmutableArray.Create(DiagnosticDescriptors.Rule0007DontReturnNull.Id);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -38,7 +40,10 @@ namespace AwesomeAnalyzer
             }
         }
 
-        private async Task<Document> DoCodeFix(Document document, ReturnStatementSyntax declaration, CancellationToken token)
+        private async Task<Document> DoCodeFix(
+            Document document,
+            ReturnStatementSyntax declaration,
+            CancellationToken token)
         {
             var methodDeclarationSyntax = declaration.HasParent<MethodDeclarationSyntax>();
             string type = null;
@@ -61,6 +66,7 @@ namespace AwesomeAnalyzer
                     genericType = "Array";
                     type = (arrayTypeSyntax.ElementType as PredefinedTypeSyntax).Keyword.ValueText;
                     break;
+
                 case IdentifierNameSyntax identifierNameSyntax:
                     genericType = identifierNameSyntax.ToFullString().Trim();
                     break;
@@ -72,12 +78,16 @@ namespace AwesomeAnalyzer
             {
                 case "Array":
                     return document.WithText(sourceText.Replace(targetTextSpan, $"Array.Empty<{type}>()"));
+
                 case "ArrayList":
                     return document.WithText(sourceText.Replace(targetTextSpan, "new ArrayList()"));
+
                 case "IEnumerable":
                     return document.WithText(sourceText.Replace(targetTextSpan, $"Enumerable.Empty<{type}>()"));
+
                 case "IList":
                     return document.WithText(sourceText.Replace(targetTextSpan, $"new List<{type}>()"));
+
                 default:
                     return document.WithText(sourceText.Replace(targetTextSpan, $"new {genericType}<{type}>()"));
             }

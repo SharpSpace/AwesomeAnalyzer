@@ -12,7 +12,8 @@ using Microsoft.CodeAnalysis.Rename;
 
 namespace AwesomeAnalyzer
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider))]
+    [Shared]
     public sealed class AddAsyncPrefixCodeFixProvider : CodeFixProvider
     {
         private const string TextAsync = "Async";
@@ -20,7 +21,7 @@ namespace AwesomeAnalyzer
         private static readonly SymbolRenameOptions _symbolRenameOptions = new SymbolRenameOptions();
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
-            DiagnosticDescriptors.AddAsyncRule0102.Id
+            DiagnosticDescriptors.Rule0102AddAsync.Id
         );
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
@@ -33,8 +34,8 @@ namespace AwesomeAnalyzer
 
             var diagnostic = context.Diagnostics.FirstOrDefault();
             var declaration = (IdentifierNameSyntax)root
-                .FindToken(diagnostic.Location.SourceSpan.Start)
-                .Parent;
+            .FindToken(diagnostic.Location.SourceSpan.Start)
+            .Parent;
 
             var semanticModel = await document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             if (semanticModel == null) return;

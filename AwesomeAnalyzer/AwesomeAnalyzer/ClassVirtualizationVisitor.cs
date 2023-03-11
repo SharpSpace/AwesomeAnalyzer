@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -8,33 +9,42 @@ namespace AwesomeAnalyzer
 {
     public sealed class ClassVirtualizationVisitor : CSharpSyntaxRewriter
     {
+        private readonly CancellationToken _contextCancellationToken;
         private Compilation _compilation;
 
-        public ClassVirtualizationVisitor()
+        public ClassVirtualizationVisitor(CancellationToken contextCancellationToken)
         {
-            this.Classes = new List<ClassInformation>();
+            _contextCancellationToken = contextCancellationToken;
+            Classes = new List<ClassInformation>();
         }
 
         public List<ClassInformation> Classes { get; }
 
         public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
         {
+            if (_contextCancellationToken.IsCancellationRequested) return null;
             string nameSpaceName = null;
             if (node.Parent is NamespaceDeclarationSyntax namespaceDeclarationSyntax)
             {
                 nameSpaceName = namespaceDeclarationSyntax.Name.ToString();
             }
 
-            this.Classes.Add(new ClassInformation
-            {
-                ClassName = node.Identifier.ValueText,
-                NameSpaceName = nameSpaceName,
-                BaseClasses = node.BaseList?.Types.Select(x => new ClassInformation
+            Classes.Add(
+                new ClassInformation
                 {
-                    ClassName = GetClassName(x),
-                    NameSpaceName = GetNameSpaceName(x),
-                }).ToList() ?? new List<ClassInformation>(),
-            });
+                    ClassName = node.Identifier.ValueText,
+                    NameSpaceName = nameSpaceName,
+                    BaseClasses = node.BaseList?.Types.Select(
+                        x => new ClassInformation
+                        {
+                            ClassName = GetClassName(x),
+                            NameSpaceName = GetNameSpaceName(x),
+                        }
+                    )
+                    .ToList() ??
+                    new List<ClassInformation>(),
+                }
+            );
 
             return node;
         }

@@ -14,7 +14,7 @@ namespace AwesomeAnalyzer.Analyzers
         private const string TextIDisposable = "IDisposable";
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.DisposedRule0004
+            DiagnosticDescriptors.Rule0004Disposed
         );
 
         public override void Initialize(AnalysisContext context)
@@ -27,11 +27,17 @@ namespace AwesomeAnalyzer.Analyzers
 
         private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
+            if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0004Disposed.Id))
+            {
+                return;
+            }
+
             if (!(context.Node is ObjectCreationExpressionSyntax objectCreationExpressionSyntax)) return;
             if (!(objectCreationExpressionSyntax.Parent is EqualsValueClauseSyntax equalsValueClauseSyntax)) return;
             if (!(equalsValueClauseSyntax.Parent is VariableDeclaratorSyntax variableDeclaratorSyntax)) return;
             if (!(variableDeclaratorSyntax.Parent is VariableDeclarationSyntax variableDeclarationSyntax)) return;
-            if (!(variableDeclarationSyntax.Parent is LocalDeclarationStatementSyntax localDeclarationStatementSyntax)) return;
+            if (!(variableDeclarationSyntax.Parent is LocalDeclarationStatementSyntax localDeclarationStatementSyntax))
+                return;
 
             if (localDeclarationStatementSyntax.UsingKeyword.ValueText == TextUsing) return;
 
@@ -40,10 +46,11 @@ namespace AwesomeAnalyzer.Analyzers
             var expression = variableDeclaratorSyntax.Identifier.ValueText;
             if (blockSyntax.Statements
                 .OfType<ExpressionStatementSyntax>()
-                .Any(x =>
+                .Any(
+                    x =>
                     x.Expression.ToString().StartsWith(expression)
                 )
-            ) return;
+               ) return;
 
             var typeSymbol = ModelExtensions.GetTypeInfo(context.SemanticModel, objectCreationExpressionSyntax).Type;
             if (typeSymbol == null) return;
@@ -51,11 +58,13 @@ namespace AwesomeAnalyzer.Analyzers
             var interfaces = typeSymbol.AllInterfaces;
             if (interfaces.Any(x => x.Name == TextIDisposable) == false) return;
 
-            context.ReportDiagnostic(Diagnostic.Create(
-                DiagnosticDescriptors.DisposedRule0004,
-                variableDeclarationSyntax.GetLocation(),
-                messageArgs: variableDeclarationSyntax.ToString()
-            ));
+            context.ReportDiagnostic(
+                Diagnostic.Create(
+                    DiagnosticDescriptors.Rule0004Disposed,
+                    variableDeclarationSyntax.GetLocation(),
+                    messageArgs: variableDeclarationSyntax.ToString()
+                )
+            );
         }
     }
 }

@@ -12,10 +12,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace AwesomeAnalyzer
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider))]
+    [Shared]
     public sealed class ParseCodeFixProvider : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticDescriptors.ParseStringRule0005.Id);
+        public override ImmutableArray<string> FixableDiagnosticIds =>
+        ImmutableArray.Create(DiagnosticDescriptors.Rule0005ParseString.Id);
 
         public override FixAllProvider GetFixAllProvider() => null;
 
@@ -29,10 +31,10 @@ namespace AwesomeAnalyzer
             foreach (var diagnostic in context.Diagnostics)
             {
                 var parent = root
-                    .FindToken(diagnostic.Location.SourceSpan.Start)
-                    .Parent
-                    ?.AncestorsAndSelf()
-                    .ToList();
+                .FindToken(diagnostic.Location.SourceSpan.Start)
+                .Parent
+                ?.AncestorsAndSelf()
+                .ToList();
                 if (parent == null) continue;
 
                 foreach (var declaration in parent.OfType<EqualsValueClauseSyntax>())
@@ -68,8 +70,14 @@ namespace AwesomeAnalyzer
         )
         {
             return localDeclaration.Parent?.Parent is VariableDeclarationSyntax variableDeclarationSyntax
-                ? Parse(document, oldSource, variableDeclarationSyntax.Type, localDeclaration.Value.Span, localDeclaration.Value)
-                : document;
+            ? Parse(
+                document,
+                oldSource,
+                variableDeclarationSyntax.Type,
+                localDeclaration.Value.Span,
+                localDeclaration.Value
+            )
+            : document;
         }
 
         private static Document Parse(
@@ -79,14 +87,14 @@ namespace AwesomeAnalyzer
         )
         {
             return localDeclaration.Parent?.Parent is MethodDeclarationSyntax methodDeclarationSyntax
-                ? Parse(
-                    document,
-                    oldSource,
-                    methodDeclarationSyntax.ReturnType,
-                    localDeclaration.Expression.Span,
-                    localDeclaration.Expression
-                )
-                : document;
+            ? Parse(
+                document,
+                oldSource,
+                methodDeclarationSyntax.ReturnType,
+                localDeclaration.Expression.Span,
+                localDeclaration.Expression
+            )
+            : document;
         }
 
         private static Document Parse(
@@ -103,13 +111,15 @@ namespace AwesomeAnalyzer
             {
                 isNullable = true;
                 if (!(nullableTypeSyntax.ElementType is PredefinedTypeSyntax predefinedTypeSyntax)) return document;
-                if (ParseAnalyzer.Types.Any(x => x.TypeName == predefinedTypeSyntax.Keyword.ValueText) == false) return document;
+                if (ParseAnalyzer.Types.Any(x => x.TypeName == predefinedTypeSyntax.Keyword.ValueText) == false)
+                    return document;
                 type = predefinedTypeSyntax.Keyword.ValueText;
             }
             else
             {
                 if (!(typeSyntax is PredefinedTypeSyntax predefinedTypeSyntax)) return document;
-                if (ParseAnalyzer.Types.Any(x => x.TypeName == predefinedTypeSyntax.Keyword.ValueText) == false) return document;
+                if (ParseAnalyzer.Types.Any(x => x.TypeName == predefinedTypeSyntax.Keyword.ValueText) == false)
+                    return document;
                 type = predefinedTypeSyntax.Keyword.ValueText;
             }
 

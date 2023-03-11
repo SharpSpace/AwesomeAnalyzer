@@ -27,7 +27,8 @@ public sealed class RenameAsyncTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -52,7 +53,8 @@ public sealed class RenameAsyncTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -87,7 +89,8 @@ public sealed class RenameAsyncTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -100,7 +103,8 @@ public sealed class RenameAsyncTest
                 void Method(){}
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -113,7 +117,8 @@ public sealed class RenameAsyncTest
                 async void MethodAsync(){}
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -131,7 +136,8 @@ public sealed class RenameAsyncTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -149,7 +155,8 @@ public sealed class RenameAsyncTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -167,7 +174,8 @@ public sealed class RenameAsyncTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -185,7 +193,8 @@ public sealed class RenameAsyncTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -194,7 +203,7 @@ public sealed class RenameAsyncTest
         await VerifyCS.VerifyAnalyzerAsync(
             """
             using System.Threading.Tasks;
-            
+
             namespace MyNamespace
             {
                 class Program
@@ -206,7 +215,8 @@ public sealed class RenameAsyncTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -215,7 +225,7 @@ public sealed class RenameAsyncTest
         await VerifyCS.VerifyAnalyzerAsync(
             """
             using System.Threading.Tasks;
-            
+
             namespace MyNamespace
             {
                 class Program
@@ -227,7 +237,8 @@ public sealed class RenameAsyncTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -236,7 +247,7 @@ public sealed class RenameAsyncTest
         await VerifyCS.VerifyAnalyzerAsync(
             """
             using System.Threading.Tasks;
-            
+
             namespace MyNamespace
             {
                 class Program
@@ -248,7 +259,8 @@ public sealed class RenameAsyncTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -257,7 +269,7 @@ public sealed class RenameAsyncTest
         await VerifyCS.VerifyAnalyzerAsync(
             """
             using System.Threading.Tasks;
-            
+
             namespace MyNamespace
             {
                 class Program
@@ -269,7 +281,8 @@ public sealed class RenameAsyncTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -278,7 +291,7 @@ public sealed class RenameAsyncTest
         await VerifyCS.VerifyAnalyzerAsync(
             """
             using System.Threading.Tasks;
-            
+
             namespace MyNamespace
             {
                 class Program
@@ -292,6 +305,7 @@ public sealed class RenameAsyncTest
                 sealed class Item { }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 }

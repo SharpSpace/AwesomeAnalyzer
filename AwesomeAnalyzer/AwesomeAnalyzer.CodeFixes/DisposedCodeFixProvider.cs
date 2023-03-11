@@ -14,11 +14,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace AwesomeAnalyzer
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider))]
+    [Shared]
     public sealed class DisposedCodeFixProvider : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
-            DiagnosticDescriptors.DisposedRule0004.Id
+            DiagnosticDescriptors.Rule0004Disposed.Id
         );
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
@@ -30,17 +31,18 @@ namespace AwesomeAnalyzer
             if (root == null) return;
 
             var languageVersion =
-                ((CSharpParseOptions)(await context.Document.GetSyntaxTreeAsync(context.CancellationToken).ConfigureAwait(false))?.Options)
-                ?.LanguageVersion ??
-                LanguageVersion.CSharp6;
+            ((CSharpParseOptions)(await context.Document.GetSyntaxTreeAsync(context.CancellationToken)
+            .ConfigureAwait(false))?.Options)
+            ?.LanguageVersion ??
+            LanguageVersion.CSharp6;
 
             foreach (var diagnostic in context.Diagnostics)
             {
                 var declaration = root.FindToken(diagnostic.Location.SourceSpan.Start)
-                    .Parent
-                    ?.AncestorsAndSelf()
-                    .OfType<LocalDeclarationStatementSyntax>()
-                    .First();
+                .Parent
+                ?.AncestorsAndSelf()
+                .OfType<LocalDeclarationStatementSyntax>()
+                .First();
 
                 context.RegisterCodeFix(
                     CodeAction.Create(
@@ -65,8 +67,9 @@ namespace AwesomeAnalyzer
             if (languageVersion <= LanguageVersion.CSharp8)
             {
                 var children = declaration.Parent?.ChildNodes()
-                    .Where(x => x.FullSpan.Start >= declaration.FullSpan.End)
-                    .ToList() ?? new List<SyntaxNode>();
+                .Where(x => x.FullSpan.Start >= declaration.FullSpan.End)
+                .ToList() ??
+                new List<SyntaxNode>();
 
                 var oldSource = (await document.GetSyntaxRootAsync(token).ConfigureAwait(false))?.ToFullString();
                 if (oldSource == null) return document;
@@ -95,7 +98,8 @@ namespace AwesomeAnalyzer
                 return await Formatter.FormatAsync(
                     document.WithText(SourceText.From(newSource)),
                     cancellationToken: token
-                ).ConfigureAwait(false);
+                )
+                .ConfigureAwait(false);
             }
             else
             {

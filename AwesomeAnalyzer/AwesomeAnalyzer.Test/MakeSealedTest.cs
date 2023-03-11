@@ -33,7 +33,8 @@ public sealed class MakeSealedTest
                     public sealed class Program { }
                 }
                 """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -54,7 +55,8 @@ public sealed class MakeSealedTest
                     public sealed class Program2: Program { }
                 }
                 """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -69,7 +71,8 @@ public sealed class MakeSealedTest
                 sealed class Program
                 { }
                 """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -90,7 +93,8 @@ public sealed class MakeSealedTest
                 internal sealed class Program
                 { }
                 """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -111,7 +115,8 @@ public sealed class MakeSealedTest
                     internal sealed class Program2 { }
                 }
                 """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -126,7 +131,8 @@ public sealed class MakeSealedTest
                 public sealed class Program
                 { }
                 """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -147,7 +153,8 @@ public sealed class MakeSealedTest
                 public sealed partial class Program
                 { }
                 """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -164,7 +171,8 @@ public sealed class MakeSealedTest
             public sealed class Program : Program2 {}
             public class Program2 {}
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -178,7 +186,8 @@ public sealed class MakeSealedTest
                 public sealed class Program2: Program { }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -196,7 +205,8 @@ public sealed class MakeSealedTest
                 public sealed class Item { }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -209,7 +219,8 @@ public sealed class MakeSealedTest
                 public abstract class Program { }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -226,11 +237,13 @@ public sealed class MakeSealedTest
                 public sealed class Program2: Sample.Program { }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
-    public async Task Test_NoDiagnostic6() {
+    public async Task Test_NoDiagnostic6()
+    {
         await VerifyCS.VerifyAnalyzerAsync(
             """
             namespace Sample
@@ -239,6 +252,7 @@ public sealed class MakeSealedTest
                 internal sealed class Program2<T>: Program<T> { }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 }

@@ -11,7 +11,7 @@ namespace AwesomeAnalyzer.Analyzers
     public sealed class MakeConstAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.MakeConstRule0003
+            DiagnosticDescriptors.Rule0003MakeConst
         );
 
         public override void Initialize(AnalysisContext context)
@@ -23,19 +23,32 @@ namespace AwesomeAnalyzer.Analyzers
 
         private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
+            if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0003MakeConst.Id))
+            {
+                return;
+            }
+
             var localDeclaration = (LocalDeclarationStatementSyntax)context.Node;
 
             if (localDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword)) return;
 
             var variableTypeName = localDeclaration.Declaration.Type;
-            var variableType = ModelExtensions.GetTypeInfo(context.SemanticModel, variableTypeName, context.CancellationToken).ConvertedType;
+            var variableType = ModelExtensions.GetTypeInfo(
+                context.SemanticModel,
+                variableTypeName,
+                context.CancellationToken
+            )
+            .ConvertedType;
             if (variableType == null) return;
 
             foreach (var initializer in localDeclaration.Declaration.Variables.Select(s => s.Initializer))
             {
                 if (initializer == null) return;
 
-                var constantValue = context.SemanticModel.GetConstantValue(initializer.Value, context.CancellationToken);
+                var constantValue = context.SemanticModel.GetConstantValue(
+                    initializer.Value,
+                    context.CancellationToken
+                );
                 if (!constantValue.HasValue) return;
 
                 var conversion = context.SemanticModel.ClassifyConversion(initializer.Value, variableType);
@@ -60,11 +73,13 @@ namespace AwesomeAnalyzer.Analyzers
                 return;
             }
 
-            context.ReportDiagnostic(Diagnostic.Create(
-                DiagnosticDescriptors.MakeConstRule0003,
-                context.Node.GetLocation(),
-                string.Join(",", localDeclaration.Declaration.Variables.Select(x => x.Identifier.ValueText))
-            ));
+            context.ReportDiagnostic(
+                Diagnostic.Create(
+                    DiagnosticDescriptors.Rule0003MakeConst,
+                    context.Node.GetLocation(),
+                    string.Join(",", localDeclaration.Declaration.Variables.Select(x => x.Identifier.ValueText))
+                )
+            );
         }
     }
 }

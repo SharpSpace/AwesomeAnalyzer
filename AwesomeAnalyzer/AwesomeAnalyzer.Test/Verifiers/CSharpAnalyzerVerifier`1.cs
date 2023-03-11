@@ -1,7 +1,7 @@
 ﻿namespace AwesomeAnalyzer.Test;
 
 public static partial class CSharpAnalyzerVerifier<TAnalyzer>
-    where TAnalyzer : DiagnosticAnalyzer, new()
+where TAnalyzer : DiagnosticAnalyzer, new()
 {
     /// <inheritdoc cref="AnalyzerVerifier{TAnalyzer, TTest, TVerifier}.Diagnostic()"/>
     public static DiagnosticResult Diagnostic()
@@ -16,7 +16,7 @@ public static partial class CSharpAnalyzerVerifier<TAnalyzer>
         => CSharpAnalyzerVerifier<TAnalyzer, MSTestVerifier>.Diagnostic(descriptor);
 
     /// <inheritdoc cref="AnalyzerVerifier{TAnalyzer, TTest, TVerifier}.VerifyAnalyzerAsync(string, DiagnosticResult[])"/>
-    public static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
+    public static Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
     {
         var test = new Test
         {
@@ -24,6 +24,6 @@ public static partial class CSharpAnalyzerVerifier<TAnalyzer>
         };
 
         test.ExpectedDiagnostics.AddRange(expected);
-        await test.RunAsync(CancellationToken.None).ConfigureAwait(false);
+        return test.RunAsync(CancellationToken.None);
     }
 }

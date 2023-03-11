@@ -3,7 +3,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -14,16 +13,17 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace AwesomeAnalyzer
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeConstCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeConstCodeFixProvider))]
+    [Shared]
     public sealed class MakeConstCodeFixProvider : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
-            DiagnosticDescriptors.MakeConstRule0003.Id
+        public override sealed ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
+            DiagnosticDescriptors.Rule0003MakeConst.Id
         );
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override sealed async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             if (root == null) return;
@@ -33,15 +33,20 @@ namespace AwesomeAnalyzer
             var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             // Find the type declaration identified by the diagnostic.
-            var declaration = root.FindToken(diagnosticSpan.Start).Parent?.AncestorsAndSelf().OfType<LocalDeclarationStatementSyntax>().First();
+            var declaration = root.FindToken(diagnosticSpan.Start)
+            .Parent?.AncestorsAndSelf()
+            .OfType<LocalDeclarationStatementSyntax>()
+            .First();
 
             // Register a code action that will invoke the fix.
             context.RegisterCodeFix(
                 CodeAction.Create(
                     title: "Make constant",
                     createChangedDocument: c => MakeConstAsync(context.Document, declaration, c),
-                    equivalenceKey: nameof(CodeFixResources.CodeFixTitle)),
-                diagnostic);
+                    equivalenceKey: nameof(CodeFixResources.CodeFixTitle)
+                ),
+                diagnostic
+            );
         }
 
         private static async Task<Document> MakeConstAsync(
@@ -53,10 +58,16 @@ namespace AwesomeAnalyzer
             var firstToken = localDeclaration.GetFirstToken();
             var leadingTrivia = firstToken.LeadingTrivia;
             var trimmedLocal = localDeclaration.ReplaceToken(
-                firstToken, firstToken.WithLeadingTrivia(SyntaxTriviaList.Empty));
+                firstToken,
+                firstToken.WithLeadingTrivia(SyntaxTriviaList.Empty)
+            );
 
             // Create a const token with the leading trivia.
-            var constToken = SyntaxFactory.Token(leadingTrivia, SyntaxKind.ConstKeyword, SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker));
+            var constToken = SyntaxFactory.Token(
+                leadingTrivia,
+                SyntaxKind.ConstKeyword,
+                SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker)
+            );
 
             // Insert the const token into the modifiers list, creating a new modifiers list.
             var newModifiers = trimmedLocal.Modifiers.Insert(0, constToken);
@@ -85,8 +96,8 @@ namespace AwesomeAnalyzer
                         // Create a new TypeSyntax for the inferred type. Be careful
                         // to keep any leading and trailing trivia from the var keyword.
                         var typeName = SyntaxFactory.ParseTypeName(type.ToDisplayString())
-                            .WithLeadingTrivia(variableTypeName.GetLeadingTrivia())
-                            .WithTrailingTrivia(variableTypeName.GetTrailingTrivia());
+                        .WithLeadingTrivia(variableTypeName.GetLeadingTrivia())
+                        .WithTrailingTrivia(variableTypeName.GetTrailingTrivia());
 
                         // Add an annotation to simplify the type name.
                         var simplifiedTypeName = typeName.WithAdditionalAnnotations(Simplifier.Annotation);
@@ -99,7 +110,7 @@ namespace AwesomeAnalyzer
 
             // Produce the new local declaration.
             var newLocal = trimmedLocal.WithModifiers(newModifiers)
-                                       .WithDeclaration(variableDeclaration);
+            .WithDeclaration(variableDeclaration);
 
             // Add an annotation to format the new local declaration.
             var formattedLocal = newLocal.WithAdditionalAnnotations(Formatter.Annotation);

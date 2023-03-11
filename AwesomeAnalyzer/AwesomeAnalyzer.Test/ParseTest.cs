@@ -63,7 +63,8 @@ public sealed class ParseTest
                     }
                 }
                 """
-            ).ConfigureAwait(false);
+            )
+            .ConfigureAwait(false);
         }
     }
 
@@ -72,15 +73,16 @@ public sealed class ParseTest
     {
         await VerifyCS.VerifyAnalyzerAsync(
             """
-                class Program
+            class Program
+            {
+                public int Method()
                 {
-                    public int Method()
-                    {
-                        return int.Parse("1");
-                    }
+                    return int.Parse("1");
                 }
-                """
-        ).ConfigureAwait(false);
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -96,7 +98,8 @@ public sealed class ParseTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -104,15 +107,16 @@ public sealed class ParseTest
     {
         await VerifyCS.VerifyAnalyzerAsync(
             """
-                class Program
+            class Program
+            {
+                public int Method()
                 {
-                    public int Method()
-                    {
-                        return int.TryParse("1", out var value) ? value : 0;
-                    }
+                    return int.TryParse("1", out var value) ? value : 0;
                 }
-                """
-        ).ConfigureAwait(false);
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -120,15 +124,16 @@ public sealed class ParseTest
     {
         await VerifyCS.VerifyAnalyzerAsync(
             """
-                class Program
+            class Program
+            {
+                public int Method(string s = "")
                 {
-                    public int Method(string s = "")
-                    {
-                        return 0;
-                    }
+                    return 0;
                 }
-                """
-        ).ConfigureAwait(false);
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -136,15 +141,16 @@ public sealed class ParseTest
     {
         await VerifyCS.VerifyAnalyzerAsync(
             """
-                class Program
+            class Program
+            {
+                public int Method(bool b = false)
                 {
-                    public int Method(bool b = false)
-                    {
-                        return 0;
-                    }
+                    return 0;
                 }
-                """
-        ).ConfigureAwait(false);
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -161,7 +167,8 @@ public sealed class ParseTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -174,7 +181,8 @@ public sealed class ParseTest
                 private const string s = "s";
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -193,7 +201,8 @@ public sealed class ParseTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -212,7 +221,8 @@ public sealed class ParseTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -233,7 +243,8 @@ public sealed class ParseTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -252,7 +263,8 @@ public sealed class ParseTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -271,7 +283,8 @@ public sealed class ParseTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -289,7 +302,8 @@ public sealed class ParseTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -315,7 +329,8 @@ public sealed class ParseTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -341,7 +356,8 @@ public sealed class ParseTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -368,7 +384,8 @@ public sealed class ParseTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -393,57 +410,8 @@ public sealed class ParseTest
                 }
             }
             """
-        ).ConfigureAwait(false);
-    }
-
-    [TestMethod]
-    public async Task TestInt_Diagnostic10()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
-            """
-            class Program
-            {
-                public int Method()
-                {
-                    return {|CS0029:{|JJ2001:"1"|}|};
-                }
-            }
-            """,
-            fixedSource: """
-            class Program
-            {
-                public int Method()
-                {
-                    return int.TryParse("1", out var value) ? value : 0;
-                }
-            }
-            """
-        ).ConfigureAwait(false);
-    }
-
-    [TestMethod]
-    public async Task TestInt_Diagnostic11()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
-            """
-            class Program
-            {
-                public int? Method()
-                {
-                    return {|CS0029:{|JJ2001:"1"|}|};
-                }
-            }
-            """,
-            fixedSource: """
-            class Program
-            {
-                public int? Method()
-                {
-                    return int.TryParse("1", out var value) ? value : null;
-                }
-            }
-            """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -468,7 +436,60 @@ public sealed class ParseTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task TestInt_Diagnostic10()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            class Program
+            {
+                public int Method()
+                {
+                    return {|CS0029:{|JJ2001:"1"|}|};
+                }
+            }
+            """,
+            fixedSource: """
+            class Program
+            {
+                public int Method()
+                {
+                    return int.TryParse("1", out var value) ? value : 0;
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task TestInt_Diagnostic11()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            class Program
+            {
+                public int? Method()
+                {
+                    return {|CS0029:{|JJ2001:"1"|}|};
+                }
+            }
+            """,
+            fixedSource: """
+            class Program
+            {
+                public int? Method()
+                {
+                    return int.TryParse("1", out var value) ? value : null;
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -495,7 +516,8 @@ public sealed class ParseTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -522,6 +544,7 @@ public sealed class ParseTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 }

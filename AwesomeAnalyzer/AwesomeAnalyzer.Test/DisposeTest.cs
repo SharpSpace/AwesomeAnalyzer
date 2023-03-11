@@ -11,7 +11,7 @@ public sealed class DisposeTest
     public async Task Test_Diagnostic1()
     {
         await VerifyCS.VerifyCodeFixAsync(
-                """
+            """
             using System.IO;
 
             namespace MyNamespace
@@ -25,10 +25,9 @@ public sealed class DisposeTest
                 }
             }
             """,
-                fixedSource:
-                """
+            """
             using System.IO;
-            
+
             namespace MyNamespace
             {
                 public sealed class Program
@@ -40,112 +39,88 @@ public sealed class DisposeTest
                 }
             }
             """
-            )
-            .ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
-    public async Task Test_Diagnostic2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
-                LanguageVersion.CSharp8,
-                """
-            using System.IO;
+    public async Task Test_Diagnostic2() =>
+    await VerifyCS.VerifyCodeFixAsync(
+        LanguageVersion.CSharp8,
+        """
+        using System.IO;
 
-            namespace MyNamespace
+        namespace MyNamespace
+        {
+            public sealed class Program
             {
-                public sealed class Program
+                private void A()
                 {
-                    private void A()
+                    [|var reader = new StreamReader("")|];
+                }
+            }
+        }
+        """,
+        """
+        using System.IO;
+
+        namespace MyNamespace
+        {
+            public sealed class Program
+            {
+                private void A()
+                {
+                    using (var reader = new StreamReader(""))
                     {
-                        [|var reader = new StreamReader("")|];
                     }
                 }
             }
-            """,
-                fixedSource: """
-            using System.IO;
-
-            namespace MyNamespace
-            {
-                public sealed class Program
-                {
-                    private void A()
-                    {
-                        using (var reader = new StreamReader(""))
-                        {
-                        }
-                    }
-                }
-            }
-            """
-            )
-            .ConfigureAwait(false);
-    }
+        }
+        """
+    )
+    .ConfigureAwait(false);
 
     [TestMethod]
     public async Task Test_Diagnostic3()
     {
         await VerifyCS.VerifyCodeFixAsync(
-                LanguageVersion.CSharp8,
-                """
-                using System.IO;
+            LanguageVersion.CSharp8,
+            """
+            using System.IO;
 
-                namespace MyNamespace
+            namespace MyNamespace
+            {
+                public sealed class Program
                 {
-                    public sealed class Program
+                    private void A()
                     {
-                        private void A()
+                        var b = string.Empty;
+                        [|var reader = new StreamReader("")|];
+                        var a = string.Empty;
+
+                        var c = string.Empty;
+                    }
+                }
+            }
+            """,
+            fixedSource: """
+            using System.IO;
+
+            namespace MyNamespace
+            {
+                public sealed class Program
+                {
+                    private void A()
+                    {
+                        var b = string.Empty;
+                        using (var reader = new StreamReader(""))
                         {
-                            var b = string.Empty;
-                            [|var reader = new StreamReader("")|];
                             var a = string.Empty;
 
                             var c = string.Empty;
                         }
                     }
                 }
-                """,
-                fixedSource: """
-                using System.IO;
-
-                namespace MyNamespace
-                {
-                    public sealed class Program
-                    {
-                        private void A()
-                        {
-                            var b = string.Empty;
-                            using (var reader = new StreamReader(""))
-                            {
-                                var a = string.Empty;
-
-                                var c = string.Empty;
-                            }
-                        }
-                    }
-                }
-                """
-            )
-            .ConfigureAwait(false);
-    }
-
-    [TestMethod]
-    public async Task Test_NoDiagnostic1()
-    {
-        await VerifyCS.VerifyAnalyzerAsync(
-            """
-            using System.IO;
-
-            namespace MyNamespace
-            {
-                public sealed class Program
-                {
-                    private void A()
-                    {
-                        using var reader = new StreamReader("");
-                    }
-                }
             }
             """
         )
@@ -153,25 +128,43 @@ public sealed class DisposeTest
     }
 
     [TestMethod]
-    public async Task Test_NoDiagnostic2()
-    {
-        await VerifyCS.VerifyAnalyzerAsync(
-            """
-            using System.IO;
+    public async Task Test_NoDiagnostic1() =>
+    await VerifyCS.VerifyAnalyzerAsync(
+        """
+        using System.IO;
 
-            namespace MyNamespace
+        namespace MyNamespace
+        {
+            public sealed class Program
             {
-                public sealed class Program
+                private void A()
                 {
-                    private void A()
-                    {
-                        var reader = new StreamReader("");
-                        reader.Dispose();
-                    }
+                    using var reader = new StreamReader("");
                 }
             }
-            """
-        )
-        .ConfigureAwait(false);
-    }
+        }
+        """
+    )
+    .ConfigureAwait(false);
+
+    [TestMethod]
+    public async Task Test_NoDiagnostic2() =>
+    await VerifyCS.VerifyAnalyzerAsync(
+        """
+        using System.IO;
+
+        namespace MyNamespace
+        {
+            public sealed class Program
+            {
+                private void A()
+                {
+                    var reader = new StreamReader("");
+                    reader.Dispose();
+                }
+            }
+        }
+        """
+    )
+    .ConfigureAwait(false);
 }

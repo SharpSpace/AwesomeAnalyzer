@@ -12,8 +12,8 @@ namespace AwesomeAnalyzer.Analyzers
         private const string TextTask = "Task";
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.AddAwaitRule0101,
-            DiagnosticDescriptors.AddAsyncRule0102
+            DiagnosticDescriptors.Rule0101AddAwait,
+            DiagnosticDescriptors.Rule0102AddAsync
         );
 
         public override void Initialize(AnalysisContext context)
@@ -26,6 +26,11 @@ namespace AwesomeAnalyzer.Analyzers
 
         private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
+            if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0101AddAwait.Id))
+            {
+                return;
+            }
+
             if (!(context.Node is InvocationExpressionSyntax invocationExpressionSyntax)) return;
 
             if (invocationExpressionSyntax.HasParent<AwaitExpressionSyntax>() != null) return;
@@ -47,11 +52,13 @@ namespace AwesomeAnalyzer.Analyzers
 
             if (invocationExpressionSyntax.Parent is AssignmentExpressionSyntax) return;
 
-            context.ReportDiagnostic(Diagnostic.Create(
-                DiagnosticDescriptors.AddAwaitRule0101,
-                invocationExpressionSyntax.Expression.GetLocation(),
-                messageArgs: invocationExpressionSyntax.Expression.ToString()
-            ));
+            context.ReportDiagnostic(
+                Diagnostic.Create(
+                    DiagnosticDescriptors.Rule0101AddAwait,
+                    invocationExpressionSyntax.Expression.GetLocation(),
+                    messageArgs: invocationExpressionSyntax.Expression.ToString()
+                )
+            );
         }
     }
 }

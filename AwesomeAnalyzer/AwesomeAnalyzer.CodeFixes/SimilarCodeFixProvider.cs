@@ -9,14 +9,15 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using Document = Microsoft.CodeAnalysis.Document;
 
 namespace AwesomeAnalyzer
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider)), Shared]
-    public class SimilarCodeFixProvider : CodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider))]
+    [Shared]
+    public sealed class SimilarCodeFixProvider : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticDescriptors.SimilarRule0008.Id);
+        public override ImmutableArray<string> FixableDiagnosticIds =>
+        ImmutableArray.Create(DiagnosticDescriptors.Rule0008Similar.Id);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -42,10 +43,10 @@ namespace AwesomeAnalyzer
             if (semanticModel == null) return context.Document;
 
             var declaration = root.FindToken(diagnostic.Location.SourceSpan.Start)
-                .Parent
-                ?.AncestorsAndSelf()
-                ?.OfType<SyntaxNode>()
-                .FirstOrDefault();
+            .Parent
+            ?.AncestorsAndSelf()
+            ?.OfType<SyntaxNode>()
+            .FirstOrDefault();
 
             if (declaration == null) return context.Document;
 
@@ -77,7 +78,8 @@ namespace AwesomeAnalyzer
                 newCode,
                 declaration,
                 codeIndent
-            ).ConfigureAwait(false);
+            )
+            .ConfigureAwait(false);
             return context.Document.WithText(sourceText);
         }
 
@@ -94,12 +96,15 @@ namespace AwesomeAnalyzer
         {
             var sourceText = await context.Document.GetTextAsync().ConfigureAwait(false);
             var callMethod = $"{methodName.ValueText}({string.Join(", ", variables.Select(x => x.Name))});";
-            sourceText = sourceText.Replace(
+
+            sourceText = diagnostic.AdditionalLocations.Aggregate(
+                sourceText.Replace(
                     parentClass.FullSpan,
                     newCode ?? string.Empty
-                )
-                .Replace(diagnostic.AdditionalLocations[0].SourceSpan, callMethod)
-                .Replace(declaration.FullSpan, codeIndent.ToFullString() + callMethod);
+                ),
+                (current, location) => current.Replace(location.SourceSpan, callMethod)
+            )
+            .Replace(declaration.FullSpan, $"{codeIndent.ToFullString()}{callMethod}");
 
             return sourceText;
         }
@@ -115,52 +120,58 @@ namespace AwesomeAnalyzer
             var methodIndent = parentMethod.GetLeadingTrivia();
             return parentClass.AddMembers(
                 SyntaxFactory.MethodDeclaration(
-                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)
-                            .WithTrailingTrivia(SyntaxFactory.Space)
-                        ),
-                        methodName
+                    SyntaxFactory.PredefinedType(
+                        SyntaxFactory.Token(SyntaxKind.VoidKeyword)
+                        .WithTrailingTrivia(SyntaxFactory.Space)
+                    ),
+                    methodName
+                )
+                .WithModifiers(
+                    parentMethod.Modifiers.Any()
+                    ? parentMethod.Modifiers
+                    : SyntaxFactory.TokenList(
+                        SyntaxFactory.Token(SyntaxKind.PrivateKeyword).WithTrailingTrivia(SyntaxFactory.Space)
                     )
-                    .WithModifiers(parentMethod.Modifiers.Any()
-                        ? parentMethod.Modifiers
-                        : SyntaxFactory.TokenList(
-                            SyntaxFactory.Token(SyntaxKind.PrivateKeyword).WithTrailingTrivia(SyntaxFactory.Space)
-                        )
-                    )
-                    .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(
-                                variables.Select(x =>
-                                    SyntaxFactory.Parameter(
-                                            SyntaxFactory.Identifier(x.Name)
+                )
+                .WithParameterList(
+                    SyntaxFactory.ParameterList(
+                        SyntaxFactory.SeparatedList(
+                            variables.Select(
+                                x =>
+                                SyntaxFactory.Parameter(
+                                    SyntaxFactory.Identifier(x.Name)
+                                )
+                                .WithType(
+                                    SyntaxFactory
+                                    .ParseTypeName(
+                                        ((x as ILocalSymbol)?.Type ?? (x as IParameterSymbol)?.Type)
+                                        .ToDisplayString(
+                                            SymbolDisplayFormat.MinimallyQualifiedFormat
                                         )
-                                        .WithType(
-                                            SyntaxFactory
-                                                .ParseTypeName(
-                                                    ((x as ILocalSymbol)?.Type ?? (x as IParameterSymbol)?.Type)
-                                                    .ToDisplayString(
-                                                        SymbolDisplayFormat.MinimallyQualifiedFormat
-                                                    )
-                                                )
-                                                .WithTrailingTrivia(SyntaxFactory.Space)
-                                        )
+                                    )
+                                    .WithTrailingTrivia(SyntaxFactory.Space)
                                 )
                             )
                         )
                     )
-                    .WithBody(
-                        SyntaxFactory.Block(
-                                SyntaxFactory
-                                    .ParseStatement(declaration.ToFullString())
-                                    .WithLeadingTrivia(codeIndent.Insert(0, SyntaxFactory.CarriageReturnLineFeed))
-                            )
-                            .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithLeadingTrivia(methodIndent)
-                            )
-                            .WithLeadingTrivia(
-                                methodIndent.Insert(0, SyntaxFactory.CarriageReturnLineFeed)
-                            )
-                            .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed)
+                )
+                .WithBody(
+                    SyntaxFactory.Block(
+                        SyntaxFactory
+                        .ParseStatement(declaration.ToFullString())
+                        .WithLeadingTrivia(codeIndent.Insert(0, SyntaxFactory.CarriageReturnLineFeed))
+                    )
+                    .WithCloseBraceToken(
+                        SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithLeadingTrivia(methodIndent)
                     )
                     .WithLeadingTrivia(
                         methodIndent.Insert(0, SyntaxFactory.CarriageReturnLineFeed)
                     )
+                    .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed)
+                )
+                .WithLeadingTrivia(
+                    methodIndent.Insert(0, SyntaxFactory.CarriageReturnLineFeed)
+                )
             );
         }
 
@@ -174,22 +185,26 @@ namespace AwesomeAnalyzer
         }
 
         private static IEnumerable<ISymbol> GetOuterSymbols(SemanticModel semanticModel, SyntaxNode declaration) =>
-            semanticModel.AnalyzeDataFlow(declaration).ReadOutside
-                .Where(symbol =>
-                    symbol.Kind == SymbolKind.Local ||
-                    symbol.Kind == SymbolKind.Parameter
-                );
+        semanticModel.AnalyzeDataFlow(declaration)
+        .ReadOutside
+        .Where(
+            symbol =>
+            symbol.Kind == SymbolKind.Local ||
+            symbol.Kind == SymbolKind.Parameter
+        );
 
         private static IEnumerable<ISymbol> GetChildSymbols(SyntaxNode declaration, SemanticModel semanticModel) =>
-            declaration.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>()
-                .Select(x => semanticModel.GetSymbolInfo(x).Symbol)
-                .Where(x =>
-                    x != null &&
-                    (
-                        x.Kind == SymbolKind.Local ||
-                        x.Kind == SymbolKind.Parameter
-                    )
-                )
-                .Distinct();
+        declaration.DescendantNodesAndSelf()
+        .OfType<IdentifierNameSyntax>()
+        .Select(x => semanticModel.GetSymbolInfo(x).Symbol)
+        .Where(
+            x =>
+            x != null &&
+            (
+                x.Kind == SymbolKind.Local ||
+                x.Kind == SymbolKind.Parameter
+            )
+        )
+        .Distinct();
     }
 }

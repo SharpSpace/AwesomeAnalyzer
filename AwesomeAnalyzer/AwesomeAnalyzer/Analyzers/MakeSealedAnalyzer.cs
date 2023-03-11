@@ -11,7 +11,8 @@ namespace AwesomeAnalyzer.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class MakeSealedAnalyzer : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.MakeSealedRule0001);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+        ImmutableArray.Create(DiagnosticDescriptors.Rule0001MakeSealed);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -23,7 +24,12 @@ namespace AwesomeAnalyzer.Analyzers
 
         private static async Task AnalyzeNodeAsync(SyntaxNodeAnalysisContext context)
         {
-            var classVirtualizationVisitor = new ClassVirtualizationVisitor();
+            if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0001MakeSealed.Id))
+            {
+                return;
+            }
+
+            var classVirtualizationVisitor = new ClassVirtualizationVisitor(context.CancellationToken);
             classVirtualizationVisitor.SetCompilation(context.Compilation);
             foreach (var syntaxTree in context.Compilation.SyntaxTrees)
             {
@@ -38,18 +44,23 @@ namespace AwesomeAnalyzer.Analyzers
             if (classDeclarationSyntax.Modifiers.Any(SyntaxKind.AbstractKeyword)) return;
 
             var symbolInfo = context.Compilation
-                .GetSemanticModel(classDeclarationSyntax.SyntaxTree)
-                .GetDeclaredSymbol(classDeclarationSyntax);
-            var identifier = $"{symbolInfo?.ContainingNamespace.ToDisplayString()}.{classDeclarationSyntax.Identifier.ValueText}".Trim('.');
+            .GetSemanticModel(classDeclarationSyntax.SyntaxTree)
+            .GetDeclaredSymbol(classDeclarationSyntax);
+            var identifier =
+            $"{symbolInfo?.ContainingNamespace.ToDisplayString()}.{classDeclarationSyntax.Identifier.ValueText}"
+            .Trim('.');
 
-            if (classVirtualizationVisitor.Classes.Any(x => x.BaseClasses.Any(y => y.IdentifierName == identifier))) return;
+            if (classVirtualizationVisitor.Classes.Any(x => x.BaseClasses.Any(y => y.IdentifierName == identifier)))
+                return;
             if (classDeclarationSyntax.GetMembers(context.Compilation).Any(x => x.IsVirtual)) return;
 
-            context.ReportDiagnostic(Diagnostic.Create(
-                DiagnosticDescriptors.MakeSealedRule0001,
-                classDeclarationSyntax.Identifier.GetLocation(),
-                classDeclarationSyntax.Identifier.ValueText
-            ));
+            context.ReportDiagnostic(
+                Diagnostic.Create(
+                    DiagnosticDescriptors.Rule0001MakeSealed,
+                    classDeclarationSyntax.Identifier.GetLocation(),
+                    classDeclarationSyntax.Identifier.ValueText
+                )
+            );
         }
     }
 }

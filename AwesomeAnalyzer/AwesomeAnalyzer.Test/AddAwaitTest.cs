@@ -37,7 +37,8 @@ public sealed class AddAwaitTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -57,7 +58,8 @@ public sealed class AddAwaitTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -83,7 +85,8 @@ public sealed class AddAwaitTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -101,7 +104,8 @@ public sealed class AddAwaitTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -119,7 +123,8 @@ public sealed class AddAwaitTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -140,7 +145,8 @@ public sealed class AddAwaitTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -161,6 +167,7 @@ public sealed class AddAwaitTest
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 }

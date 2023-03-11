@@ -30,16 +30,16 @@ public sealed class SortTest
     {
         await VerifyCS.VerifyAnalyzerAsync(
             """
-                class Program
+            class Program
+            {
+                public int Method()
                 {
-                    public int Method()
-                    {
-                        return 0;
-                    }
+                    return 0;
                 }
-                """
-            )
-            .ConfigureAwait(false);
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -115,7 +115,7 @@ public sealed class SortTest
     {
         await VerifyCS.VerifyAnalyzerAsync(
             """
-            public enum MyEnum 
+            public enum MyEnum
             {
                 None
             }
@@ -148,17 +148,17 @@ public sealed class SortTest
                 interface IAaaProgram
                 {
                     int D { get; }
-            
+
                     int E { get; }
                 }
 
                 private readonly struct BbbProgram
                 {
                     public int F { get; }
-            
+
                     public int G { get; }
                 }
-                
+
                 public int A1 { get; set; }
 
                 public int A9 { get; set; }
@@ -182,27 +182,27 @@ public sealed class SortTest
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
-                sealed class Program
-                {
-                    void {|JJ1003:C|}() { }
+            sealed class Program
+            {
+                void {|JJ1003:C|}() { }
 
-                    void B() { }
+                void B() { }
 
-                    void {|JJ1003:A|}() { }
-                }
-                """,
+                void {|JJ1003:A|}() { }
+            }
+            """,
             """
-                sealed class Program
-                {
-                    void A() { }
+            sealed class Program
+            {
+                void A() { }
 
-                    void B() { }
+                void B() { }
 
-                    void C() { }
-                }
-                """
-            )
-            .ConfigureAwait(false);
+                void C() { }
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -290,23 +290,23 @@ public sealed class SortTest
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
-                sealed class Program
-                {
-                    private string {|JJ1001:_b|};
+            sealed class Program
+            {
+                private string {|JJ1001:_b|};
 
-                    private string {|JJ1001:_a|};
-                }
-                """,
+                private string {|JJ1001:_a|};
+            }
+            """,
             """
-                sealed class Program
-                {
-                    private string _a;
+            sealed class Program
+            {
+                private string _a;
 
-                    private string _b;
-                }
-                """
-            )
-            .ConfigureAwait(false);
+                private string _b;
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -314,37 +314,37 @@ public sealed class SortTest
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
-                sealed class Program
+            sealed class Program
+            {
+                void {|JJ1003:C|}()
                 {
-                    void {|JJ1003:C|}()
-                    {
-                    }
-
-                    void B()
-                    {
-                        var a = "a";
-                    }
-
-                    void {|JJ1003:A|}() { }
                 }
-                """,
+
+                void B()
+                {
+                    var a = "a";
+                }
+
+                void {|JJ1003:A|}() { }
+            }
+            """,
             """
-                sealed class Program
+            sealed class Program
+            {
+                void A() { }
+
+                void B()
                 {
-                    void A() { }
-
-                    void B()
-                    {
-                        var a = "a";
-                    }
-
-                    void C()
-                    {
-                    }
+                    var a = "a";
                 }
-                """
-            )
-            .ConfigureAwait(false);
+
+                void C()
+                {
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -352,37 +352,37 @@ public sealed class SortTest
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
-                sealed class Program
-                {
-                    private string {|JJ1001:_b|};
+            sealed class Program
+            {
+                private string {|JJ1001:_b|};
 
-                    private string {|JJ1001:_a|};
-                }
+                private string {|JJ1001:_a|};
+            }
 
-                sealed class Program2
-                {
-                    private string {|JJ1001:_b|};
+            sealed class Program2
+            {
+                private string {|JJ1001:_b|};
 
-                    private string {|JJ1001:_a|};
-                }
-                """,
+                private string {|JJ1001:_a|};
+            }
+            """,
             """
-                sealed class Program
-                {
-                    private string _a;
+            sealed class Program
+            {
+                private string _a;
 
-                    private string _b;
-                }
+                private string _b;
+            }
 
-                sealed class Program2
-                {
-                    private string _a;
+            sealed class Program2
+            {
+                private string _a;
 
-                    private string _b;
-                }
-                """
-            )
-            .ConfigureAwait(false);
+                private string _b;
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -390,23 +390,23 @@ public sealed class SortTest
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
-                class Program
-                {
-                    private readonly string {|JJ1002:_a|};
+            class Program
+            {
+                private readonly string {|JJ1002:_a|};
 
-                    private static string {|JJ1002:_b|};
-                }
-                """,
+                private static string {|JJ1002:_b|};
+            }
+            """,
             """
-                class Program
-                {
-                    private static string _b;
+            class Program
+            {
+                private static string _b;
 
-                    private readonly string _a;
-                }
-                """
-            )
-            .ConfigureAwait(false);
+                private readonly string _a;
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -414,131 +414,131 @@ public sealed class SortTest
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
-                using System;
-                using System.Diagnostics;
-                using System.Threading.Tasks;
+            using System;
+            using System.Diagnostics;
+            using System.Threading.Tasks;
 
-                namespace DevTriggerServer;
+            namespace DevTriggerServer;
 
-                public class Program
+            public class Program
+            {
+                private static void Main(string[] args)
                 {
-                    private static void Main(string[] args)
-                    {
-                    }
+                }
+            }
+
+            public class Hub
+            {
+                private readonly string {|JJ1002:_mediator|};
+
+                private static string {|JJ1002:_z|};
+
+                public Hub()
+                {
+                    Send();
                 }
 
-                public class Hub
+                private async Task Send()
                 {
-                    private readonly string {|JJ1002:_mediator|};
-
-                    private static string {|JJ1002:_z|};
-
-                    public Hub()
-                    {
-                        Send();
-                    }
-
-                    private async Task Send()
-                    {
-                    }
                 }
+            }
 
-                public class Ping
+            public class Ping
+            {
+                public string {|JJ1006:Message|} { get; set; }
+
+                public string B { get; set; }
+
+                public string {|JJ1006:A|} { get; set; }
+            }
+
+            public class Pong
+            {
+                public DateTime DateTime { get; set; }
+            }
+
+            public class PingHandler
+            {
+                public Task<Pong> Handle(Ping request)
                 {
-                    public string {|JJ1006:Message|} { get; set; }
-
-                    public string B { get; set; }
-
-                    public string {|JJ1006:A|} { get; set; }
+                    //await DoPong(); // Whatever DoPong does
+                    return Task.FromResult(new Pong { DateTime = DateTime.MaxValue });
                 }
+            }
 
-                public class Pong
-                {
-                    public DateTime DateTime { get; set; }
-                }
-
-                public class PingHandler
-                {
-                    public Task<Pong> Handle(Ping request)
-                    {
-                        //await DoPong(); // Whatever DoPong does
-                        return Task.FromResult(new Pong { DateTime = DateTime.MaxValue });
-                    }
-                }
-
-                //public class Pong1 : INotificationHandler<Ping>
-                //{
-                //    public Task Handle(Ping notification)
-                //    {
-                //        Debug.WriteLine("Pong 1");
-                //        return Task.CompletedTask;
-                //    }
-                //}
-                """,
+            //public class Pong1 : INotificationHandler<Ping>
+            //{
+            //    public Task Handle(Ping notification)
+            //    {
+            //        Debug.WriteLine("Pong 1");
+            //        return Task.CompletedTask;
+            //    }
+            //}
+            """,
             """
-                using System;
-                using System.Diagnostics;
-                using System.Threading.Tasks;
+            using System;
+            using System.Diagnostics;
+            using System.Threading.Tasks;
 
-                namespace DevTriggerServer;
+            namespace DevTriggerServer;
 
-                public class Program
+            public class Program
+            {
+                private static void Main(string[] args)
                 {
-                    private static void Main(string[] args)
-                    {
-                    }
+                }
+            }
+
+            public class Hub
+            {
+                private static string _z;
+
+                private readonly string _mediator;
+
+                public Hub()
+                {
+                    Send();
                 }
 
-                public class Hub
+                private async Task Send()
                 {
-                    private static string _z;
-
-                    private readonly string _mediator;
-
-                    public Hub()
-                    {
-                        Send();
-                    }
-
-                    private async Task Send()
-                    {
-                    }
                 }
+            }
 
-                public class Ping
+            public class Ping
+            {
+                public string A { get; set; }
+
+                public string B { get; set; }
+
+                public string Message { get; set; }
+            }
+
+            public class Pong
+            {
+                public DateTime DateTime { get; set; }
+            }
+
+            public class PingHandler
+            {
+                public Task<Pong> Handle(Ping request)
                 {
-                    public string A { get; set; }
-
-                    public string B { get; set; }
-
-                    public string Message { get; set; }
+                    //await DoPong(); // Whatever DoPong does
+                    return Task.FromResult(new Pong { DateTime = DateTime.MaxValue });
                 }
+            }
 
-                public class Pong
-                {
-                    public DateTime DateTime { get; set; }
-                }
-
-                public class PingHandler
-                {
-                    public Task<Pong> Handle(Ping request)
-                    {
-                        //await DoPong(); // Whatever DoPong does
-                        return Task.FromResult(new Pong { DateTime = DateTime.MaxValue });
-                    }
-                }
-
-                //public class Pong1 : INotificationHandler<Ping>
-                //{
-                //    public Task Handle(Ping notification)
-                //    {
-                //        Debug.WriteLine("Pong 1");
-                //        return Task.CompletedTask;
-                //    }
-                //}
-                """
-            )
-            .ConfigureAwait(false);
+            //public class Pong1 : INotificationHandler<Ping>
+            //{
+            //    public Task Handle(Ping notification)
+            //    {
+            //        Debug.WriteLine("Pong 1");
+            //        return Task.CompletedTask;
+            //    }
+            //}
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -569,7 +569,7 @@ public sealed class SortTest
 
                     public string {|JJ1006:OriginalPlaceholderName|} { get; set; }
                 }
-            
+
                 /// <summary>
                 /// Footer report part base
                 /// </summary>
@@ -595,7 +595,7 @@ public sealed class SortTest
                 {
                     string PlaceholderName { get; set; }
                 }
-            
+
                 /// <summary>
                 /// Header report part base
                 /// </summary>
@@ -605,14 +605,14 @@ public sealed class SortTest
                     {
                         OriginalPlaceholderName = null;
                     }
-            
+
                     public string OriginalPlaceholderName { get; set; }
 
                     public string PlaceholderName { get; set; }
 
                     public string Title { get; set; }
                 }
-            
+
                 /// <summary>
                 /// Footer report part base
                 /// </summary>
@@ -622,7 +622,7 @@ public sealed class SortTest
                     {
                         OriginalPlaceholderName = null;
                     }
-            
+
                     public string OriginalPlaceholderName { get; set; }
 
                     public string PlaceholderName { get; set; }
@@ -676,7 +676,7 @@ public sealed class SortTest
                 {
                     Object = data;
                 }
-            
+
                 public HttpResponseMessageIntegration()
                 {
                 }
@@ -687,11 +687,11 @@ public sealed class SortTest
             public class HttpResponseMessageIntegration : HttpResponseMessage
             {
                 public string ContentType { get; set; }
-            
+
                 public string ExtraInfoJson { get; set; }
-            
+
                 public string Method { get; set; }
-            
+
                 public string RequestContent { get; set; }
 
                 public string RequestUri { get; set; }
@@ -702,27 +702,79 @@ public sealed class SortTest
     }
 
     [TestMethod]
+    public async Task TestSort_Diagnostic10()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            public class Program
+            {
+                public string {|JJ1007:Object|} { get; set; }
+
+                public {|JJ1005:Program|}()
+                {
+                }
+            }
+            """,
+            """
+            public class Program
+            {
+                public Program()
+                {
+                }
+
+                public string Object { get; set; }
+            }
+            """
+        )
+        .ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task TestSort_Diagnostic11()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            public interface IProgram
+            {
+                public string {|JJ1006:Z|} { get; set; }
+
+                public string {|JJ1006:A|} { get; set; }
+            }
+            """,
+            """
+            public interface IProgram
+            {
+                public string A { get; set; }
+            
+                public string Z { get; set; }
+            }
+            """
+            )
+            .ConfigureAwait(false);
+    }
+
+    [TestMethod]
     public async Task TestSortMember_Diagnostic1()
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
-                sealed class Program
-                {
-                    private const string {|JJ1002:_d|} = "Const";
+            sealed class Program
+            {
+                private const string {|JJ1002:_d|} = "Const";
 
-                    public const string {|JJ1002:_e|} = "Const";
-                }
-                """,
+                public const string {|JJ1002:_e|} = "Const";
+            }
+            """,
             """
-                sealed class Program
-                {
-                    public const string _e = "Const";
+            sealed class Program
+            {
+                public const string _e = "Const";
 
-                    private const string _d = "Const";
-                }
-                """
-            )
-            .ConfigureAwait(false);
+                private const string _d = "Const";
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -730,43 +782,43 @@ public sealed class SortTest
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
-                sealed class Program
-                {
-                    public string {|JJ1002:_c|};
+            sealed class Program
+            {
+                public string {|JJ1002:_c|};
 
-                    private const string {|JJ1002:_d|} = "Const";
+                private const string {|JJ1002:_d|} = "Const";
 
-                    public const string {|JJ1002:_e|} = "Const";
+                public const string {|JJ1002:_e|} = "Const";
 
-                    private readonly string {|JJ1002:_b|};
+                private readonly string {|JJ1002:_b|};
 
-                    public readonly string {|JJ1002:_f|};
+                public readonly string {|JJ1002:_f|};
 
-                    public static string {|JJ1002:_g|};
+                public static string {|JJ1002:_g|};
 
-                    private string _a;
-                }
-                """,
+                private string _a;
+            }
+            """,
             """
-                sealed class Program
-                {
-                    public const string _e = "Const";
+            sealed class Program
+            {
+                public const string _e = "Const";
 
-                    public static string _g;
+                public static string _g;
 
-                    public readonly string _f;
+                public readonly string _f;
 
-                    public string _c;
+                public string _c;
 
-                    private const string _d = "Const";
+                private const string _d = "Const";
 
-                    private readonly string _b;
+                private readonly string _b;
 
-                    private string _a;
-                }
-                """
-            )
-            .ConfigureAwait(false);
+                private string _a;
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -774,29 +826,29 @@ public sealed class SortTest
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
-                namespace AwesomeAnalyzer.Test
+            namespace AwesomeAnalyzer.Test
+            {
+                sealed class Program
                 {
-                    sealed class Program
-                    {
-                        private const string {|JJ1002:_d|} = "Const";
+                    private const string {|JJ1002:_d|} = "Const";
 
-                        public const string {|JJ1002:_e|} = "Const";
-                    }
+                    public const string {|JJ1002:_e|} = "Const";
                 }
-                """,
+            }
+            """,
             """
-                namespace AwesomeAnalyzer.Test
+            namespace AwesomeAnalyzer.Test
+            {
+                sealed class Program
                 {
-                    sealed class Program
-                    {
-                        public const string _e = "Const";
+                    public const string _e = "Const";
 
-                        private const string _d = "Const";
-                    }
+                    private const string _d = "Const";
                 }
-                """
-            )
-            .ConfigureAwait(false);
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -804,56 +856,32 @@ public sealed class SortTest
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
-                namespace AwesomeAnalyzer.Test
+            namespace AwesomeAnalyzer.Test
+            {
+                sealed class Program
                 {
-                    sealed class Program
-                    {
-                        public string {|JJ1006:C|} { get; set; }
+                    public string {|JJ1006:C|} { get; set; }
 
-                        public int B { get; set; }
+                    public int B { get; set; }
 
-                        public bool {|JJ1006:A|} { get; set; }
-                    }
+                    public bool {|JJ1006:A|} { get; set; }
                 }
-                """,
+            }
+            """,
             """
-                namespace AwesomeAnalyzer.Test
+            namespace AwesomeAnalyzer.Test
+            {
+                sealed class Program
                 {
-                    sealed class Program
-                    {
-                        public bool A { get; set; }
+                    public bool A { get; set; }
 
-                        public int B { get; set; }
+                    public int B { get; set; }
 
-                        public string C { get; set; }
-                    }
+                    public string C { get; set; }
                 }
-                """
-            )
-            .ConfigureAwait(false);
+            }
+            """
+        )
+        .ConfigureAwait(false);
     }
 }
-
-//public class HttpResponseMessage { }
-//public class HttpResponseMessageIntegration<TBody> : HttpResponseMessageIntegration {
-//    public HttpResponseMessageIntegration() {
-//    }
-
-//    public HttpResponseMessageIntegration(TBody data) {
-//        Object = data;
-//    }
-
-//    public TBody Object { get; init; }
-//}
-
-//public class HttpResponseMessageIntegration : HttpResponseMessage {
-//    public string Method { get; set; }
-
-//    public string ContentType { get; set; }
-
-//    public string RequestUri { get; set; }
-
-//    public string RequestContent { get; set; }
-
-//    public string ExtraInfoJson { get; set; }
-//}

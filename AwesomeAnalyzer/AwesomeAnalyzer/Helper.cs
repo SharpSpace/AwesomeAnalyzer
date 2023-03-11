@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace AwesomeAnalyzer
 {
@@ -54,7 +55,8 @@ namespace AwesomeAnalyzer
                 s.Append(item.Name.ToString());
             }
 
-            if (baseTypeSyntax.Parent?.Parent?.Parent is FileScopedNamespaceDeclarationSyntax fileScopedNamespaceDeclarationSyntax)
+            if (baseTypeSyntax.Parent?.Parent?.Parent is FileScopedNamespaceDeclarationSyntax
+                fileScopedNamespaceDeclarationSyntax)
             {
                 s.Append(fileScopedNamespaceDeclarationSyntax.Name.ToString());
             }
@@ -62,11 +64,13 @@ namespace AwesomeAnalyzer
             return s.ToString();
         }
 
-        public static IEnumerable<ISymbol> GetMembers(this ClassDeclarationSyntax classDeclaration, Compilation compilation)
+        public static IEnumerable<ISymbol> GetMembers(
+            this ClassDeclarationSyntax classDeclaration,
+            Compilation compilation)
         {
             var declaredSymbol = compilation
-                .GetSemanticModel(classDeclaration.SyntaxTree)
-                .GetDeclaredSymbol(classDeclaration);
+            .GetSemanticModel(classDeclaration.SyntaxTree)
+            .GetDeclaredSymbol(classDeclaration);
 
             foreach (var member in ((ITypeSymbol)declaredSymbol).GetMembers())
             {
@@ -104,6 +108,36 @@ namespace AwesomeAnalyzer
             }
 
             return method is T node ? node : default;
+        }
+
+        public static bool IsDisabledEditorConfig(this SyntaxNodeAnalysisContext context, string rule)
+        {
+            var config = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.SemanticModel.SyntaxTree);
+            if (config.TryGetValue($"dotnet_diagnostic.{rule}.enabled", out var enabled))
+            {
+                if (enabled.Equals("true", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+
+            if (config.TryGetValue($"dotnet_diagnostic.{rule}.severity", out var severity))
+            {
+                if (severity.Equals("none", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

@@ -16,7 +16,7 @@ namespace AwesomeAnalyzer.Analyzers
         private const string TextValueTask = "ValueTask";
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.RenameAsyncRule0100
+            DiagnosticDescriptors.Rule0100RenameAsync
         );
 
         public override void Initialize(AnalysisContext context)
@@ -29,6 +29,11 @@ namespace AwesomeAnalyzer.Analyzers
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
+            if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0100RenameAsync.Id))
+            {
+                return;
+            }
+
             var methodDeclarationSyntax = (MethodDeclarationSyntax)context.Node;
             if (!methodDeclarationSyntax.Identifier.ValueText.EndsWith(TextAsync)) return;
             if ((
@@ -37,20 +42,22 @@ namespace AwesomeAnalyzer.Analyzers
                         genericNameSyntax.Identifier.ValueText == TextTask ||
                         genericNameSyntax.Identifier.ValueText == TextValueTask
                     )
-                    ) ||
+                ) ||
                 methodDeclarationSyntax.Modifiers.Any(x => x.ValueText == Textasync)
-            ) return;
+               ) return;
 
             if (methodDeclarationSyntax.ReturnType is IdentifierNameSyntax)
             {
                 return;
             }
 
-            context.ReportDiagnostic(Diagnostic.Create(
-                DiagnosticDescriptors.RenameAsyncRule0100,
-                methodDeclarationSyntax.Identifier.GetLocation(),
-                methodDeclarationSyntax.Identifier.ValueText
-            ));
+            context.ReportDiagnostic(
+                Diagnostic.Create(
+                    DiagnosticDescriptors.Rule0100RenameAsync,
+                    methodDeclarationSyntax.Identifier.GetLocation(),
+                    methodDeclarationSyntax.Identifier.ValueText
+                )
+            );
         }
     }
 }

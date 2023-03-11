@@ -14,7 +14,7 @@ namespace AwesomeAnalyzer.Analyzers
         private const string TextTask = "Task";
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.AddAsyncRule0102
+            DiagnosticDescriptors.Rule0102AddAsync
         );
 
         public override void Initialize(AnalysisContext context)
@@ -27,6 +27,11 @@ namespace AwesomeAnalyzer.Analyzers
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
+            if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0102AddAsync.Id))
+            {
+                return;
+            }
+
             var invocationExpressionSyntax = context.Node as InvocationExpressionSyntax;
             if (!(invocationExpressionSyntax?.Expression is IdentifierNameSyntax identifierNameSyntax)) return;
 
@@ -39,11 +44,13 @@ namespace AwesomeAnalyzer.Analyzers
             if (typeSymbol.Type == null) return;
             if (typeSymbol.Type.Name != TextTask) return;
 
-            context.ReportDiagnostic(Diagnostic.Create(
-                DiagnosticDescriptors.AddAsyncRule0102,
-                identifierNameSyntax.Identifier.GetLocation(),
-                messageArgs: identifierValueText.ToString()
-            ));
+            context.ReportDiagnostic(
+                Diagnostic.Create(
+                    DiagnosticDescriptors.Rule0102AddAsync,
+                    identifierNameSyntax.Identifier.GetLocation(),
+                    messageArgs: identifierValueText.ToString()
+                )
+            );
         }
     }
 }

@@ -34,7 +34,8 @@ public sealed class DontReturnNullTests
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -64,7 +65,8 @@ public sealed class DontReturnNullTests
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -96,7 +98,8 @@ public sealed class DontReturnNullTests
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -126,7 +129,8 @@ public sealed class DontReturnNullTests
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -156,7 +160,8 @@ public sealed class DontReturnNullTests
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -165,7 +170,7 @@ public sealed class DontReturnNullTests
         await VerifyCS.VerifyAnalyzerAsync(
             """
             using System.Collections.Generic;
-            
+
             sealed class Program
             {
                 public List<string> Method()
@@ -174,7 +179,8 @@ public sealed class DontReturnNullTests
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -183,7 +189,7 @@ public sealed class DontReturnNullTests
         await VerifyCS.VerifyAnalyzerAsync(
             """
             using System.Collections.Generic;
-            
+
             sealed class Program
             {
                 public int? Method()
@@ -192,7 +198,8 @@ public sealed class DontReturnNullTests
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -201,7 +208,7 @@ public sealed class DontReturnNullTests
         await VerifyCS.VerifyAnalyzerAsync(
             """
             using System.Collections.Generic;
-            
+
             sealed class Program
             {
                 public string Method()
@@ -210,7 +217,8 @@ public sealed class DontReturnNullTests
                 }
             }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -219,7 +227,7 @@ public sealed class DontReturnNullTests
         await VerifyCS.VerifyAnalyzerAsync(
             """
             using System.Collections.Generic;
-            
+
             sealed class Program
             {
                 public Item Method()
@@ -230,7 +238,8 @@ public sealed class DontReturnNullTests
 
             sealed class Item { }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -240,7 +249,7 @@ public sealed class DontReturnNullTests
             """
             using System.Collections.Generic;
             using System.Threading.Tasks;
-            
+
             sealed class Program
             {
                 public async Task<Item> Method()
@@ -252,7 +261,8 @@ public sealed class DontReturnNullTests
 
             sealed class Item { }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -262,7 +272,7 @@ public sealed class DontReturnNullTests
             """
             using System.Collections.Generic;
             using System.Threading.Tasks;
-            
+
             sealed class Program
             {
                 public async ValueTask<Item> Method()
@@ -274,6 +284,7 @@ public sealed class DontReturnNullTests
 
             sealed class Item { }
             """
-        ).ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 }

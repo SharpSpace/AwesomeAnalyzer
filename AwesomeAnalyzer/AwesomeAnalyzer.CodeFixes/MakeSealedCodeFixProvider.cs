@@ -9,14 +9,16 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace AwesomeAnalyzer
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider))]
+    [Shared]
     public sealed class MakeSealedCodeFixProvider : CodeFixProvider
     {
         private const string TextSealed = "sealed ";
         private const string TextPartial = "partial ";
         private const string TextClass = "class ";
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticDescriptors.MakeSealedRule0001.Id);
+        public override ImmutableArray<string> FixableDiagnosticIds =>
+        ImmutableArray.Create(DiagnosticDescriptors.Rule0001MakeSealed.Id);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -31,7 +33,9 @@ namespace AwesomeAnalyzer
                         var spanStart = context.Diagnostics.First().Location.SourceSpan.Start - TextClass.Length;
                         if (spanStart > 7)
                         {
-                            var prevStatement = text.GetSubText(TextSpan.FromBounds(spanStart - TextPartial.Length, spanStart));
+                            var prevStatement = text.GetSubText(
+                                TextSpan.FromBounds(spanStart - TextPartial.Length, spanStart)
+                            );
                             if (prevStatement.ToString() == TextPartial)
                             {
                                 spanStart -= TextPartial.Length;

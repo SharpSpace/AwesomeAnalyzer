@@ -1,24 +1,26 @@
 ﻿namespace AwesomeAnalyzer.Test;
 
-public class TestTarget<TAnalyzer, TCodeFix> : CodeFixTest<MSTestVerifier>
-    where TAnalyzer : DiagnosticAnalyzer, new()
-    where TCodeFix : CodeFixProvider, new()
+public sealed class TestTarget<TAnalyzer, TCodeFix> : CodeFixTest<MSTestVerifier>
+where TAnalyzer : DiagnosticAnalyzer, new()
+where TCodeFix : CodeFixProvider, new()
 {
     private readonly LanguageVersion _languageVersion;
 
     public TestTarget(LanguageVersion languageVersion)
     {
         _languageVersion = languageVersion;
-        SolutionTransforms.Add((solution, projectId) =>
-        {
-            var compilationOptions = solution.GetProject(projectId)?.CompilationOptions;
-            compilationOptions = compilationOptions?.WithSpecificDiagnosticOptions(
-                compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings)
-            );
-            solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
+        SolutionTransforms.Add(
+            (solution, projectId) =>
+            {
+                var compilationOptions = solution.GetProject(projectId)?.CompilationOptions;
+                compilationOptions = compilationOptions?.WithSpecificDiagnosticOptions(
+                    compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings)
+                );
+                solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
 
-            return solution;
-        });
+                return solution;
+            }
+        );
     }
 
     public override string Language => LanguageNames.CSharp;

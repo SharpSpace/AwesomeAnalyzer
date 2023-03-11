@@ -1,8 +1,8 @@
 ﻿namespace AwesomeAnalyzer.Test;
 
 public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
-    where TAnalyzer : DiagnosticAnalyzer, new()
-    where TCodeFix : CodeFixProvider, new()
+where TAnalyzer : DiagnosticAnalyzer, new()
+where TCodeFix : CodeFixProvider, new()
 {
     /// <inheritdoc cref="CodeFixVerifier{TAnalyzer, TCodeFix, TTest, TVerifier}.Diagnostic()"/>
     public static DiagnosticResult Diagnostic()

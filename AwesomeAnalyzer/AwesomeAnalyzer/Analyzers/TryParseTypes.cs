@@ -9,16 +9,6 @@
             DefaultValue = defaultValue;
         }
 
-        public string TypeName { get; }
-
-        public T TestValue { get; }
-
-        public T DefaultValue { get; }
-
-        public string TestValueString => $"\"{TestValue.ToString().ToLower()}\"";
-
-        public string DefaultValueString => DefaultValue.ToString().ToLower();
-
         public string Cast
         {
             get
@@ -27,16 +17,30 @@
                 {
                     case "byte":
                         return "(byte)";
+
                     case "sbyte":
                         return "(sbyte)";
+
                     case "short":
                         return "(short)";
+
                     case "ushort":
                         return "(ushort)";
+
                     default:
                         return string.Empty;
                 }
             }
         }
+
+        public T DefaultValue { get; }
+
+        public string DefaultValueString => DefaultValue.ToString().ToLower();
+
+        public T TestValue { get; }
+
+        public string TestValueString => $"\"{TestValue.ToString().ToLower()}\"";
+
+        public string TypeName { get; }
     }
 }

@@ -16,8 +16,8 @@ public sealed class AddAsyncPrefixTest
 
             namespace Test
             {
-                class Program 
-                { 
+                class Program
+                {
                     private async Task B() => await {|JJ0102:C|}();
 
                     private async Task C() => await Task.CompletedTask;
@@ -29,14 +29,16 @@ public sealed class AddAsyncPrefixTest
 
             namespace Test
             {
-                class Program 
-                { 
+                class Program
+                {
                     private async Task B() => await CAsync();
 
                     private async Task CAsync() => await Task.CompletedTask;
                 }
             }
-            """).ConfigureAwait(false);
+            """
+            )
+            .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -49,8 +51,8 @@ public sealed class AddAsyncPrefixTest
 
             namespace Test
             {
-                class Program 
-                { 
+                class Program
+                {
                     private async Task C(Func<Task<string>> func) => await {|JJ0102:func|}();
                 }
             }
@@ -61,12 +63,14 @@ public sealed class AddAsyncPrefixTest
 
             namespace Test
             {
-                class Program 
-                { 
+                class Program
+                {
                     private async Task C(Func<Task<string>> funcAsync) => await {|JJ0102:funcAsync()|};
                 }
             }
-            """).ConfigureAwait(false);
+            """
+            )
+            .ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -78,8 +82,8 @@ public sealed class AddAsyncPrefixTest
 
             namespace Test
             {
-                class Program 
-                { 
+                class Program
+                {
                     private async Task B() => await {|JJ0102:C|}().ConfigureAwait(false);
 
                     private async Task C() => await Task.CompletedTask;
@@ -91,70 +95,82 @@ public sealed class AddAsyncPrefixTest
 
             namespace Test
             {
-                class Program 
-                { 
+                class Program
+                {
                     private async Task B() => await CAsync().ConfigureAwait(false);
 
                     private async Task CAsync() => await Task.CompletedTask;
                 }
             }
-            """).ConfigureAwait(false);
+            """
+            )
+            .ConfigureAwait(false);
     }
 
     [TestMethod]
     public async Task TestMissingAsync_NoDiagnostic1()
     {
-        await VerifyCS.VerifyAnalyzerAsync("""
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
             using System.Threading.Tasks;
 
             namespace Test
             {
-                class Program 
-                { 
+                class Program
+                {
                     private async Task B() => await CAsync();
 
                     private async Task CAsync() => await Task.CompletedTask;
                 }
             }
-            """).ConfigureAwait(false);
+            """
+            )
+            .ConfigureAwait(false);
     }
 
     [TestMethod]
     public async Task TestMissingAsync_NoDiagnostic2()
     {
-        await VerifyCS.VerifyAnalyzerAsync("""
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
             namespace Test
             {
-                class Program 
-                { 
+                class Program
+                {
                     private string B() => nameof(B);
                 }
             }
-            """).ConfigureAwait(false);
+            """
+            )
+            .ConfigureAwait(false);
     }
 
     [TestMethod]
     public async Task TestMissingAsync_NoDiagnostic3()
     {
-        await VerifyCS.VerifyAnalyzerAsync("""
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
             using System.Threading.Tasks;
 
             namespace Test
             {
-                class Program 
-                { 
+                class Program
+                {
                     private async Task B() => await CAsync().ConfigureAwait(false);
 
                     private async Task CAsync() => await Task.CompletedTask;
                 }
             }
-            """).ConfigureAwait(false);
+            """
+            )
+            .ConfigureAwait(false);
     }
 
     [TestMethod]
     public async Task TestMissingAsync_NoDiagnostic4()
     {
-        await VerifyCS.VerifyAnalyzerAsync("""
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
             namespace MyNamespace
             {
                 using System.Threading.Tasks;
@@ -164,6 +180,8 @@ public sealed class AddAsyncPrefixTest
                     public Task<string> MethodAsync() { return Task.FromResult("Async"); }
                 }
             }
-            """).ConfigureAwait(false);
+            """
+            )
+            .ConfigureAwait(false);
     }
 }

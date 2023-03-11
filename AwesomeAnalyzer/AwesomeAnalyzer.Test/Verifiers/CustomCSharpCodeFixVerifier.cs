@@ -1,10 +1,13 @@
 ﻿namespace AwesomeAnalyzer.Test;
 
 public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
-    where TAnalyzer : DiagnosticAnalyzer, new()
-    where TCodeFix : CodeFixProvider, new()
+where TAnalyzer : DiagnosticAnalyzer, new()
+where TCodeFix : CodeFixProvider, new()
 {
-    public static Task VerifyAnalyzerAsync(LanguageVersion languageVersion, string source, params DiagnosticResult[] expected)
+    public static Task VerifyAnalyzerAsync(
+        LanguageVersion languageVersion,
+        string source,
+        params DiagnosticResult[] expected)
     {
         var test = new TestTarget<TAnalyzer, TCodeFix>(languageVersion)
         {
@@ -18,7 +21,11 @@ public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
     public static Task VerifyCodeFixAsync(LanguageVersion languageVersion, string source, string fixedSource)
         => VerifyCodeFixAsync(languageVersion, source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);
 
-    public static Task VerifyCodeFixAsync(LanguageVersion languageVersion, string source, DiagnosticResult[] expected, string fixedSource)
+    public static Task VerifyCodeFixAsync(
+        LanguageVersion languageVersion,
+        string source,
+        DiagnosticResult[] expected,
+        string fixedSource)
     {
         var test = new TestTarget<TAnalyzer, TCodeFix>(languageVersion)
         {

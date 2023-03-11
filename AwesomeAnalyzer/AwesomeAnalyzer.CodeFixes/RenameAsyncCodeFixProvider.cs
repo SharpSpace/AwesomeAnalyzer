@@ -3,24 +3,24 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Rename;
-using Document = Microsoft.CodeAnalysis.Document;
 
 namespace AwesomeAnalyzer
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider))]
+    [Shared]
     public sealed class RenameAsyncCodeFixProvider : CodeFixProvider
     {
         private const string TextAsync = "Async";
 
         private static readonly SymbolRenameOptions SymbolRenameOptions = new SymbolRenameOptions();
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticDescriptors.RenameAsyncRule0100.Id);
+        public override ImmutableArray<string> FixableDiagnosticIds =>
+        ImmutableArray.Create(DiagnosticDescriptors.Rule0100RenameAsync.Id);
 
         public override FixAllProvider GetFixAllProvider() => null;
 
@@ -32,10 +32,10 @@ namespace AwesomeAnalyzer
             foreach (var diagnostic in context.Diagnostics)
             {
                 var declaration = root.FindToken(diagnostic.Location.SourceSpan.Start)
-                    .Parent
-                    ?.AncestorsAndSelf()
-                    .OfType<MethodDeclarationSyntax>()
-                    .First();
+                .Parent
+                ?.AncestorsAndSelf()
+                .OfType<MethodDeclarationSyntax>()
+                .First();
 
                 context.RegisterCodeFix(
                     CodeAction.Create(
@@ -64,7 +64,8 @@ namespace AwesomeAnalyzer
                 SymbolRenameOptions,
                 localDeclaration.Identifier.ValueText.Replace(TextAsync, string.Empty),
                 token
-            ).ConfigureAwait(false);
+            )
+            .ConfigureAwait(false);
         }
     }
 }

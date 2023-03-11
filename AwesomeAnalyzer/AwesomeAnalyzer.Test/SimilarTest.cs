@@ -39,7 +39,7 @@ public sealed class SimilarTest
             using System;
             using System.Collections.Generic;
             using System.Linq;
-            
+
             public class Program
             {
                 private static void Main(string[] args)
@@ -107,7 +107,7 @@ public sealed class SimilarTest
             using System;
             using System.Collections.Generic;
             using System.Linq;
-            
+
             public class Program
             {
                 private static void Main(string[] args)
@@ -139,13 +139,12 @@ public sealed class SimilarTest
                 }
             }
             """
-            )
-            .ConfigureAwait(false);
+        )
+        .ConfigureAwait(false);
     }
 
     [TestMethod]
-    public async Task Test_NoDiagnostic1()
-    {
+    public async Task Test_NoDiagnostic1() =>
         await VerifyCS.VerifyAnalyzerAsync(
             """
             using System;
@@ -176,5 +175,4 @@ public sealed class SimilarTest
             """
         )
         .ConfigureAwait(false);
-    }
 }
