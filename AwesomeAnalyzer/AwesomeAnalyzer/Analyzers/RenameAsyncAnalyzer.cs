@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Linq;
+using FleetManagement.Service;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -29,35 +30,37 @@ namespace AwesomeAnalyzer.Analyzers
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0100RenameAsync.Id))
+            using (var _ = new MeasureTime())
             {
-                return;
-            }
+                if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0100RenameAsync.Id))
+                {
+                    return;
+                }
 
-            var methodDeclarationSyntax = (MethodDeclarationSyntax)context.Node;
-            if (!methodDeclarationSyntax.Identifier.ValueText.EndsWith(TextAsync)) return;
-            if ((
-                    methodDeclarationSyntax.ReturnType is GenericNameSyntax genericNameSyntax &&
-                    (
-                        genericNameSyntax.Identifier.ValueText == TextTask ||
-                        genericNameSyntax.Identifier.ValueText == TextValueTask
+                var methodDeclarationSyntax = (MethodDeclarationSyntax)context.Node;
+                if (!methodDeclarationSyntax.Identifier.ValueText.EndsWith(TextAsync)) return;
+                if ((
+                        methodDeclarationSyntax.ReturnType is GenericNameSyntax genericNameSyntax
+                        && (
+                            genericNameSyntax.Identifier.ValueText == TextTask || genericNameSyntax.Identifier.ValueText == TextValueTask
+                        )
                     )
-                ) ||
-                methodDeclarationSyntax.Modifiers.Any(x => x.ValueText == Textasync)
-               ) return;
+                    || methodDeclarationSyntax.Modifiers.Any(x => x.ValueText == Textasync)
+                   ) return;
 
-            if (methodDeclarationSyntax.ReturnType is IdentifierNameSyntax)
-            {
-                return;
+                if (methodDeclarationSyntax.ReturnType is IdentifierNameSyntax)
+                {
+                    return;
+                }
+
+                context.ReportDiagnostic(
+                    Diagnostic.Create(
+                        DiagnosticDescriptors.Rule0100RenameAsync,
+                        methodDeclarationSyntax.Identifier.GetLocation(),
+                        methodDeclarationSyntax.Identifier.ValueText
+                    )
+                );
             }
-
-            context.ReportDiagnostic(
-                Diagnostic.Create(
-                    DiagnosticDescriptors.Rule0100RenameAsync,
-                    methodDeclarationSyntax.Identifier.GetLocation(),
-                    methodDeclarationSyntax.Identifier.ValueText
-                )
-            );
         }
     }
 }

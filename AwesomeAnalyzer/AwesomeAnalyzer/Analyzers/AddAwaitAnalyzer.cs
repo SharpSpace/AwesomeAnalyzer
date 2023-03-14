@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using FleetManagement.Service;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -26,39 +27,42 @@ namespace AwesomeAnalyzer.Analyzers
 
         private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0101AddAwait.Id))
+            using (var _ = new MeasureTime())
             {
-                return;
+                if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0101AddAwait.Id))
+                {
+                    return;
+                }
+
+                if (!(context.Node is InvocationExpressionSyntax invocationExpressionSyntax)) return;
+
+                if (invocationExpressionSyntax.HasParent<AwaitExpressionSyntax>() != null) return;
+
+                var typeSymbol = ModelExtensions.GetTypeInfo(context.SemanticModel, invocationExpressionSyntax);
+                if (typeSymbol.Type?.Name != TextTask) return;
+
+                if (invocationExpressionSyntax.HasParent<ConstructorDeclarationSyntax>() != null)
+                {
+                    return;
+                }
+
+                var methodDeclarationSyntax = invocationExpressionSyntax.HasParent<MethodDeclarationSyntax>();
+                if (methodDeclarationSyntax != null)
+                {
+                    var typeInfo = ModelExtensions.GetTypeInfo(context.SemanticModel, methodDeclarationSyntax.ReturnType);
+                    if (typeInfo.Type?.Name == TextTask) return;
+                }
+
+                if (invocationExpressionSyntax.Parent is AssignmentExpressionSyntax) return;
+
+                context.ReportDiagnostic(
+                    Diagnostic.Create(
+                        DiagnosticDescriptors.Rule0101AddAwait,
+                        invocationExpressionSyntax.Expression.GetLocation(),
+                        messageArgs: invocationExpressionSyntax.Expression.ToString()
+                    )
+                );
             }
-
-            if (!(context.Node is InvocationExpressionSyntax invocationExpressionSyntax)) return;
-
-            if (invocationExpressionSyntax.HasParent<AwaitExpressionSyntax>() != null) return;
-
-            var typeSymbol = ModelExtensions.GetTypeInfo(context.SemanticModel, invocationExpressionSyntax);
-            if (typeSymbol.Type?.Name != TextTask) return;
-
-            if (invocationExpressionSyntax.HasParent<ConstructorDeclarationSyntax>() != null)
-            {
-                return;
-            }
-
-            var methodDeclarationSyntax = invocationExpressionSyntax.HasParent<MethodDeclarationSyntax>();
-            if (methodDeclarationSyntax != null)
-            {
-                var typeInfo = ModelExtensions.GetTypeInfo(context.SemanticModel, methodDeclarationSyntax.ReturnType);
-                if (typeInfo.Type?.Name == TextTask) return;
-            }
-
-            if (invocationExpressionSyntax.Parent is AssignmentExpressionSyntax) return;
-
-            context.ReportDiagnostic(
-                Diagnostic.Create(
-                    DiagnosticDescriptors.Rule0101AddAwait,
-                    invocationExpressionSyntax.Expression.GetLocation(),
-                    messageArgs: invocationExpressionSyntax.Expression.ToString()
-                )
-            );
         }
     }
 }

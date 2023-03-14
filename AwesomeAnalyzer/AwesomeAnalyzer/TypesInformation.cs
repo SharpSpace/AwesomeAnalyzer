@@ -8,7 +8,7 @@ namespace AwesomeAnalyzer
             SortVirtualizationVisitor.Types type,
             string name,
             TextSpan fullSpan,
-            string modifiers,
+            //string modifiers,
             int modifiersOrder,
             string className
         )
@@ -16,7 +16,7 @@ namespace AwesomeAnalyzer
             Type = type;
             Name = name;
             FullSpan = fullSpan;
-            Modifiers = modifiers;
+            //Modifiers = modifiers;
             ModifiersOrder = modifiersOrder;
             ClassName = className;
         }
@@ -25,7 +25,7 @@ namespace AwesomeAnalyzer
 
         public TextSpan FullSpan { get; set; }
 
-        public string Modifiers { get; set; }
+        //public string Modifiers { get; set; }
 
         public int ModifiersOrder { get; set; }
 

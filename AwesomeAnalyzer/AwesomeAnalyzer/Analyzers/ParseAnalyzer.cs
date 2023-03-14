@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using FleetManagement.Service;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,67 +19,73 @@ namespace AwesomeAnalyzer.Analyzers
         public static readonly ImmutableArray<dynamic> Types = ImmutableArray.CreateRange(
             new dynamic[]
             {
-            new TryParseTypes<bool>("bool", true, false),
-            new TryParseTypes<byte>("byte", 0, 0),
-            new TryParseTypes<decimal>("decimal", 1m, 0m),
-            new TryParseTypes<double>("double", 2d, 0d),
-            new TryParseTypes<float>("float", 3f, 0f),
-            new TryParseTypes<int>("int", 10, 0),
-            new TryParseTypes<long>("long", 100, 0),
-            new TryParseTypes<sbyte>("sbyte", 1, 0),
-            new TryParseTypes<short>("short", 1, 0),
-            new TryParseTypes<uint>("uint", 10, 0),
-            new TryParseTypes<ulong>("ulong", 100, 0),
-            new TryParseTypes<ushort>("ushort", 1, 0),
+                new TryParseTypes<bool>("bool", true, false),
+                new TryParseTypes<byte>("byte", 0, 0),
+                new TryParseTypes<decimal>("decimal", 1m, 0m),
+                new TryParseTypes<double>("double", 2d, 0d),
+                new TryParseTypes<float>("float", 3f, 0f),
+                new TryParseTypes<int>("int", 10, 0),
+                new TryParseTypes<long>("long", 100, 0),
+                new TryParseTypes<sbyte>("sbyte", 1, 0),
+                new TryParseTypes<short>("short", 1, 0),
+                new TryParseTypes<uint>("uint", 10, 0),
+                new TryParseTypes<ulong>("ulong", 100, 0),
+                new TryParseTypes<ushort>("ushort", 1, 0),
             }
         );
 
         private static readonly ConcurrentDictionary<ExpressionSyntax, ITypeSymbol> VariableTypesCache =
-        new ConcurrentDictionary<ExpressionSyntax, ITypeSymbol>();
+            new ConcurrentDictionary<ExpressionSyntax, ITypeSymbol>();
 
         private readonly Dictionary<ExpressionSyntax, TypeSyntax> _expectedTypesCache =
-        new Dictionary<ExpressionSyntax, TypeSyntax>();
+            new Dictionary<ExpressionSyntax, TypeSyntax>();
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-        ImmutableArray.Create(DiagnosticDescriptors.Rule0005ParseString);
+            ImmutableArray.Create(DiagnosticDescriptors.Rule0005ParseString);
 
         public override void Initialize(AnalysisContext context)
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
 
-            context.RegisterSyntaxNodeAction(AnalyzeEqualsValueClause, SyntaxKind.EqualsValueClause);
+            context.RegisterSyntaxNodeAction(AnalyzeEqualsValueClause,   SyntaxKind.EqualsValueClause);
             context.RegisterSyntaxNodeAction(AnalyzeNodeReturnStatement, SyntaxKind.ReturnStatement);
         }
 
         private void AnalyzeEqualsValueClause(SyntaxNodeAnalysisContext context)
         {
-            if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0005ParseString.Id))
+            using (var _ = new MeasureTime())
             {
-                return;
+                if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0005ParseString.Id))
+                {
+                    return;
+                }
+
+                var equalsValueClauseSyntax = (EqualsValueClauseSyntax)context.Node;
+                if (equalsValueClauseSyntax.Parent is ParameterSyntax) return;
+                if (equalsValueClauseSyntax.Value == null) return;
+
+                AnalyzeNode(context, equalsValueClauseSyntax.Value);
             }
-
-            var equalsValueClauseSyntax = (EqualsValueClauseSyntax)context.Node;
-            if (equalsValueClauseSyntax.Parent is ParameterSyntax) return;
-            if (equalsValueClauseSyntax.Value == null) return;
-
-            AnalyzeNode(context, equalsValueClauseSyntax.Value);
         }
 
         private void AnalyzeNodeReturnStatement(SyntaxNodeAnalysisContext context)
         {
-            if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0005ParseString.Id))
+            using (var _ = new MeasureTime())
             {
-                return;
-            }
+                if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0005ParseString.Id))
+                {
+                    return;
+                }
 
-            var returnStatementSyntax = (ReturnStatementSyntax)context.Node;
-            AnalyzeNode(context, returnStatementSyntax.Expression);
+                var returnStatementSyntax = (ReturnStatementSyntax)context.Node;
+                AnalyzeNode(context, returnStatementSyntax.Expression);
+            }
         }
 
         private void AnalyzeNode(
             SyntaxNodeAnalysisContext context,
-            ExpressionSyntax sourceValueExpression
+            ExpressionSyntax          sourceValueExpression
         )
         {
             if (!(sourceValueExpression is IdentifierNameSyntax) && !(sourceValueExpression is LiteralExpressionSyntax))
@@ -146,11 +153,11 @@ namespace AwesomeAnalyzer.Analyzers
             if (valueExpression is IdentifierNameSyntax identifierNameSyntax)
             {
                 var symbol = ModelExtensions.GetSymbolInfo(
-                    context.SemanticModel,
-                    identifierNameSyntax,
-                    context.CancellationToken
-                )
-                .Symbol;
+                        context.SemanticModel,
+                        identifierNameSyntax,
+                        context.CancellationToken
+                    )
+                    .Symbol;
                 if (symbol == null)
                 {
                     return null;
@@ -162,10 +169,10 @@ namespace AwesomeAnalyzer.Analyzers
             else
             {
                 var parent = valueExpression.Parent;
-                while (!(parent is MethodDeclarationSyntax) &&
-                       !(parent is PropertyDeclarationSyntax) &&
-                       !(parent is FieldDeclarationSyntax) &&
-                       !(parent is LocalDeclarationStatementSyntax)
+                while (!(parent is MethodDeclarationSyntax)
+                       && !(parent is PropertyDeclarationSyntax)
+                       && !(parent is FieldDeclarationSyntax)
+                       && !(parent is LocalDeclarationStatementSyntax)
                       )
                 {
                     parent = parent?.Parent;
@@ -200,7 +207,7 @@ namespace AwesomeAnalyzer.Analyzers
             return VariableTypesCache.GetOrAdd(
                 valueExpression,
                 syntax => ModelExtensions.GetTypeInfo(context.SemanticModel, syntax, context.CancellationToken)
-                .Type
+                    .Type
             );
             //if (_variableTypesCache.TryGetValue(valueExpression, out var variableType))
             //{

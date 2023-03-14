@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using FleetManagement.Service;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,7 +13,7 @@ namespace AwesomeAnalyzer.Analyzers
     public sealed class MakeSealedAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-        ImmutableArray.Create(DiagnosticDescriptors.Rule0001MakeSealed);
+            ImmutableArray.Create(DiagnosticDescriptors.Rule0001MakeSealed);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -24,43 +25,46 @@ namespace AwesomeAnalyzer.Analyzers
 
         private static async Task AnalyzeNodeAsync(SyntaxNodeAnalysisContext context)
         {
-            if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0001MakeSealed.Id))
+            using (var _ = new MeasureTime())
             {
-                return;
-            }
+                if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0001MakeSealed.Id))
+                {
+                    return;
+                }
 
-            var classVirtualizationVisitor = new ClassVirtualizationVisitor(context.CancellationToken);
-            classVirtualizationVisitor.SetCompilation(context.Compilation);
-            foreach (var syntaxTree in context.Compilation.SyntaxTrees)
-            {
-                classVirtualizationVisitor.Visit(
-                    await syntaxTree.GetRootAsync(context.CancellationToken).ConfigureAwait(false)
+                var classVirtualizationVisitor = new ClassVirtualizationVisitor(context.CancellationToken);
+                classVirtualizationVisitor.SetCompilation(context.Compilation);
+                foreach (var syntaxTree in context.Compilation.SyntaxTrees)
+                {
+                    classVirtualizationVisitor.Visit(
+                        await syntaxTree.GetRootAsync(context.CancellationToken).ConfigureAwait(false)
+                    );
+                }
+
+                var classDeclarationSyntax = (ClassDeclarationSyntax)context.Node;
+                if (classDeclarationSyntax.Modifiers.Any(SyntaxKind.StaticKeyword)) return;
+                if (classDeclarationSyntax.Modifiers.Any(SyntaxKind.SealedKeyword)) return;
+                if (classDeclarationSyntax.Modifiers.Any(SyntaxKind.AbstractKeyword)) return;
+
+                var symbolInfo = context.Compilation
+                    .GetSemanticModel(classDeclarationSyntax.SyntaxTree)
+                    .GetDeclaredSymbol(classDeclarationSyntax);
+                var identifier =
+                    $"{symbolInfo?.ContainingNamespace.ToDisplayString()}.{classDeclarationSyntax.Identifier.ValueText}"
+                        .Trim('.');
+
+                if (classVirtualizationVisitor.Classes.Any(x => x.BaseClasses.Any(y => y.IdentifierName == identifier)))
+                    return;
+                if (classDeclarationSyntax.GetMembers(context.Compilation).Any(x => x.IsVirtual)) return;
+
+                context.ReportDiagnostic(
+                    Diagnostic.Create(
+                        DiagnosticDescriptors.Rule0001MakeSealed,
+                        classDeclarationSyntax.Identifier.GetLocation(),
+                        classDeclarationSyntax.Identifier.ValueText
+                    )
                 );
             }
-
-            var classDeclarationSyntax = (ClassDeclarationSyntax)context.Node;
-            if (classDeclarationSyntax.Modifiers.Any(SyntaxKind.StaticKeyword)) return;
-            if (classDeclarationSyntax.Modifiers.Any(SyntaxKind.SealedKeyword)) return;
-            if (classDeclarationSyntax.Modifiers.Any(SyntaxKind.AbstractKeyword)) return;
-
-            var symbolInfo = context.Compilation
-            .GetSemanticModel(classDeclarationSyntax.SyntaxTree)
-            .GetDeclaredSymbol(classDeclarationSyntax);
-            var identifier =
-            $"{symbolInfo?.ContainingNamespace.ToDisplayString()}.{classDeclarationSyntax.Identifier.ValueText}"
-            .Trim('.');
-
-            if (classVirtualizationVisitor.Classes.Any(x => x.BaseClasses.Any(y => y.IdentifierName == identifier)))
-                return;
-            if (classDeclarationSyntax.GetMembers(context.Compilation).Any(x => x.IsVirtual)) return;
-
-            context.ReportDiagnostic(
-                Diagnostic.Create(
-                    DiagnosticDescriptors.Rule0001MakeSealed,
-                    classDeclarationSyntax.Identifier.GetLocation(),
-                    classDeclarationSyntax.Identifier.ValueText
-                )
-            );
         }
     }
 }

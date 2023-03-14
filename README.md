@@ -6,7 +6,7 @@ AwesomeAnalyzer is a pack of different Roslyn Analyzers
 
 ## Installation
 
-Download [latest version here](https://github.com/SharpSpace/AwesomeAnalyzer/releases/download/v0.39.0/AwesomeAnalyzer.0.39.0.vsix)
+Download [latest version here](https://github.com/SharpSpace/AwesomeAnalyzer/releases/download/v0.41.0/AwesomeAnalyzer.0.41.0.vsix)
 or on [VisualStudio Marketplace](https://marketplace.visualstudio.com/items?itemName=SharpSpace.AwesomeAnalyzer)
 
 ## Analyzers
@@ -24,3 +24,17 @@ ID | Notes
 [JJ0101](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0101.md) | Method call is missing Await.
 [JJ0102](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0101.md) | Method name is missing Async prefix.
 [JJ1001-JJ1013](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ1001-JJ1013.md) | [Type] needs to be sorted alphabetically. [Type] needs to be in correct order.
+
+### EditorConfig
+
+You can use the following EditorConfig to configure the analyzers:
+```ini
+dotnet_diagnostic.JJ0001.enabled = true/false
+dotnet_diagnostic.JJ0001.severity = default/none/silent/suggestion/warning/error
+```
+
+Example:
+```ini
+dotnet_diagnostic.JJ0001.enabled = true
+dotnet_diagnostic.JJ0001.severity = default
+```

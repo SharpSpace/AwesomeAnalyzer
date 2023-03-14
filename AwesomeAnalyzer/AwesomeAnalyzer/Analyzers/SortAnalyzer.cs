@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -15,6 +16,8 @@ namespace AwesomeAnalyzer.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class SortAnalyzer : DiagnosticAnalyzer
     {
+        private static Dictionary<SyntaxNode, Diagnostic> _cache = new Dictionary<SyntaxNode, Diagnostic>();
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
             DiagnosticDescriptors.Rule1008EnumSort,
             DiagnosticDescriptors.Rule1009EnumOrder,
@@ -106,7 +109,7 @@ namespace AwesomeAnalyzer.Analyzers
 
         private static bool AnalyzeSort(
             ImmutableHashSet<KeyValuePair<TextSpan, ClassInformation>> classes,
-            List<TypesInformation> members,
+            IReadOnlyCollection<TypesInformation> members,
             TextSpan fullSpan,
             CancellationToken token
         )
@@ -114,27 +117,24 @@ namespace AwesomeAnalyzer.Analyzers
             using (var _ = new MeasureTime())
             {
                 if (token.IsCancellationRequested) return false;
-                //var classMemberGroup = classes
-                //    .GroupBy(
-                //        x => x.Key,
-                //        y => members.Where(x => x.FullSpan.IntersectsWith(y.Key))
-                //    );
+                var member = members.SingleOrDefault(x => x.FullSpan.Start == fullSpan.Start);
+                if (member == null) return false;
+                if (string.IsNullOrWhiteSpace(member.ClassName)) return false;
+                if (member.ClassName.Count(x => x == '.') >= 1) return false;
+
+                var classMembers = members.Where(x => x.ClassName == member.ClassName).ToList();
 
                 foreach (var item in classes)
                 {
-                    using (var __ = new MeasureTime(false, $"{nameof(AnalyzeSort)}->foreach"))
+                    using (var __ = new MeasureTime(true, $"{nameof(AnalyzeSort)}->foreach"))
                     {
                         if (token.IsCancellationRequested) return false;
 
-                        var member = members.SingleOrDefault(x => x.FullSpan.Start == fullSpan.Start);
-                        if (member == null) continue;
-                        if (string.IsNullOrWhiteSpace(member.ClassName)) continue;
-                        if (member.ClassName.Count(x => x == '.') >= 1) return false;
-
-                        var classMemberList = members.Where(x => 
-                            x.ClassName == member.ClassName && 
-                            x.FullSpan.IntersectsWith(item.Value.FullSpan)
-                        ).ToImmutableArray();
+                        var classMemberList = classMembers
+                            .Where(x => 
+                                x.FullSpan.IntersectsWith(item.Value.FullSpan)
+                            )
+                            .ToList();
                         var currentIndexOf = classMemberList.IndexOf(member);
 
                         var sortedList = classMemberList
@@ -143,9 +143,7 @@ namespace AwesomeAnalyzer.Analyzers
                             .ToImmutableArray();
                         var sortedIndexOf = sortedList.IndexOf(member);
 
-                        if (currentIndexOf != sortedIndexOf) {
-                            return true;
-                        }
+                        if (currentIndexOf != sortedIndexOf) return true;
                     }
                 }
 
@@ -213,12 +211,14 @@ namespace AwesomeAnalyzer.Analyzers
                     context.CancellationToken
                 ))
             {
+                var diagnostic = Diagnostic.Create(
+                    DiagnosticDescriptors.Rule1005ConstructorOrder,
+                    constructorDeclarationSyntax.Identifier.GetLocation(),
+                    messageArgs: new object[] { constructorDeclarationSyntax.Identifier.ValueText }
+                );
+                _cache.Add(context.Node, diagnostic);
                 context.ReportDiagnostic(
-                    Diagnostic.Create(
-                        DiagnosticDescriptors.Rule1005ConstructorOrder,
-                        constructorDeclarationSyntax.Identifier.GetLocation(),
-                        messageArgs: new object[] { constructorDeclarationSyntax.Identifier.ValueText }
-                    )
+                    diagnostic
                 );
             }
         }
@@ -233,6 +233,13 @@ namespace AwesomeAnalyzer.Analyzers
         {
             using (var _ = new MeasureTime())
             {
+                if (_cache.ContainsKey(context.Node))
+                {
+                    var diagnostic = _cache[context.Node];
+                    if (diagnostic == null) return;
+                    context.ReportDiagnostic(diagnostic);
+                }
+
                 var sortVirtualizationVisitor = new SortVirtualizationVisitor(context.CancellationToken);
 
                 var parents = context.Node.FindAllParent(
@@ -307,13 +314,13 @@ namespace AwesomeAnalyzer.Analyzers
                 )
             )
             {
-                context.ReportDiagnostic(
-                    Diagnostic.Create(
-                        sortRule,
-                        syntaxIdentifier.GetLocation(),
-                        messageArgs: new object[] { syntaxIdentifier.ValueText }
-                    )
+                var diagnostic = Diagnostic.Create(
+                    sortRule,
+                    syntaxIdentifier.GetLocation(),
+                    messageArgs: new object[] { syntaxIdentifier.ValueText }
                 );
+                _cache.Add(context.Node, diagnostic);
+                context.ReportDiagnostic(diagnostic);
             }
         }
 
