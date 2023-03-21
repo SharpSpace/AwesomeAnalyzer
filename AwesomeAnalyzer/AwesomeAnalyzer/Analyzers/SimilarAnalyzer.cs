@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Linq;
 using FleetManagement.Service;
 using Microsoft.CodeAnalysis;
@@ -16,93 +15,51 @@ namespace AwesomeAnalyzer.Analyzers
             DiagnosticDescriptors.Rule0008Similar
         );
 
-        public override void Initialize(AnalysisContext context)
+        public override void Initialize(
+            AnalysisContext context
+        )
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
 
-            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(
+                AnalyzeNode, 
+                SyntaxKind.MethodDeclaration,
+                SyntaxKind.ConstructorDeclaration
+            );
         }
 
-        private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeNode(
+            SyntaxNodeAnalysisContext context
+        )
         {
-            using (var _ = new MeasureTime())
+            using (var _ = new MeasureTime(true))
             {
                 if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0008Similar.Id))
                 {
                     return;
                 }
 
-                var methodDeclaration = (MethodDeclarationSyntax)context.Node;
-                //var tokens = methodDeclaration.DescendantTokens().Where(t => !t.IsKind(SyntaxKind.WhitespaceTrivia)).ToArray();
+                var blockSyntaxes = context.Node
+                    .DescendantNodes()
+                    .OfType<BlockSyntax>()
+                    .Where(x => x.Parent is StatementSyntax)
+                    .Select(x => x.Parent)
+                    .ToList();
 
-                var blockSyntaxes = methodDeclaration
-                .DescendantNodes()
-                .OfType<BlockSyntax>()
-                .Where(x => x.Parent is StatementSyntax)
-                .Select(x => x.Parent)
-                .ToList();
+                var groups = blockSyntaxes.GroupBy(GetString).Where(x => x.Count() > 1);
 
-                //var semanticModel = context.SemanticModel;
-                var skipIndex = new List<int>();
-
-                //compare all blockSyntaxes with each other with the method IsSimilarBlock ond group them
-                //foreach (var firstBlock in blockSyntaxes)
-                //{
-                //    var similarBlocks = blockSyntaxes.Where(x =>
-                //            !skipIndex.Contains(blockSyntaxes.IndexOf(x)) &&
-                //            IsSimilarBlock(x, firstBlock)
-                //        )
-                //        .ToList();
-
-                //    if (similarBlocks.Count <= 1)
-                //    {
-                //        continue;
-                //    }
-
-                //    context.ReportDiagnostic(Diagnostic.Create(
-                //        DiagnosticDescriptors.SimilarRule0008,
-                //        firstBlock.GetLocation(),
-                //        similarBlocks.Select(x => x.GetLocation()),
-                //        null,
-                //        null
-                //    ));
-
-                //    foreach (var similarBlock in similarBlocks.Skip(1))
-                //    {
-                //        context.ReportDiagnostic(Diagnostic.Create(
-                //            DiagnosticDescriptors.SimilarRule0008,
-                //            similarBlock.GetLocation()
-                //        ));
-                //    }
-
-                //    skipIndex.AddRange(similarBlocks.Select(x => blockSyntaxes.IndexOf(x)));
-                //}
-
-                //compare all blockSyntaxes with each other with the method IsSimilarBlock and report themforeach (var firstBlock in blockSyntaxes)
-
-                for (var i = 0; i < blockSyntaxes.Count; i++)
+                foreach (var group in groups)
                 {
-                    if (context.CancellationToken.IsCancellationRequested) return;
-                    var firstBlock = blockSyntaxes[i];
-
-                    for (var j = 0; j < blockSyntaxes.Count; j++)
-                    {
-                        context.CancellationToken.ThrowIfCancellationRequested();
-                        if (i == j) continue;
-                        if (!IsSimilarBlock(blockSyntaxes[j], firstBlock)) continue;
-
-                        context.ReportDiagnostic(
-                            Diagnostic.Create(
-                                DiagnosticDescriptors.Rule0008Similar,
-                                firstBlock.GetLocation(),
-                                new[] { blockSyntaxes[j].GetLocation() },
-                                null,
-                                null
-                            )
-                        );
-                        skipIndex.Add(j);
-                    }
+                    context.ReportDiagnostic(
+                        Diagnostic.Create(
+                            DiagnosticDescriptors.Rule0008Similar,
+                            group.First().GetLocation(),
+                            group.Skip(1).Select(x => x.GetLocation()),
+                            null,
+                            null
+                        )
+                    );
                 }
 
                 //var similarNodes = root.DescendantNodes()
@@ -121,17 +78,64 @@ namespace AwesomeAnalyzer.Analyzers
             }
         }
 
-        private static bool IsSimilarBlock(SyntaxNode node1, SyntaxNode node2)
+        private static bool IsSimilarBlock(
+            SyntaxNode node1,
+            SyntaxNode node2
+        )
         {
-            return node1.WithLeadingTrivia().WithTrailingTrivia().ToFullString() ==
-            node2.WithLeadingTrivia().WithTrailingTrivia().ToFullString();
+            var node1Code = node1.GetText();
+            var node2Code = node2.GetText();
+
+            var node1Decendants = node1.DescendantNodes().OfType<LiteralExpressionSyntax>().Where(x => x.IsKind(SyntaxKind.StringLiteralExpression)).ToImmutableList();
+            var node2Decendants = node2.DescendantNodes().OfType<LiteralExpressionSyntax>().Where(x => x.IsKind(SyntaxKind.StringLiteralExpression)).ToImmutableList();
+            if (node1Decendants.Count > 0 && node1Decendants.Count() == node2Decendants.Count())
+            {
+                foreach (var textSpan in node1Decendants.Select(x => x.Span))
+                {
+                    node1Code = node1Code.Replace(textSpan.Start - node1.FullSpan.Start, textSpan.Length, string.Empty);
+                }
+
+                foreach (var textSpan in node2Decendants.Select(x => x.Span)) {
+                    node2Code = node2Code.Replace(textSpan.Start - node2.FullSpan.Start, textSpan.Length, string.Empty);
+                }
+            }
+
+            var isSimilarBlock = node1Code.ToString().Trim() == node2Code.ToString().Trim();
+            //Debug.WriteLine("node1Code:" + node1Code.ToString().Trim());
+            //Debug.WriteLine("isSimilarBlock:" + isSimilarBlock);
+            //Debug.WriteLine("node2Code:" + node2Code.ToString().Trim());
+
+            return isSimilarBlock;
+        }
+
+        private static string GetString(SyntaxNode node)
+        {
+            var nodeCode = node.GetText();
+
+            var nodeDecendants = node.DescendantNodes()
+                .OfType<LiteralExpressionSyntax>()
+                .Where(x => x.IsKind(SyntaxKind.StringLiteralExpression))
+                .ToImmutableList();
+
+            if (nodeDecendants.Count <= 0) return nodeCode.ToString().Trim();
+            
+            foreach (var textSpan in nodeDecendants.Select(x => x.Span))
+            {
+                nodeCode = nodeCode.Replace(
+                    textSpan.Start - node.FullSpan.Start, 
+                    textSpan.Length, 
+                    string.Empty
+                );
+            }
+
+            return nodeCode.ToString().Trim();
         }
 
         private static bool IsSimilarMethod(
             MethodDeclarationSyntax node1,
             MethodDeclarationSyntax node2,
-            SemanticModel semanticModel,
-            SyntaxToken[] tokens)
+            SemanticModel semanticModel
+        )
         {
             var tokens1 = node1.DescendantTokens().Where(t => !t.IsKind(SyntaxKind.WhitespaceTrivia)).ToArray();
             var tokens2 = node2.DescendantTokens().Where(t => !t.IsKind(SyntaxKind.WhitespaceTrivia)).ToArray();

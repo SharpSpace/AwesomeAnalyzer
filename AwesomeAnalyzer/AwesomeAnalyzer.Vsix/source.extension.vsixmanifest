@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
 	<Metadata>
-		<Identity Id="AwesomeAnalyzer.9591450a-2975-42c9-95d4-7e4b1f15d053" Version="0.41.0" Language="en-US" Publisher="SharpSpace"/>
+		<Identity Id="AwesomeAnalyzer.9591450a-2975-42c9-95d4-7e4b1f15d053" Version="0.41.1" Language="en-US" Publisher="SharpSpace"/>
 		<DisplayName>AwesomeAnalyzer</DisplayName>
 		<Description xml:space="preserve">A set of Roslyn Analyzers.</Description>
 		<MoreInfo>https://github.com/SharpSpace/AwesomeAnalyzer</MoreInfo>

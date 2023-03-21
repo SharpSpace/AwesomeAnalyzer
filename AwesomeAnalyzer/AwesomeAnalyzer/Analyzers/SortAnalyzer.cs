@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -16,8 +15,6 @@ namespace AwesomeAnalyzer.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class SortAnalyzer : DiagnosticAnalyzer
     {
-        private static Dictionary<SyntaxNode, Diagnostic> _cache = new Dictionary<SyntaxNode, Diagnostic>();
-
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
             DiagnosticDescriptors.Rule1008EnumSort,
             DiagnosticDescriptors.Rule1009EnumOrder,
@@ -216,7 +213,6 @@ namespace AwesomeAnalyzer.Analyzers
                     constructorDeclarationSyntax.Identifier.GetLocation(),
                     messageArgs: new object[] { constructorDeclarationSyntax.Identifier.ValueText }
                 );
-                _cache.Add(context.Node, diagnostic);
                 context.ReportDiagnostic(
                     diagnostic
                 );
@@ -233,13 +229,6 @@ namespace AwesomeAnalyzer.Analyzers
         {
             using (var _ = new MeasureTime())
             {
-                if (_cache.ContainsKey(context.Node))
-                {
-                    var diagnostic = _cache[context.Node];
-                    if (diagnostic == null) return;
-                    context.ReportDiagnostic(diagnostic);
-                }
-
                 var sortVirtualizationVisitor = new SortVirtualizationVisitor(context.CancellationToken);
 
                 var parents = context.Node.FindAllParent(
@@ -296,12 +285,13 @@ namespace AwesomeAnalyzer.Analyzers
                 )
                )
             {
+                var diagnostic = Diagnostic.Create(
+                    orderRule,
+                    syntaxIdentifier.GetLocation(),
+                    messageArgs: new object[] { syntaxIdentifier.ValueText }
+                );
                 context.ReportDiagnostic(
-                    Diagnostic.Create(
-                        orderRule,
-                        syntaxIdentifier.GetLocation(),
-                        messageArgs: new object[] { syntaxIdentifier.ValueText }
-                    )
+                    diagnostic
                 );
             }
             else if (
@@ -319,7 +309,6 @@ namespace AwesomeAnalyzer.Analyzers
                     syntaxIdentifier.GetLocation(),
                     messageArgs: new object[] { syntaxIdentifier.ValueText }
                 );
-                _cache.Add(context.Node, diagnostic);
                 context.ReportDiagnostic(diagnostic);
             }
         }

@@ -1,5 +1,7 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
 namespace AwesomeAnalyzer
@@ -22,7 +23,7 @@ namespace AwesomeAnalyzer
         private const string TextAwait = "await ";
 
         public override ImmutableArray<string> FixableDiagnosticIds =>
-        ImmutableArray.Create(DiagnosticDescriptors.Rule0101AddAwait.Id);
+            ImmutableArray.Create(DiagnosticDescriptors.Rule0101AddAwait.Id);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -34,10 +35,10 @@ namespace AwesomeAnalyzer
             foreach (var diagnostic in context.Diagnostics)
             {
                 var declaration = root.FindToken(diagnostic.Location.SourceSpan.Start)
-                .Parent
-                ?.AncestorsAndSelf()
-                .OfType<InvocationExpressionSyntax>()
-                .First();
+                    .Parent
+                    ?.AncestorsAndSelf()
+                    .OfType<InvocationExpressionSyntax>()
+                    .First();
 
                 if (declaration == null) continue;
                 if (declaration.Parent is AwaitExpressionSyntax) continue;
@@ -59,44 +60,96 @@ namespace AwesomeAnalyzer
             CancellationToken token
         )
         {
-            var methodDeclarationSyntax = declaration.HasParent<MethodDeclarationSyntax>();
+            //Debug.WriteLine($"declaration: {declaration.GetType().Name} {declaration.ToFullString()}");
 
-            var oldSource = (await document.GetSyntaxRootAsync(token).ConfigureAwait(false))?.ToFullString();
-            if (oldSource == null)
+            var sourceText = (await document.GetSyntaxRootAsync(token).ConfigureAwait(false)).GetText();
+            if (sourceText == null)
             {
                 return document;
             }
 
-            string newSource;
-            if (methodDeclarationSyntax != null &&
-                methodDeclarationSyntax.Modifiers.Any(x => x.ValueText == TextAsync) == false
-               )
-            {
-                var methodCode = methodDeclarationSyntax.ToString();
+            //Debug.WriteLine($"sourceText: {sourceText}");
 
-                var newType = SyntaxFactory.ParseTypeName(TextTask)
-                .WithLeadingTrivia(SyntaxFactory.Space)
-                .WithAdditionalAnnotations(Simplifier.Annotation)
-                .WithTrailingTrivia(methodDeclarationSyntax.ReturnType.GetTrailingTrivia());
+            var replaceList = new List<(TextSpan, string)>();
 
-                var modifiers =
-                methodDeclarationSyntax.Modifiers.Union(new[] { SyntaxFactory.Token(SyntaxKind.AsyncKeyword) });
-                var newMethodCode = methodDeclarationSyntax
-                .WithModifiers(SyntaxFactory.TokenList(modifiers))
-                .WithReturnType(newType)
-                .ToString();
+            foreach (var parenthesizedLambdaExpressionSyntax in declaration.DescendantNodesAndSelf().OfType<ParenthesizedLambdaExpressionSyntax>().OrderByDescending(x => x.SpanStart)) {
+                Debug.WriteLine($"parenthesizedLambdaExpressionSyntax: {parenthesizedLambdaExpressionSyntax.ToFullString()}");
+                replaceList.Add((
+                    new TextSpan(
+                        parenthesizedLambdaExpressionSyntax.Span.Start,
+                        0
+                    ),
+                    "async "
+                ));
 
-                var oldDeclaration = declaration.ToString();
-                newMethodCode = newMethodCode.Replace(oldDeclaration, $"{TextAwait}{oldDeclaration}");
-
-                newSource = oldSource.Replace(methodCode, newMethodCode);
-            }
-            else
-            {
-                newSource = oldSource.Insert(declaration.SpanStart, TextAwait);
+                replaceList.Add((
+                    new TextSpan(
+                        parenthesizedLambdaExpressionSyntax.ExpressionBody.Span.Start,
+                        parenthesizedLambdaExpressionSyntax.ExpressionBody.Span.Length
+                    ),
+                    "await " + parenthesizedLambdaExpressionSyntax.ExpressionBody.ToString()
+                ));
             }
 
-            return document.WithText(SourceText.From(newSource));
+            var methodDeclarationSyntax = declaration.HasParent<MethodDeclarationSyntax>();
+            var methodModifiers = methodDeclarationSyntax?.Modifiers.ToList();
+            if ((methodModifiers?.Any(x => x.ValueText == TextAsync) ?? false) == false) {
+                var newType = methodDeclarationSyntax.ReturnType.ToString() != "void"
+                    ? $"Task<{methodDeclarationSyntax.ReturnType}>"
+                    : TextTask;
+
+                replaceList.Add((
+                    methodDeclarationSyntax.ReturnType.Span,
+                    $"async {newType}"
+                ));
+            }
+
+            if (methodDeclarationSyntax.ExpressionBody != null)
+            {
+                replaceList.Add((
+                    methodDeclarationSyntax.ExpressionBody.Expression.Span,
+                    $"await {methodDeclarationSyntax.ExpressionBody.Expression}"
+                ));
+            }
+            else if (methodDeclarationSyntax.Body != null)
+            {
+                var semanticModel = await document.GetSemanticModelAsync(token).ConfigureAwait(false);
+                foreach (var syntax in methodDeclarationSyntax.Body.DescendantNodes().OfType<ExpressionStatementSyntax>())
+                {
+                    var symbolInfo = semanticModel.GetSymbolInfo(syntax.Expression).Symbol as IMethodSymbol;
+                    if (symbolInfo?.ReturnType.Name.StartsWith("Task") ?? false)
+                    {
+                        replaceList.Add((
+                            new TextSpan(
+                                syntax.Expression.SpanStart,
+                                0
+                            ),
+                            "await "
+                        ));
+                    }
+                    //Debug.WriteLine($"{symbolInfo.ReturnType.Name} {invocationExpressionSyntax.GetType().Name}: {invocationExpressionSyntax.ToFullString()}");
+                }
+            }
+
+            sourceText = replaceList
+                .OrderByDescending(x => x.Item1.Start)
+                .Aggregate(
+                    sourceText,
+                    (text, tuple) => {
+                        var start = tuple.Item1.Start;
+                        var length = tuple.Item1.Length;
+                        //Debug.WriteLine("textOut: '" + text.GetSubText(new TextSpan(start, length)) + "' -> '" + tuple.Item2 + "'");
+                        var result = text.Replace(
+                            start,
+                            length,
+                            tuple.Item2
+                        );
+                        //Debug.WriteLine($"Result: {result}");
+                        return result;
+                    }
+                );
+
+            return document.WithText(sourceText);
         }
     }
 }

@@ -24,11 +24,31 @@ namespace AwesomeAnalyzer.Analyzers
             context.EnableConcurrentExecution();
 
             context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(AnalyzeLambdaExpressionNode, SyntaxKind.ParenthesizedLambdaExpression);
+        }
+
+        private void AnalyzeLambdaExpressionNode(SyntaxNodeAnalysisContext context)
+        {
+            if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0006RemoveAsyncAwait.Id))
+            {
+                return;
+            }
+
+            var node = (ParenthesizedLambdaExpressionSyntax)context.Node;
+            if (node.ToString().StartsWith("async") == false) return;
+
+            context.ReportDiagnostic(
+                Diagnostic.Create(
+                    DiagnosticDescriptors.Rule0006RemoveAsyncAwait,
+                    node.GetLocation(),
+                    node.ToString()
+                )
+            );
         }
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            using (var _ = new MeasureTime())
+            using (var _ = new MeasureTime(true))
             {
                 if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0006RemoveAsyncAwait.Id))
                 {
@@ -36,13 +56,12 @@ namespace AwesomeAnalyzer.Analyzers
                 }
 
                 var methodDeclarationSyntax = (MethodDeclarationSyntax)context.Node;
-                if (methodDeclarationSyntax.AttributeLists.Any(
-                        x => x.Attributes.Any(
-                            y =>
-                                y.Name.ToFullString() == "TestMethod" || y.Name.ToFullString() == "Fact"
-                        )
+                if (methodDeclarationSyntax.AttributeLists.Any(x => 
+                    x.Attributes.Any(y =>
+                        y.Name.ToFullString() == "TestMethod" || 
+                        y.Name.ToFullString() == "Fact"
                     )
-                   ) return;
+                )) return;
                 if (methodDeclarationSyntax.Modifiers.All(x => x.ValueText != Textasync)) return;
                 if (methodDeclarationSyntax.Body == null)
                 {

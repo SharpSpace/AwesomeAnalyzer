@@ -16,8 +16,6 @@ namespace AwesomeAnalyzer.Analyzers
             DiagnosticDescriptors.Rule0003MakeConst
         );
 
-        private static Dictionary<SyntaxNode, Diagnostic> _cache = new Dictionary<SyntaxNode, Diagnostic>();
-
         public override void Initialize(AnalysisContext context)
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
@@ -32,13 +30,6 @@ namespace AwesomeAnalyzer.Analyzers
                 if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0003MakeConst.Id))
                 {
                     return;
-                }
-
-                if (_cache.ContainsKey(context.Node))
-                {
-                    var diagnostic = _cache[context.Node];
-                    if (diagnostic == null) return;
-                    context.ReportDiagnostic(diagnostic);
                 }
 
                 var localDeclaration = (LocalDeclarationStatementSyntax)context.Node;
@@ -92,14 +83,13 @@ namespace AwesomeAnalyzer.Analyzers
                     return;
                 }
 
-                var diagnostic1 = Diagnostic.Create(
+                var diagnostic = Diagnostic.Create(
                     DiagnosticDescriptors.Rule0003MakeConst,
                     context.Node.GetLocation(),
                     string.Join(",", variableDeclaratorSyntaxes.Select(x => x.Identifier.ValueText))
                 );
-                _cache.Add(context.Node, diagnostic1);
                 context.ReportDiagnostic(
-                    diagnostic1
+                    diagnostic
                 );
             }
         }

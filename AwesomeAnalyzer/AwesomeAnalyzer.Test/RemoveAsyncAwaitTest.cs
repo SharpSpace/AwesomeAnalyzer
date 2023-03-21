@@ -209,6 +209,71 @@ public sealed class RemoveAsyncAwaitTest
     }
 
     [TestMethod]
+    public async Task Test_Diagnostic8()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System.Threading.Tasks;
+
+            sealed class Program
+            {
+                public async Task {|JJ0006:Method|}()
+                {
+                    if (1 == 1)
+                    {
+                        return;
+                    }
+                    
+                    await Task.CompletedTask;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+
+            sealed class Program
+            {
+                public Task Method()
+                {
+                    if (1 == 1)
+                    {
+                        return Task.CompletedTask;
+                    }
+                    
+                    return Task.CompletedTask;
+                }
+            }
+            """
+            )
+            .ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_Diagnostic9()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System.Threading.Tasks;
+        
+            class Program
+            {
+                public Task GetUser() => Task.Run({|JJ0006:async () => await Task.Delay(0)|});
+            }
+            """
+            ,
+            """
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                public Task GetUser() => Task.Run(() => Task.Delay(0));
+            }
+            """
+            )
+            .ConfigureAwait(false);
+    }
+
+    [TestMethod]
     public async Task TestMissingAsync_NoDiagnostic1()
     {
         await VerifyCS.VerifyAnalyzerAsync(
