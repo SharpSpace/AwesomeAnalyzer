@@ -2,9 +2,9 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace FleetManagement.Service
+namespace AwesomeAnalyzer
 {
-    public class MeasureTime : IDisposable
+    public sealed class MeasureTime : IDisposable
     {
         private readonly bool _disabled;
 
@@ -23,7 +23,7 @@ namespace FleetManagement.Service
             _disabled = disabled;
             _info = disabled ? string.Empty : info;
             _path = disabled ? string.Empty : path;
-            _stopWatch = disabled ? Int64.MaxValue : Stopwatch.GetTimestamp();
+            _stopWatch = disabled ? long.MaxValue : Stopwatch.GetTimestamp();
         }
 
         public void Dispose()

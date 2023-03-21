@@ -13,14 +13,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AwesomeAnalyzer.Test", "Awe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AwesomeAnalyzer.Vsix", "AwesomeAnalyzer\AwesomeAnalyzer.Vsix\AwesomeAnalyzer.Vsix.csproj", "{93A7F3A2-46A8-4D82-B0A2-605296F01B49}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFiles", "{564BC65D-6137-457C-8E7E-D9B1C8AD0C61}"
-	ProjectSection(SolutionItems) = preProject
-		README.md = README.md
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DBDB874A-BE35-4406-A121-6A43C3F7218C}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		README.md = README.md
 	EndProjectSection
 EndProject
 Global
