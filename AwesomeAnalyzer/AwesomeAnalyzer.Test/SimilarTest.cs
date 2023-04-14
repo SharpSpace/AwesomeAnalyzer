@@ -28,10 +28,10 @@ public sealed class SimilarTest
 
                     Console.WriteLine(10);
 
-                    foreach (var i in enumerable)
+                    {|JJ0008:foreach (var i in enumerable)
                     {
                         Console.WriteLine(i);
-                    }
+                    }|}
                 }
             }
             """,
@@ -90,10 +90,10 @@ public sealed class SimilarTest
 
                             Console.WriteLine(10);
 
-                            foreach (var i in enumerable)
+                            {|JJ0008:foreach (var i in enumerable)
                             {
                                 Console.WriteLine(i);
-                            }
+                            }|}
                             break;
                         }
                         default:
@@ -116,28 +116,28 @@ public sealed class SimilarTest
                     switch (true)
                     {
                         case true:
-                        {
-                            var enumerable = Enumerable.Range(0, 10).ToList();
-                            NewMethod(enumerable);
+                            {
+                                var enumerable = Enumerable.Range(0, 10).ToList();
+                                NewMethod(enumerable);
 
-                            Console.WriteLine(10);
+                                Console.WriteLine(10);
 
-                            NewMethod(enumerable);
-                            break;
-                        }
+                                NewMethod(enumerable);
+                                break;
+                            }
                         default:
-                        {
-                            break;
-                        }
+                            {
+                                break;
+                            }
                     }
                 }
 
                 private static void NewMethod(List<int> enumerable)
                 {
-                            foreach (var i in enumerable)
-                            {
-                                Console.WriteLine(i);
-                            }
+                    foreach (var i in enumerable)
+                    {
+                        Console.WriteLine(i);
+                    }
                 }
             }
             """
@@ -159,15 +159,22 @@ public sealed class SimilarTest
             {
                 private Program()
                 {
-                    var stringBuilder = new StringBuilder();
-                    {|JJ0008:for (var i = 0; i < 10; i++)
-                    {
-                        stringBuilder.Append("A");
-                    }|}
-
                     for (var i = 0; i < 10; i++)
                     {
-                        stringBuilder.Append("B");
+                    }
+
+                    if (true == true)
+                    {
+                        var stringBuilder = new StringBuilder();
+                        {|JJ0008:for (var i = 0; i < 10; i++)
+                        {
+                            stringBuilder.Append("A");
+                        }|}
+
+                        {|JJ0008:for (var i = 0; i < 10; i++)
+                        {
+                            stringBuilder.Append("B");
+                        }|}
                     }
                 }
             }
@@ -182,10 +189,17 @@ public sealed class SimilarTest
             {
                 private Program()
                 {
-                    var stringBuilder = new StringBuilder();
-                    NewMethod(stringBuilder, "A");
+                    for (var i = 0; i < 10; i++)
+                    {
+                    }
+            
+                    if (true == true)
+                    {
+                        var stringBuilder = new StringBuilder();
+                        NewMethod(stringBuilder, "A");
 
-                    NewMethod(stringBuilder, "B");
+                        NewMethod(stringBuilder, "B");
+                    }
                 }
 
                 private void NewMethod(StringBuilder stringBuilder, string s0)
@@ -221,10 +235,10 @@ public sealed class SimilarTest
                         stringBuilder.Append("A");
                     }|}
 
-                    for (var i = 0; i < 10; i++)
+                    {|JJ0008:for (var i = 0; i < 10; i++)
                     {
                         stringBuilder.Append("B");
-                    }
+                    }|}
                 }
             }
             """,
@@ -277,15 +291,15 @@ public sealed class SimilarTest
                         stringBuilder.Append("A");
                     }|}
 
-                    for (var i = 0; i < 10; i++)
+                    {|JJ0008:for (var i = 0; i < 10; i++)
                     {
                         stringBuilder.Append("B");
-                    }
+                    }|}
 
-                    for (var i = 0; i < 10; i++)
+                    {|JJ0008:for (var i = 0; i < 10; i++)
                     {
                         stringBuilder.Append("C");
-                    }
+                    }|}
                 }
             }
             """,
@@ -321,6 +335,325 @@ public sealed class SimilarTest
     }
 
     [TestMethod]
+    public async Task Test_Diagnostic6()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Text;
+
+            public class Program
+            {
+                private void Test()
+                {
+                    var stringBuilder = new StringBuilder();
+                    {|JJ0008:for (var i = 0; i < 10; i++)
+                    {
+                        stringBuilder.Append("A");
+                    }|}
+
+                    {|JJ0008:for (var i2 = 0; i2 < 10; i2++)
+                    {
+                        stringBuilder.Append("B");
+                    }|}
+
+                    {|JJ0008:for (var i3 = 0; i3 < 10; i3++)
+                    {
+                        stringBuilder.Append("C");
+                    }|}
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Text;
+
+            public class Program
+            {
+                private void Test()
+                {
+                    var stringBuilder = new StringBuilder();
+                    NewMethod(stringBuilder, "A");
+
+                    NewMethod(stringBuilder, "B");
+
+                    NewMethod(stringBuilder, "C");
+                }
+
+                private void NewMethod(StringBuilder stringBuilder, string s0)
+                {
+                    for (var i = 0; i < 10; i++)
+                    {
+                        stringBuilder.Append(s0);
+                    }
+                }
+            }
+            """
+            )
+            .ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_Diagnostic7()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Text;
+
+            public class Program
+            {
+                private void Test1()
+                {
+                    var stringBuilder = new StringBuilder();
+                    {|JJ0008:for (var i = 0; i < 10; i++)
+                    {
+                        stringBuilder.Append("A");
+                    }|}
+                }
+
+                private void Test2()
+                {
+                    var stringBuilder = new StringBuilder();
+                    {|JJ0008:for (var i = 0; i < 10; i++)
+                    {
+                        stringBuilder.Append("B");
+                    }|}
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Text;
+
+            public class Program
+            {
+                private void Test1()
+                {
+                    var stringBuilder = new StringBuilder();
+                    NewMethod(stringBuilder, "A");
+                }
+
+                private void Test2()
+                {
+                    var stringBuilder = new StringBuilder();
+                    NewMethod(stringBuilder, "B");
+                }
+
+                private void NewMethod(StringBuilder stringBuilder, string s0)
+                {
+                    for (var i = 0; i < 10; i++)
+                    {
+                        stringBuilder.Append(s0);
+                    }
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_Diagnostic8()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Text;
+
+            public class Program
+            {
+                private void Test1()
+                {
+                    var stringBuilder = new StringBuilder();
+                    {|JJ0008:for (var i = 0; i < 10; i++)
+                    {
+                        stringBuilder.Append("A");
+                    }|}
+                }
+
+                private void Test2()
+                {
+                    var stringBuilder = new StringBuilder();
+                    {|JJ0008:for (int i = 0; i < 10; i++)
+                    {
+                        stringBuilder.Append("B");
+                    }|}
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Text;
+
+            public class Program
+            {
+                private void Test1()
+                {
+                    var stringBuilder = new StringBuilder();
+                    NewMethod(stringBuilder, "A");
+                }
+
+                private void Test2()
+                {
+                    var stringBuilder = new StringBuilder();
+                    NewMethod(stringBuilder, "B");
+                }
+
+                private void NewMethod(StringBuilder stringBuilder, string s0)
+                {
+                    for (var i = 0; i < 10; i++)
+                    {
+                        stringBuilder.Append(s0);
+                    }
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_Diagnostic9()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Text;
+
+            public class Program
+            {
+                private void Test1()
+                {
+                    var stringBuilder = new StringBuilder();
+                    {|JJ0008:for (int i = 0; i < 10; i++)
+                    {
+                        stringBuilder.Append("A");
+                    }|}
+                }
+
+                private void Test2()
+                {
+                    var stringBuilder = new StringBuilder();
+                    {|JJ0008:for (var i = 0; i < 10; i++)
+                    {
+                        stringBuilder.Append("B");
+                    }|}
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Text;
+
+            public class Program
+            {
+                private void Test1()
+                {
+                    var stringBuilder = new StringBuilder();
+                    NewMethod(stringBuilder, "A");
+                }
+
+                private void Test2()
+                {
+                    var stringBuilder = new StringBuilder();
+                    NewMethod(stringBuilder, "B");
+                }
+
+                private void NewMethod(StringBuilder stringBuilder, string s0)
+                {
+                    for (var i = 0; i < 10; i++)
+                    {
+                        stringBuilder.Append(s0);
+                    }
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
+    }
+
+    [TestMethod]
+    public async Task Test_Diagnostic10()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Text;
+
+            public class Program
+            {
+                private void Test1()
+                {
+                    var stringBuilder = new StringBuilder();
+                    {|JJ0008:for (int i = 0; i < 10; i++)
+                    {
+                        stringBuilder.Append("A");
+                    }|}
+                }
+
+                private void Test2()
+                {
+                    var stringBuilder = new StringBuilder();
+                    {|JJ0008:for (var i = 0; i < 20; i++)
+                    {
+                        stringBuilder.Append("B");
+                    }|}
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Text;
+
+            public class Program
+            {
+                private void Test1()
+                {
+                    var stringBuilder = new StringBuilder();
+                    NewMethod(stringBuilder, 10, "A");
+                }
+
+                private void Test2()
+                {
+                    var stringBuilder = new StringBuilder();
+                    NewMethod(stringBuilder, 20, "B");
+                }
+
+                private void NewMethod(StringBuilder stringBuilder, int s0, string s1)
+                {
+                    for (var i = 0; i < s0; i++)
+                    {
+                        stringBuilder.Append(s1);
+                    }
+                }
+            }
+            """
+        )
+        .ConfigureAwait(false);
+    }
+
+    [TestMethod]
     public async Task Test_NoDiagnostic1() =>
         await VerifyCS.VerifyAnalyzerAsync(
             """
@@ -333,6 +666,7 @@ public sealed class SimilarTest
                     try
                     {
                         var a = "a";
+                        var c = "a";
                     }
                     catch (Exception e)
                     {

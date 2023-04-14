@@ -20,19 +20,22 @@ namespace AwesomeAnalyzer
             PublicStaticReadOnly = 3,
             PublicReadOnly = 4,
             PublicNew = 5,
-            Public = 6,
-            InternalConst = 7,
-            InternalStatic = 8,
-            InternalStaticReadOnly = 9,
-            InternalReadOnly = 10,
-            InternalNew = 11,
-            Internal = 12,
-            PrivateConst = 13,
-            PrivateStatic = 14,
-            PrivateStaticReadOnly = 15,
-            PrivateReadOnly = 16,
-            PrivateNew = 17,
-            Private = 18,
+            PublicOverride = 6,
+            Public = 7,
+            InternalConst = 8,
+            InternalStatic = 9,
+            InternalStaticReadOnly = 10,
+            InternalReadOnly = 11,
+            InternalNew = 12,
+            InternalOverride = 13,
+            Internal = 14,
+            PrivateConst = 15,
+            PrivateStatic = 16,
+            PrivateStaticReadOnly = 17,
+            PrivateReadOnly = 18,
+            PrivateNew = 19,
+            PrivateOverride = 20,
+            Private = 21,
         }
 
         public enum Types
@@ -121,7 +124,6 @@ namespace AwesomeAnalyzer
                 Types.Enum,
                 node.Identifier.ValueText,
                 node.FullSpan,
-                //default,
                 default,
                 GetClassName(node)
             );
@@ -159,7 +161,6 @@ namespace AwesomeAnalyzer
                 Types.Field,
                 node.Declaration.Variables[0].Identifier.ValueText,
                 node.FullSpan,
-                //default,
                 default,
                 GetClassName(node)
             );
@@ -178,7 +179,6 @@ namespace AwesomeAnalyzer
                 Types.Constructor,
                 node.Identifier.ValueText,
                 node.FullSpan,
-                //default,
                 default,
                 GetClassName(node)
             );
@@ -195,7 +195,6 @@ namespace AwesomeAnalyzer
                 Types.Delegate,
                 node.Identifier.ValueText,
                 node.FullSpan,
-                //default,
                 default,
                 GetClassName(node)
             );
@@ -214,7 +213,6 @@ namespace AwesomeAnalyzer
                 Types.EventField,
                 node.Declaration.Variables[0].Identifier.ValueText,
                 node.FullSpan,
-                //default,
                 default,
                 GetClassName(node)
             );
@@ -233,7 +231,6 @@ namespace AwesomeAnalyzer
                 Types.Event,
                 node.Identifier.ValueText,
                 node.FullSpan,
-                //default,
                 default,
                 GetClassName(node)
             );
@@ -254,7 +251,6 @@ namespace AwesomeAnalyzer
                 Types.Property,
                 node.Identifier.ValueText,
                 node.FullSpan,
-                //string.Join(TextComma, modifiers),
                 string.IsNullOrEmpty(modifiersString)
                     ? (int)ModifiersSort.Private
                     : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true),
@@ -275,7 +271,6 @@ namespace AwesomeAnalyzer
                 Types.Methods,
                 node.Identifier.ValueText,
                 node.FullSpan,
-                //string.Join(TextComma, modifiers),
                 string.IsNullOrEmpty(modifiersString)
                 ? (int)ModifiersSort.Private
                 : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true),
@@ -292,7 +287,6 @@ namespace AwesomeAnalyzer
             var modifiersText = Enumerable.Range(0, modifiers.Count).Select(x => modifiers[x].ValueText);
             var modifiersString = string.Join(string.Empty, modifiersText.Where(x => x != TextAsync));
 
-            //item.Modifiers = string.Join(TextComma, modifiersText);
             item.ModifiersOrder = string.IsNullOrEmpty(modifiersString)
             ? (int)ModifiersSort.Private
             : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true);
