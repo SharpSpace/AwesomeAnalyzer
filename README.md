@@ -4,7 +4,7 @@ AwesomeAnalyzer is a pack of different Roslyn Analyzers
 
 ## Installation
 
-Download [latest version here](https://github.com/SharpSpace/AwesomeAnalyzer/releases/download/v0.41.2/AwesomeAnalyzer.0.41.2.vsix)
+Download [latest version here](https://github.com/SharpSpace/AwesomeAnalyzer/releases/download/v0.42.0/AwesomeAnalyzer.0.42.0.vsix)
 or on [VisualStudio Marketplace](https://marketplace.visualstudio.com/items?itemName=SharpSpace.AwesomeAnalyzer)
 
 ## Analyzers
@@ -18,6 +18,7 @@ ID | Notes
 [JJ0006](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0006.md) | Remove async and await in method.
 [JJ0007](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0007.md) | Don't return lists with null from methods.
 [JJ0008](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0008.md) | Similar Code Detected.
+[JJ0009](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0009.md) | Property can be made immutable in Record.
 [JJ0100](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0100.md) | Method contains Async prefix.
 [JJ0101](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0101.md) | Method call is missing Await.
 [JJ0102](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0101.md) | Method name is missing Async prefix.
@@ -27,8 +28,8 @@ ID | Notes
 
 You can use the following EditorConfig to configure the analyzers:
 ```ini
-dotnet_diagnostic.JJ0001.enabled = true/false
-dotnet_diagnostic.JJ0001.severity = default/none/silent/suggestion/warning/error
+dotnet_diagnostic.JJNNNN.enabled = true/false
+dotnet_diagnostic.JJNNNN.severity = default/none/silent/suggestion/warning/error
 ```
 
 Example:

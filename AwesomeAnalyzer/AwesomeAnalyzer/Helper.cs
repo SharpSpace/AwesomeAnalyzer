@@ -110,6 +110,23 @@ namespace AwesomeAnalyzer
             return method is T node ? node : default;
         }
 
+
+        public static SyntaxNode GetRoot(this SyntaxNode syntaxNode)
+        {
+            var method = syntaxNode;
+            while (true)
+            {
+                if (method.Parent == null)
+                {
+                    break;
+                }
+
+                method = method.Parent;
+            }
+
+            return method;
+        }
+
         public static bool IsDisabledEditorConfig(this SyntaxNodeAnalysisContext context, string rule)
         {
             var config = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.SemanticModel.SyntaxTree);

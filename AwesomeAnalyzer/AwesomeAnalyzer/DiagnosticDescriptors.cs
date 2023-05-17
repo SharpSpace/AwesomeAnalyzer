@@ -74,6 +74,16 @@ namespace AwesomeAnalyzer
             description: "This code appears to be similar to other code in the project."
         );
 
+        public static readonly DiagnosticDescriptor Rule0009MakeImmutableRecord = new DiagnosticDescriptor(
+            "JJ0009",
+            "Property can be made immutable in Record",
+            "Make property '{0}' immutable in Record",
+            TextPerformance,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Make property immutable in Record."
+        );
+
         public static readonly DiagnosticDescriptor Rule0100RenameAsync = new DiagnosticDescriptor(
             "JJ0100",
             "Method name contains Async prefix",
