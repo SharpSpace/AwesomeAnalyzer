@@ -46,7 +46,9 @@ namespace AwesomeAnalyzer.Analyzers
                         return;
                     }
 
-                    // Skip if class implements interfaces (structs can implement interfaces, but it's a more complex decision)
+                    // Skip if class implements interfaces
+                    // While structs CAN implement interfaces, this is a more complex performance decision
+                    // and is outside the scope of this analyzer's conservative recommendations
                     if (classDeclaration.BaseList.Types.Count > 0)
                     {
                         return;
