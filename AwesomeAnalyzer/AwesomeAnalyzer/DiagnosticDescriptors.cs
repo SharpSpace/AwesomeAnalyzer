@@ -244,6 +244,16 @@ namespace AwesomeAnalyzer
             description: "Order events in correct order."
         );
 
+        public static readonly DiagnosticDescriptor Rule0200ClassAsStruct = new DiagnosticDescriptor(
+            "JJ0200",
+            "Class can be converted to struct",
+            "Class '{0}' can be converted to struct",
+            TextPerformance,
+            DiagnosticSeverity.Info,
+            isEnabledByDefault: true,
+            description: "Class can be converted to struct for better performance."
+        );
+
         private const string TextNaming = "Naming";
 
         private const string TextOrder = "Order";

@@ -77,5 +77,14 @@ namespace AwesomeAnalyzer {
                 return ResourceManager.GetString("MakeSealedCodeFixTitle", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert class to struct.
+        /// </summary>
+        internal static string ClassAsStructCodeFixTitle {
+            get {
+                return ResourceManager.GetString("ClassAsStructCodeFixTitle", resourceCulture);
+            }
+        }
     }
 }
