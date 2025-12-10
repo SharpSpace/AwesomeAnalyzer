@@ -63,6 +63,7 @@ if ($metadata.publisher -ne $Publisher) {
 }
 
 # Check if Node.js is installed
+$nodeVersion = $null
 try {
     $nodeVersion = node --version 2>&1
     $nodeInstalled = ($LASTEXITCODE -eq 0)
@@ -78,6 +79,7 @@ if (-not $nodeInstalled) {
 Write-Host "Node.js version: $nodeVersion"
 
 # Check if tfx-cli is installed
+$tfxVersion = $null
 try {
     $tfxVersion = tfx version 2>&1
     $tfxInstalled = ($LASTEXITCODE -eq 0)
