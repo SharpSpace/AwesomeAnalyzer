@@ -10,7 +10,8 @@ namespace AwesomeAnalyzer
             TextSpan fullSpan,
             //string modifiers,
             int modifiersOrder,
-            string className
+            string className,
+            string regionName = null
         )
         {
             Type = type;
@@ -19,6 +20,7 @@ namespace AwesomeAnalyzer
             //Modifiers = modifiers;
             ModifiersOrder = modifiersOrder;
             ClassName = className;
+            RegionName = regionName;
         }
 
         public string ClassName { get; set; }
@@ -32,6 +34,8 @@ namespace AwesomeAnalyzer
         public string Name { get; set; }
 
         public int Order => (((int)Type) * 1000) + ModifiersOrder;
+
+        public string RegionName { get; set; }
 
         public SortVirtualizationVisitor.Types Type { get; set; }
     }
