@@ -124,4 +124,7 @@
   <data name="MakeSealedCodeFixTitle" xml:space="preserve">
     <value>Add sealed modifier</value>
   </data>
+  <data name="ClassAsStructCodeFixTitle" xml:space="preserve">
+    <value>Convert class to struct</value>
+  </data>
 </root>
