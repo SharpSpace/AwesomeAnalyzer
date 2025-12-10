@@ -42,14 +42,12 @@ $headers = @{ Authorization = "Basic $base64Pat"; Accept = "application/json" }
 # Read the VSIX file as bytes for upload
 $fileContent = [System.IO.File]::ReadAllBytes($VsixPath)
 
-# Try to update existing extension first (PUT), if that fails, try to create new (POST)
+# Update existing extension on Visual Studio Marketplace (does not create new extensions)
 $updateUri = "https://marketplace.visualstudio.com/_apis/gallery/publishers/$Publisher/extensions/$($metadata.id)?api-version=7.1-preview.1"
-$createUri = "https://marketplace.visualstudio.com/_apis/gallery/publishers/$Publisher/extensions?api-version=7.1-preview.1"
 
-Write-Host "Attempting to update existing extension: $updateUri"
+Write-Host "Updating existing extension: $updateUri"
 
 try {
-    # Try updating existing extension first
     $response = Invoke-RestMethod -Uri $updateUri `
         -Method Put `
         -Headers $headers `
@@ -59,28 +57,14 @@ try {
     Write-Host "Extension updated successfully."
 }
 catch {
-    # If update fails, try creating new extension
-    Write-Host "Update failed, attempting to create new extension: $createUri"
-    Write-Host "Update error was: $($_.Exception.Message)"
-    
-    try {
-        $response = Invoke-RestMethod -Uri $createUri `
-            -Method Post `
-            -Headers $headers `
-            -Body $fileContent `
-            -ContentType "application/octet-stream"
-        
-        Write-Host "Extension created successfully."
+    Write-Error "Failed to update extension: $($_.Exception.Message)"
+    if ($_.Exception.Response) {
+        $reader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
+        $responseBody = $reader.ReadToEnd()
+        Write-Error "Response: $responseBody"
     }
-    catch {
-        Write-Error "Failed to create extension: $($_.Exception.Message)"
-        if ($_.Exception.Response) {
-            $reader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
-            $responseBody = $reader.ReadToEnd()
-            Write-Error "Response: $responseBody"
-        }
-        exit 1
-    }
+    Write-Error "Note: This script only updates existing extensions. If the extension does not exist on the marketplace, it must be created manually first."
+    exit 1
 }
 
 if ($response -and $response.id) {
