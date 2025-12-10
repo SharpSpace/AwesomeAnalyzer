@@ -74,5 +74,5 @@ jobs:
           $vsix = Get-ChildItem -Path Setup -Filter *.vsix | Sort-Object LastWriteTime -Descending | Select-Object -First 1
           if (-not $vsix) { Write-Host "No VSIX found in Setup/ - skipping marketplace publish."; exit 0 }
           Write-Host "Publishing $($vsix.Name) to Visual Studio Marketplace (publisher: $env:MARKETPLACE_PUBLISHER)"
-          # Call included script that performs the publish via REST API
+          # Call included script that performs the publish via TFX CLI
           .\Setup\publish-to-marketplace.ps1 -VsixPath $vsix.FullName -Publisher $env:MARKETPLACE_PUBLISHER -Pat $env:MARKETPLACE_PAT
