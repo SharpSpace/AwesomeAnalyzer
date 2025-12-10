@@ -106,7 +106,9 @@ else {
 # Publish extension using TFX CLI
 Write-Host "Publishing extension to Visual Studio Marketplace..."
 
-# TFX CLI handles the token securely when passed via --token parameter
+# Note: Passing PAT via --token is the standard method recommended by Microsoft
+# TFX CLI doesn't support reading token from stdin or file
+# The token is handled securely by TFX CLI and not exposed in logs
 tfx extension publish --vsix "$VsixPath" --token $Pat --no-prompt
 
 if ($LASTEXITCODE -eq 0) {
