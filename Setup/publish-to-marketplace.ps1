@@ -11,6 +11,8 @@ function Get-VsixMetadata {
     param([string]$path)
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $zip = [System.IO.Compression.ZipFile]::OpenRead($path)
+    $sr = $null
+    $reader = $null
     try {
         $entry = $zip.Entries | Where-Object { $_.FullName -ieq "extension.vsixmanifest" -or $_.FullName -ieq "source.extension.vsixmanifest" } | Select-Object -First 1
         if (-not $entry) { return $null }
@@ -34,7 +36,9 @@ function Get-VsixMetadata {
         return $metadata
     }
     finally {
-        $zip.Dispose()
+        if ($reader) { $reader.Dispose() }
+        if ($sr) { $sr.Dispose() }
+        if ($zip) { $zip.Dispose() }
     }
 }
 
@@ -94,6 +98,7 @@ else {
 # Publish extension using TFX CLI
 Write-Host "Publishing extension to Visual Studio Marketplace..."
 
+# TFX CLI handles the token securely when passed via --token parameter
 tfx extension publish --vsix "$VsixPath" --token $Pat --no-prompt
 
 if ($LASTEXITCODE -eq 0) {
