@@ -23,19 +23,34 @@ Translation: "The sorting does not take into account the current sorting in the 
 The infrastructure for region-based sorting is in place, but the region detection needs further refinement:
 
 - **Working**: The code groups members by region identifier
-- **Needs Work**: The `GetRegionName()` method needs debugging to properly extract and identify regions from Roslyn's trivia structure
+- **Needs Work**: The `GetRegionName()` method has several logic issues identified during code review
 
-### Technical Challenge
-The main challenge is reliably detecting which `#region` block a member belongs to using Roslyn's syntax trivia API. Region directives appear as `SyntaxTrivia` with kind `RegionDirectiveTrivia` and `EndRegionDirectiveTrivia`, but extracting the region name and determining membership requires careful traversal of the trivia structure.
+### Technical Challenges
+
+Code review identified the following issues in `GetRegionName()`:
+
+1. **Boundary Detection Flaw**: The logic for finding region boundaries is flawed. When `trivia.SpanStart >= nodePos`, we're looking ahead for an endregion, but this will match the first endregion found, even if it doesn't belong to the current node's region.
+
+2. **Nested Regions**: Setting `regionStart` to null when encountering `EndRegionDirectiveTrivia` doesn't handle nested regions correctly.
+
+3. **Performance**: Calling `ToList()` on all descendant trivia could be expensive for large files.
+
+4. **Exception Handling**: Now catches `Exception` (explicit type) but could be more specific.
 
 ### Next Steps
 To complete the region support:
-1. Debug the `GetRegionName()` method to correctly identify region boundaries
-2. Extract region names from `RegionDirectiveTriviaSyntax` using the appropriate trivia tokens
-3. Add comprehensive tests for region-based sorting scenarios
-4. Handle edge cases (nested regions, regions with no name, etc.)
+1. **Fix boundary detection**: Track region/endregion pairs properly, ensuring we find the correct boundaries for the node
+2. **Handle nested regions**: Use a stack-based approach to track region nesting levels
+3. **Optimize performance**: Stop traversal once region information is found, avoid materializing all trivia
+4. **Extract region names**: Parse the actual region name from `RegionDirectiveTriviaSyntax` 
+5. **Add comprehensive tests**: Test various scenarios (nested regions, unnamed regions, etc.)
 
 ## Code Changes
 - `AwesomeAnalyzer/AwesomeAnalyzer/TypesInformation.cs`: Added `RegionName` property and constructor parameter
 - `AwesomeAnalyzer/AwesomeAnalyzer/SortVirtualizationVisitor.cs`: Added `GetRegionName()` method and updated all Visit methods to capture region information
 - `AwesomeAnalyzer/AwesomeAnalyzer.CodeFixes/SortAndOrderCodeFixProvider.cs`: Modified grouping logic to include `RegionName` in the grouping key
+
+## Testing
+- All 22 existing Sort tests pass
+- Region-specific tests not yet added (infrastructure in place but detection needs fixing)
+- Pre-existing test failures in SimilarTest (10/11 failing) are unrelated to these changes

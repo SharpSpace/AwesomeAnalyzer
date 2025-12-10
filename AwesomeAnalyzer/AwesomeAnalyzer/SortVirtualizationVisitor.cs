@@ -117,9 +117,11 @@ namespace AwesomeAnalyzer
                 
                 return null;
             }
-            catch
+            catch (Exception)
             {
-                // If region detection fails, just return null to fall back to non-region sorting
+                // If region detection fails for any reason, return null to fall back to non-region sorting
+                // This ensures robustness - region detection is a best-effort feature
+                // TODO: Consider logging exceptions for debugging purposes
                 return null;
             }
         }
