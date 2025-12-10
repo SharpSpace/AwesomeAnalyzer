@@ -38,18 +38,41 @@ if ($metadata.publisher -ne $Publisher) {
 $base64Pat = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$Pat"))
 $headers = @{ Authorization = "Basic $base64Pat"; Accept = "application/json" }
 
-# Create new extension (multipart) - upload the VSIX
-$uri = "https://marketplace.visualstudio.com/_apis/gallery/publishers/$Publisher/extensions?api-version=6.0-preview.1"
-$body = Get-Item -Path $VsixPath
+# Upload VSIX to Visual Studio Marketplace
+# Read the VSIX file as bytes for upload
+$fileContent = [System.IO.File]::ReadAllBytes($VsixPath)
 
-Write-Host "Uploading to Marketplace: $uri"
-$response = Invoke-RestMethod -Uri $uri -Method Post -Headers $headers -InFile $VsixPath -ContentType "application/octet-stream"
+# Update existing extension on Visual Studio Marketplace (does not create new extensions)
+$updateUri = "https://marketplace.visualstudio.com/_apis/gallery/publishers/$Publisher/extensions/$($metadata.id)?api-version=7.1-preview.1"
+
+Write-Host "Updating existing extension: $updateUri"
+
+try {
+    $response = Invoke-RestMethod -Uri $updateUri `
+        -Method Put `
+        -Headers $headers `
+        -Body $fileContent `
+        -ContentType "application/octet-stream"
+    
+    Write-Host "Extension updated successfully."
+}
+catch {
+    Write-Error "Failed to update extension: $($_.Exception.Message)"
+    if ($_.Exception.Response) {
+        $reader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
+        $responseBody = $reader.ReadToEnd()
+        Write-Error "Response: $responseBody"
+    }
+    Write-Error "Note: This script only updates existing extensions. If the extension does not exist on the marketplace, it must be created manually first."
+    exit 1
+}
 
 if ($response -and $response.id) {
-    Write-Host "Publish succeeded. Extension id: $($response.versions[0].version)"
+    $version = if ($response.versions) { $response.versions[0].version } else { $metadata.version }
+    Write-Host "Publish succeeded. Extension: $($response.extensionId), Version: $version"
     exit 0
 }
 else {
-    Write-Error "Publish failed. Response: $($response | ConvertTo-Json -Depth 5)"
+    Write-Error "Publish completed but response format unexpected. Response: $($response | ConvertTo-Json -Depth 5)"
     exit 1
 }
