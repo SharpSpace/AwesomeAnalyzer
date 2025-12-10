@@ -62,6 +62,54 @@ namespace AwesomeAnalyzer
             Classes = new ConcurrentDictionary<TextSpan, ClassInformation>();
         }
 
+        private static string GetRegionName(SyntaxNode node)
+        {
+            // Find the containing type declaration
+            var container = node.Ancestors().FirstOrDefault(a => 
+                a is TypeDeclarationSyntax || 
+                a is NamespaceDeclarationSyntax || 
+                a is FileScopedNamespaceDeclarationSyntax);
+            
+            if (container == null) return null;
+
+            // We need to track all regions and their spans
+            // then determine which region this node falls into
+            var nodeStart = node.SpanStart;
+            string activeRegion = null;
+            
+            // Iterate through all descendants to find region directives
+            foreach (var descendant in container.DescendantNodesAndTokensAndSelf(descendIntoTrivia: true))
+            {
+                foreach (var trivia in descendant.GetLeadingTrivia().Concat(descendant.GetTrailingTrivia()))
+                {
+                    if (trivia.SpanStart >= nodeStart)
+                    {
+                        // We've gone past our node
+                        return activeRegion;
+                    }
+                    
+                    if (trivia.IsKind(SyntaxKind.RegionDirectiveTrivia))
+                    {
+                        var directive = (RegionDirectiveTriviaSyntax)trivia.GetStructure();
+                        // Get region name from preprocessing message trivia
+                        var message = directive.EndOfDirectiveToken.LeadingTrivia
+                            .FirstOrDefault(t => t.IsKind(SyntaxKind.PreprocessingMessageTrivia));
+                        activeRegion = message.ToString().Trim();
+                        if (string.IsNullOrEmpty(activeRegion))
+                        {
+                            activeRegion = directive.EndOfDirectiveToken.LeadingTrivia.ToString().Trim();
+                        }
+                    }
+                    else if (trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+                    {
+                        activeRegion = null;
+                    }
+                }
+            }
+            
+            return activeRegion;
+        }
+
         public ConcurrentDictionary<Types, List<TypesInformation>> Members { get; }
 
         public ConcurrentDictionary<TextSpan, ClassInformation> Classes { get; }
@@ -125,7 +173,8 @@ namespace AwesomeAnalyzer
                 node.Identifier.ValueText,
                 node.FullSpan,
                 default,
-                GetClassName(node)
+                GetClassName(node),
+                GetRegionName(node)
             );
 
             SetModifiers(node.Modifiers, item);
@@ -162,7 +211,8 @@ namespace AwesomeAnalyzer
                 node.Declaration.Variables[0].Identifier.ValueText,
                 node.FullSpan,
                 default,
-                GetClassName(node)
+                GetClassName(node),
+                GetRegionName(node)
             );
 
             SetModifiers(node.Modifiers, item);
@@ -180,7 +230,8 @@ namespace AwesomeAnalyzer
                 node.Identifier.ValueText,
                 node.FullSpan,
                 default,
-                GetClassName(node)
+                GetClassName(node),
+                GetRegionName(node)
             );
 
             AddToList(item, Types.Constructor);
@@ -196,7 +247,8 @@ namespace AwesomeAnalyzer
                 node.Identifier.ValueText,
                 node.FullSpan,
                 default,
-                GetClassName(node)
+                GetClassName(node),
+                GetRegionName(node)
             );
 
             SetModifiers(node.Modifiers, item);
@@ -214,7 +266,8 @@ namespace AwesomeAnalyzer
                 node.Declaration.Variables[0].Identifier.ValueText,
                 node.FullSpan,
                 default,
-                GetClassName(node)
+                GetClassName(node),
+                GetRegionName(node)
             );
 
             SetModifiers(node.Modifiers, item);
@@ -232,7 +285,8 @@ namespace AwesomeAnalyzer
                 node.Identifier.ValueText,
                 node.FullSpan,
                 default,
-                GetClassName(node)
+                GetClassName(node),
+                GetRegionName(node)
             );
 
             SetModifiers(node.Modifiers, item);
@@ -254,7 +308,8 @@ namespace AwesomeAnalyzer
                 string.IsNullOrEmpty(modifiersString)
                     ? (int)ModifiersSort.Private
                     : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true),
-                GetClassName(node)
+                GetClassName(node),
+                GetRegionName(node)
             );
 
             AddToList(item, Types.Property);
@@ -274,7 +329,8 @@ namespace AwesomeAnalyzer
                 string.IsNullOrEmpty(modifiersString)
                 ? (int)ModifiersSort.Private
                 : (int)Enum.Parse(typeof(ModifiersSort), modifiersString, true),
-                GetClassName(node)
+                GetClassName(node),
+                GetRegionName(node)
             );
 
             AddToList(item, Types.Methods);
