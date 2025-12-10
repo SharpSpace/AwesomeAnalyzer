@@ -64,50 +64,64 @@ namespace AwesomeAnalyzer
 
         private static string GetRegionName(SyntaxNode node)
         {
-            // Find the containing type declaration
-            var container = node.Ancestors().FirstOrDefault(a => 
-                a is TypeDeclarationSyntax || 
-                a is NamespaceDeclarationSyntax || 
-                a is FileScopedNamespaceDeclarationSyntax);
-            
-            if (container == null) return null;
-
-            // We need to track all regions and their spans
-            // then determine which region this node falls into
-            var nodeStart = node.SpanStart;
-            string activeRegion = null;
-            
-            // Iterate through all descendants to find region directives
-            foreach (var descendant in container.DescendantNodesAndTokensAndSelf(descendIntoTrivia: true))
+            try
             {
-                foreach (var trivia in descendant.GetLeadingTrivia().Concat(descendant.GetTrailingTrivia()))
+                // Find all region and endregion directives in the parent container
+                var container = node.Ancestors().FirstOrDefault(a => 
+                    a is TypeDeclarationSyntax || 
+                    a is NamespaceDeclarationSyntax || 
+                    a is FileScopedNamespaceDeclarationSyntax);
+                
+                if (container == null) return null;
+
+                int nodePos = node.SpanStart;
+                int? regionStart = null;
+                int? regionEnd = null;
+                
+                // Find the region boundaries that contain this node
+                var allTrivia = container.DescendantTrivia().ToList();
+                
+                for (int i = 0; i < allTrivia.Count; i++)
                 {
-                    if (trivia.SpanStart >= nodeStart)
+                    var trivia = allTrivia[i];
+                    
+                    if (trivia.SpanStart >= nodePos)
                     {
-                        // We've gone past our node
-                        return activeRegion;
+                        // Look ahead to find the next endregion
+                        for (int j = i; j < allTrivia.Count; j++)
+                        {
+                            if (allTrivia[j].IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+                            {
+                                regionEnd = allTrivia[j].SpanStart;
+                                break;
+                            }
+                        }
+                        break;
                     }
                     
                     if (trivia.IsKind(SyntaxKind.RegionDirectiveTrivia))
                     {
-                        var directive = (RegionDirectiveTriviaSyntax)trivia.GetStructure();
-                        // Get region name from preprocessing message trivia
-                        var message = directive.EndOfDirectiveToken.LeadingTrivia
-                            .FirstOrDefault(t => t.IsKind(SyntaxKind.PreprocessingMessageTrivia));
-                        activeRegion = message.ToString().Trim();
-                        if (string.IsNullOrEmpty(activeRegion))
-                        {
-                            activeRegion = directive.EndOfDirectiveToken.LeadingTrivia.ToString().Trim();
-                        }
+                        regionStart = trivia.SpanStart;
                     }
                     else if (trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
                     {
-                        activeRegion = null;
+                        regionStart = null;
                     }
                 }
+                
+                // If we found a region boundary, use its position as the identifier
+                if (regionStart.HasValue && regionEnd.HasValue)
+                {
+                    return $"region_{regionStart}_{regionEnd}";
+                }
+                
+                return null;
             }
-            
-            return activeRegion;
+            catch
+            {
+                // If region detection fails, just return null to fall back to non-region sorting
+                return null;
+            }
         }
 
         public ConcurrentDictionary<Types, List<TypesInformation>> Members { get; }
