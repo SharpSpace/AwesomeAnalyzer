@@ -110,88 +110,7 @@ namespace AwesomeAnalyzer.Analyzers
             context.RegisterSyntaxNodeAction(AnalyzeConstructorNode, SyntaxKind.ConstructorDeclaration);
         }
 
-        private static bool AnalyzeOrder(
-            ILookup<SortVirtualizationVisitor.Types, TypesInformation> members,
-            SortVirtualizationVisitor.Types type,
-            TextSpan span,
-            CancellationToken token
-        )
-        {
-            using (var _ = new MeasureTime())
-            {
-                if (token.IsCancellationRequested) return false;
-                if (members.Contains(type) == false)
-                {
-                    return false;
-                }
-
-                var member = members[type].Single(x => x.FullSpan == span);
-                if (string.IsNullOrWhiteSpace(member.ClassName)) return false;
-                if (member.ClassName.Count(z => z == '.') >= 1) return false;
-
-                var memberIndex = (member.FullSpan, member.Order);
-                var classMemberList = members.SelectMany(x => x).Where(x => x.ClassName == member.ClassName).ToList();
-                var membersIndex = classMemberList.Select(y => (y.FullSpan, y.Order)).ToList();
-
-                if (membersIndex.Any(x => x.Order > memberIndex.Order && x.FullSpan.Start < memberIndex.FullSpan.Start))
-                {
-                    return true;
-                }
-
-                if (membersIndex.Any(x => x.Order < memberIndex.Order && x.FullSpan.Start > memberIndex.FullSpan.Start))
-                {
-                    return true;
-                }
-
-                return false;
-            }
-        }
-
-        private static bool AnalyzeSort(
-            ImmutableHashSet<KeyValuePair<TextSpan, ClassInformation>> classes,
-            IReadOnlyCollection<TypesInformation> members,
-            TextSpan fullSpan,
-            CancellationToken token
-        )
-        {
-            using (var _ = new MeasureTime())
-            {
-                if (token.IsCancellationRequested) return false;
-                var member = members.SingleOrDefault(x => x.FullSpan.Start == fullSpan.Start);
-                if (member == null) return false;
-                if (string.IsNullOrWhiteSpace(member.ClassName)) return false;
-                if (member.ClassName.Count(x => x == '.') >= 1) return false;
-
-                var classMembers = members.Where(x => x.ClassName == member.ClassName).ToList();
-
-                foreach (var item in classes)
-                {
-                    using (var __ = new MeasureTime(true, $"{nameof(AnalyzeSort)}->foreach"))
-                    {
-                        if (token.IsCancellationRequested) return false;
-
-                        var classMemberList = classMembers
-                            .Where(x => 
-                                x.FullSpan.IntersectsWith(item.Value.FullSpan)
-                            )
-                            .ToList();
-                        var currentIndexOf = classMemberList.IndexOf(member);
-
-                        var sortedList = classMemberList
-                            .OrderBy(x => x.Order)
-                            .ThenBy(x => PadNumbers(x.Name))
-                            .ToImmutableArray();
-                        var sortedIndexOf = sortedList.IndexOf(member);
-
-                        if (currentIndexOf != sortedIndexOf) return true;
-                    }
-                }
-
-                return false;
-            }
-        }
-
-        private void Analyze(
+        private static void Analyze(
             SyntaxNodeAnalysisContext context,
             SortVirtualizationVisitor.Types types,
             SyntaxToken syntaxToken,
@@ -199,7 +118,7 @@ namespace AwesomeAnalyzer.Analyzers
             DiagnosticDescriptor sortRule
         )
         {
-            using (var _ = new MeasureTime())
+            using (_ = new MeasureTime())
             {
                 var sortVirtualizationVisitor = new SortVirtualizationVisitor(context.CancellationToken);
 
@@ -237,7 +156,7 @@ namespace AwesomeAnalyzer.Analyzers
             }
         }
 
-        private void AnalyzeConstructorNode(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeConstructorNode(SyntaxNodeAnalysisContext context)
         {
             var sortVirtualizationVisitor = new SortVirtualizationVisitor(context.CancellationToken);
             sortVirtualizationVisitor.Visit(context.Node.Parent);
@@ -246,7 +165,7 @@ namespace AwesomeAnalyzer.Analyzers
                 .SelectMany(
                     x =>
                         x.Value
-                            .Where(y => string.IsNullOrWhiteSpace(y.ClassName) == false)
+                            .Where(y => !string.IsNullOrWhiteSpace(y.ClassName))
                             .Select(y => new { x.Key, y })
                 )
                 .ToLookup(x => x.Key, x => x.y);
@@ -271,7 +190,44 @@ namespace AwesomeAnalyzer.Analyzers
             }
         }
 
-        private void AnalyzeOrderAndSort(
+        private static bool AnalyzeOrder(
+            ILookup<SortVirtualizationVisitor.Types, TypesInformation> members,
+            SortVirtualizationVisitor.Types type,
+            TextSpan span,
+            CancellationToken token
+        )
+        {
+            using (_ = new MeasureTime())
+            {
+                if (token.IsCancellationRequested) return false;
+                if (!members.Contains(type))
+                {
+                    return false;
+                }
+
+                var member = members[type].Single(x => x.FullSpan == span);
+                if (string.IsNullOrWhiteSpace(member.ClassName)) return false;
+                if (member.ClassName.Any(z => z == '.')) return false;
+
+                var memberIndex = (member.FullSpan, member.Order);
+                var classMemberList = members.SelectMany(x => x).Where(x => x.ClassName == member.ClassName).ToList();
+                var membersIndex = classMemberList.Select(y => (y.FullSpan, y.Order)).ToList();
+
+                if (membersIndex.Any(x => x.Order > memberIndex.Order && x.FullSpan.Start < memberIndex.FullSpan.Start))
+                {
+                    return true;
+                }
+
+                if (membersIndex.Any(x => x.Order < memberIndex.Order && x.FullSpan.Start > memberIndex.FullSpan.Start))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        private static void AnalyzeOrderAndSort(
             ImmutableHashSet<KeyValuePair<TextSpan, ClassInformation>> classInformations,
             ILookup<SortVirtualizationVisitor.Types, TypesInformation> members,
             SyntaxNodeAnalysisContext context,
@@ -282,7 +238,7 @@ namespace AwesomeAnalyzer.Analyzers
             DiagnosticDescriptor sortRule
         )
         {
-            if (context.IsDisabledEditorConfig(orderRule.Id) == false &&
+            if (!context.IsDisabledEditorConfig(orderRule.Id) &&
                 AnalyzeOrder(
                     members,
                     types,
@@ -301,7 +257,7 @@ namespace AwesomeAnalyzer.Analyzers
                 );
             }
             else if (
-                context.IsDisabledEditorConfig(sortRule.Id) == false &&
+                !context.IsDisabledEditorConfig(sortRule.Id) &&
                 AnalyzeSort(
                     classInformations,
                     members[types].ToList(),
@@ -316,6 +272,50 @@ namespace AwesomeAnalyzer.Analyzers
                     messageArgs: new object[] { syntaxIdentifier.ValueText }
                 );
                 context.ReportDiagnostic(diagnostic);
+            }
+        }
+
+        private static bool AnalyzeSort(
+            ImmutableHashSet<KeyValuePair<TextSpan, ClassInformation>> classes,
+            IReadOnlyCollection<TypesInformation> members,
+            TextSpan fullSpan,
+            CancellationToken token
+        )
+        {
+            using (_ = new MeasureTime())
+            {
+                if (token.IsCancellationRequested) return false;
+                var member = members.SingleOrDefault(x => x.FullSpan.Start == fullSpan.Start);
+                if (member == null) return false;
+                if (string.IsNullOrWhiteSpace(member.ClassName)) return false;
+                if (member.ClassName.Any(x => x == '.')) return false;
+
+                var classMembers = members.Where(x => x.ClassName == member.ClassName).ToList();
+
+                foreach (var item in classes)
+                {
+                    using (_ = new MeasureTime(true, $"{nameof(AnalyzeSort)}->foreach"))
+                    {
+                        if (token.IsCancellationRequested) return false;
+
+                        var classMemberList = classMembers
+                            .Where(x =>
+                                x.FullSpan.IntersectsWith(item.Value.FullSpan)
+                            )
+                            .ToList();
+                        var currentIndexOf = classMemberList.IndexOf(member);
+
+                        var sortedList = classMemberList
+                            .OrderBy(x => x.Order)
+                            .ThenBy(x => PadNumbers(x.Name))
+                            .ToImmutableArray();
+                        var sortedIndexOf = sortedList.IndexOf(member);
+
+                        if (currentIndexOf != sortedIndexOf) return true;
+                    }
+                }
+
+                return false;
             }
         }
     }
