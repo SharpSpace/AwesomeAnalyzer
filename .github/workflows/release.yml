@@ -46,7 +46,9 @@ jobs:
         with:
           tag: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          files: Setup/*
+          artifacts: Setup/*
+          allowUpdates: true
+          replacesArtifacts: true
 
       - name: Check Marketplace secrets
         id: check-marketplace-secrets
