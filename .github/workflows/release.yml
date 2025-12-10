@@ -23,7 +23,7 @@ jobs:
         run: dotnet restore "AwesomeAnalyzer.sln"
 
       - name: Build solution (Release)
-        run: dotnet msbuild "AwesomeAnalyzer.sln" -t:Rebuild -p:Configuration=Release
+        run: dotnet msbuild "AwesomeAnalyzer.sln" -t:Rebuild -p:Configuration=Release -p:DeployExtension=false
 
       - name: Find and copy VSIX to Setup folder
         shell: pwsh
