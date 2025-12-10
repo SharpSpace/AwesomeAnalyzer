@@ -38,18 +38,57 @@ if ($metadata.publisher -ne $Publisher) {
 $base64Pat = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$Pat"))
 $headers = @{ Authorization = "Basic $base64Pat"; Accept = "application/json" }
 
-# Create new extension (multipart) - upload the VSIX
-$uri = "https://marketplace.visualstudio.com/_apis/gallery/publishers/$Publisher/extensions?api-version=6.0-preview.1"
-$body = Get-Item -Path $VsixPath
+# Upload VSIX to Visual Studio Marketplace
+# Read the VSIX file as bytes for upload
+$fileContent = [System.IO.File]::ReadAllBytes($VsixPath)
 
-Write-Host "Uploading to Marketplace: $uri"
-$response = Invoke-RestMethod -Uri $uri -Method Post -Headers $headers -InFile $VsixPath -ContentType "application/octet-stream"
+# Try to update existing extension first (PUT), if that fails, try to create new (POST)
+$updateUri = "https://marketplace.visualstudio.com/_apis/gallery/publishers/$Publisher/extensions/$($metadata.id)?api-version=7.1-preview.1"
+$createUri = "https://marketplace.visualstudio.com/_apis/gallery/publishers/$Publisher/extensions?api-version=7.1-preview.1"
+
+Write-Host "Attempting to update existing extension: $updateUri"
+
+try {
+    # Try updating existing extension first
+    $response = Invoke-RestMethod -Uri $updateUri `
+        -Method Put `
+        -Headers $headers `
+        -Body $fileContent `
+        -ContentType "application/octet-stream"
+    
+    Write-Host "Extension updated successfully."
+}
+catch {
+    # If update fails, try creating new extension
+    Write-Host "Update failed, attempting to create new extension: $createUri"
+    Write-Host "Update error was: $($_.Exception.Message)"
+    
+    try {
+        $response = Invoke-RestMethod -Uri $createUri `
+            -Method Post `
+            -Headers $headers `
+            -Body $fileContent `
+            -ContentType "application/octet-stream"
+        
+        Write-Host "Extension created successfully."
+    }
+    catch {
+        Write-Error "Failed to create extension: $($_.Exception.Message)"
+        if ($_.Exception.Response) {
+            $reader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
+            $responseBody = $reader.ReadToEnd()
+            Write-Error "Response: $responseBody"
+        }
+        exit 1
+    }
+}
 
 if ($response -and $response.id) {
-    Write-Host "Publish succeeded. Extension id: $($response.versions[0].version)"
+    $version = if ($response.versions) { $response.versions[0].version } else { $metadata.version }
+    Write-Host "Publish succeeded. Extension: $($response.extensionId), Version: $version"
     exit 0
 }
 else {
-    Write-Error "Publish failed. Response: $($response | ConvertTo-Json -Depth 5)"
+    Write-Error "Publish completed but response format unexpected. Response: $($response | ConvertTo-Json -Depth 5)"
     exit 1
 }
