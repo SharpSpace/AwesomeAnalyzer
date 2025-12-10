@@ -59,16 +59,26 @@ if ($metadata.publisher -ne $Publisher) {
 }
 
 # Check if Node.js is installed
-$nodeVersion = node --version 2>$null
-if (-not $nodeVersion) {
+try {
+    $nodeVersion = node --version 2>&1
+    if ($LASTEXITCODE -ne 0) { throw }
+    Write-Host "Node.js version: $nodeVersion"
+}
+catch {
     Write-Error "Node.js is not installed. TFX CLI requires Node.js."
     exit 1
 }
-Write-Host "Node.js version: $nodeVersion"
 
 # Check if tfx-cli is installed
-$tfxVersion = tfx version 2>$null
-if (-not $tfxVersion) {
+try {
+    $tfxVersion = tfx version 2>&1
+    $tfxInstalled = ($LASTEXITCODE -eq 0)
+}
+catch {
+    $tfxInstalled = $false
+}
+
+if (-not $tfxInstalled) {
     Write-Host "TFX CLI not found. Installing tfx-cli..."
     npm install -g tfx-cli
     if ($LASTEXITCODE -ne 0) {
@@ -83,7 +93,6 @@ else {
 
 # Publish extension using TFX CLI
 Write-Host "Publishing extension to Visual Studio Marketplace..."
-Write-Host "Command: tfx extension publish --vsix `"$VsixPath`" --token [REDACTED]"
 
 tfx extension publish --vsix "$VsixPath" --token $Pat --no-prompt
 
