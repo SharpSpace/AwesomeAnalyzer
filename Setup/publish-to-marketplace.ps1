@@ -65,13 +65,17 @@ if ($metadata.publisher -ne $Publisher) {
 # Check if Node.js is installed
 try {
     $nodeVersion = node --version 2>&1
-    if ($LASTEXITCODE -ne 0) { throw }
-    Write-Host "Node.js version: $nodeVersion"
+    $nodeInstalled = ($LASTEXITCODE -eq 0)
 }
 catch {
-    Write-Error "Node.js is not installed. TFX CLI requires Node.js."
+    $nodeInstalled = $false
+}
+
+if (-not $nodeInstalled) {
+    Write-Error "Node.js is not installed or not in PATH. TFX CLI requires Node.js."
     exit 1
 }
+Write-Host "Node.js version: $nodeVersion"
 
 # Check if tfx-cli is installed
 try {
