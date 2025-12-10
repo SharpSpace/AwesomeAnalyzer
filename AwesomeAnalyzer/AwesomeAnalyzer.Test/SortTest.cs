@@ -4,10 +4,9 @@
 
 namespace AwesomeAnalyzer.Test;
 
-[TestClass]
 public sealed class SortTest
 {
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic1()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -21,11 +20,10 @@ public sealed class SortTest
                 void C() { }
             }
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic2()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -38,11 +36,10 @@ public sealed class SortTest
                 }
             }
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic3()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -56,11 +53,10 @@ public sealed class SortTest
                 public int A10 { get; set; }
             }
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic4()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -81,11 +77,10 @@ public sealed class SortTest
                 }
             }
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic5()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -106,11 +101,10 @@ public sealed class SortTest
                 }
             }
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic6()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -134,11 +128,10 @@ public sealed class SortTest
                 None
             }
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic7()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -173,11 +166,10 @@ public sealed class SortTest
                 }
             }
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestSort_Diagnostic1()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -201,11 +193,10 @@ public sealed class SortTest
                 void C() { }
             }
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestSort_Diagnostic2()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -281,11 +272,10 @@ public sealed class SortTest
                 void C() { }
             }
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestSort_Diagnostic3()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -305,11 +295,10 @@ public sealed class SortTest
                 private string _b;
             }
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestSort_Diagnostic4()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -343,11 +332,10 @@ public sealed class SortTest
                 }
             }
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestSort_Diagnostic5()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -381,11 +369,10 @@ public sealed class SortTest
                 private string _b;
             }
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestSort_Diagnostic6()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -405,11 +392,10 @@ public sealed class SortTest
                 private readonly string _a;
             }
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestSort_Diagnostic7()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -537,11 +523,10 @@ public sealed class SortTest
             //    }
             //}
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestSort_Diagnostic8()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -631,11 +616,10 @@ public sealed class SortTest
                 }
             }
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestSort_Diagnostic9()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -697,11 +681,10 @@ public sealed class SortTest
                 public string RequestUri { get; set; }
             }
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestSort_Diagnostic10()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -725,11 +708,10 @@ public sealed class SortTest
                 public string Object { get; set; }
             }
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestSort_Diagnostic11()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -749,11 +731,10 @@ public sealed class SortTest
                 public string Z { get; set; }
             }
             """
-            )
-            .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestSortMember_Diagnostic1()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -773,11 +754,10 @@ public sealed class SortTest
                 private const string _d = "Const";
             }
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestSortMember_Diagnostic2()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -817,11 +797,10 @@ public sealed class SortTest
                 private string _a;
             }
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestSortMember_Diagnostic3()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -847,11 +826,10 @@ public sealed class SortTest
                 }
             }
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestSortProperty_Diagnostic1()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -881,7 +859,6 @@ public sealed class SortTest
                 }
             }
             """
-        )
-        .ConfigureAwait(false);
+        );
     }
 }

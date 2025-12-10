@@ -3,7 +3,7 @@
 public static partial class CSharpCodeRefactoringVerifier<TCodeRefactoring>
     where TCodeRefactoring : CodeRefactoringProvider, new()
 {
-    public sealed class Test : CSharpCodeRefactoringTest<TCodeRefactoring, MSTestVerifier>
+    public sealed class Test : CSharpCodeRefactoringTest<TCodeRefactoring, XUnitVerifier>
     {
         public Test()
         {

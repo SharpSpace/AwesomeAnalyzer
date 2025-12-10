@@ -4,10 +4,9 @@
 
 namespace AwesomeAnalyzer.Test;
 
-[TestClass]
 public sealed class AddAsyncPrefixTest
 {
-    [TestMethod]
+    [Fact]
     public async Task TestMissingAsync_Diagnostic1()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -38,10 +37,10 @@ public sealed class AddAsyncPrefixTest
             }
             """
             )
-            .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestMissingAsync_Diagnostic2()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -70,10 +69,10 @@ public sealed class AddAsyncPrefixTest
             }
             """
             )
-            .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestMissingAsync_Diagnostic3()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -104,10 +103,10 @@ public sealed class AddAsyncPrefixTest
             }
             """
             )
-            .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestMissingAsync_NoDiagnostic1()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -125,10 +124,10 @@ public sealed class AddAsyncPrefixTest
             }
             """
             )
-            .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestMissingAsync_NoDiagnostic2()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -142,10 +141,10 @@ public sealed class AddAsyncPrefixTest
             }
             """
             )
-            .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestMissingAsync_NoDiagnostic3()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -163,10 +162,10 @@ public sealed class AddAsyncPrefixTest
             }
             """
             )
-            .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestMissingAsync_NoDiagnostic4()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -182,6 +181,6 @@ public sealed class AddAsyncPrefixTest
             }
             """
             )
-            .ConfigureAwait(false);
+;
     }
 }

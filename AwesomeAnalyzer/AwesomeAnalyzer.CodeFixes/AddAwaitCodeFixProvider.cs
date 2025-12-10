@@ -19,8 +19,10 @@ namespace AwesomeAnalyzer
     public sealed class AddAwaitCodeFixProvider : CodeFixProvider
     {
         private const string TextAsync = "async";
-        private const string TextTask = "Task";
+
         private const string TextAwait = "await ";
+
+        private const string TextTask = "Task";
 
         public override ImmutableArray<string> FixableDiagnosticIds =>
             ImmutableArray.Create(DiagnosticDescriptors.Rule0101AddAwait.Id);
@@ -54,25 +56,22 @@ namespace AwesomeAnalyzer
             }
         }
 
-        private async Task<Document> AddAwaitAsync(
+        private static async Task<Document> AddAwaitAsync(
             Document document,
             InvocationExpressionSyntax declaration,
             CancellationToken token
         )
         {
-            //Debug.WriteLine($"declaration: {declaration.GetType().Name} {declaration.ToFullString()}");
-
             var sourceText = (await document.GetSyntaxRootAsync(token).ConfigureAwait(false)).GetText();
             if (sourceText == null)
             {
                 return document;
             }
 
-            //Debug.WriteLine($"sourceText: {sourceText}");
-
             var replaceList = new List<(TextSpan, string)>();
 
-            foreach (var parenthesizedLambdaExpressionSyntax in declaration.DescendantNodesAndSelf().OfType<ParenthesizedLambdaExpressionSyntax>().OrderByDescending(x => x.SpanStart)) {
+            foreach (var parenthesizedLambdaExpressionSyntax in declaration.DescendantNodesAndSelf().OfType<ParenthesizedLambdaExpressionSyntax>().OrderByDescending(x => x.SpanStart))
+            {
                 Debug.WriteLine($"parenthesizedLambdaExpressionSyntax: {parenthesizedLambdaExpressionSyntax.ToFullString()}");
                 replaceList.Add((
                     new TextSpan(
@@ -93,7 +92,8 @@ namespace AwesomeAnalyzer
 
             var methodDeclarationSyntax = declaration.HasParent<MethodDeclarationSyntax>();
             var methodModifiers = methodDeclarationSyntax?.Modifiers.ToList();
-            if ((methodModifiers?.Any(x => x.ValueText == TextAsync) ?? false) == false) {
+            if (!(methodModifiers?.Any(x => x.ValueText == TextAsync) ?? false))
+            {
                 var newType = methodDeclarationSyntax.ReturnType.ToString() != "void"
                     ? $"Task<{methodDeclarationSyntax.ReturnType}>"
                     : TextTask;
@@ -127,7 +127,6 @@ namespace AwesomeAnalyzer
                             "await "
                         ));
                     }
-                    //Debug.WriteLine($"{symbolInfo.ReturnType.Name} {invocationExpressionSyntax.GetType().Name}: {invocationExpressionSyntax.ToFullString()}");
                 }
             }
 
@@ -135,16 +134,15 @@ namespace AwesomeAnalyzer
                 .OrderByDescending(x => x.Item1.Start)
                 .Aggregate(
                     sourceText,
-                    (text, tuple) => {
+                    (text, tuple) =>
+                    {
                         var start = tuple.Item1.Start;
                         var length = tuple.Item1.Length;
-                        //Debug.WriteLine("textOut: '" + text.GetSubText(new TextSpan(start, length)) + "' -> '" + tuple.Item2 + "'");
                         var result = text.Replace(
                             start,
                             length,
                             tuple.Item2
                         );
-                        //Debug.WriteLine($"Result: {result}");
                         return result;
                     }
                 );

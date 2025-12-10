@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -24,7 +23,7 @@ namespace AwesomeAnalyzer.Analyzers
 
         private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            using (var _ = new MeasureTime())
+            using (_ = new MeasureTime())
             {
                 if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0003MakeConst.Id))
                 {

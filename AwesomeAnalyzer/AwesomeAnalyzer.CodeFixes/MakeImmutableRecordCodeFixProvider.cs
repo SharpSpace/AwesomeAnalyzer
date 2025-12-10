@@ -45,7 +45,7 @@ namespace AwesomeAnalyzer
                 {
                     declarations.AddRange(syntaxes);
                 }
-                
+
                 message.AppendLine(diagnostic.GetMessage());
             }
 
@@ -64,23 +64,111 @@ namespace AwesomeAnalyzer
             );
         }
 
-        private async Task<Document> FixCodeAsync(
+        private static IEnumerable<(SyntaxNode item, SyntaxNode syntax)> FindRecordConstructorUsages(
+            SemanticModel semanticModel,
+            RecordDeclarationSyntax declaration,
+            ImmutableList<PropertyDeclarationSyntax> propertyDeclarationSyntaxes
+        )
+        {
+            var propertySymbol = semanticModel.GetDeclaredSymbol(declaration);
+            if (propertySymbol == null)
+            {
+                yield break;
+            }
+
+            var symbolEqualityComparer = SymbolEqualityComparer.Default;
+
+            var syntaxNode = declaration.GetRoot();
+            var descendantNodes = syntaxNode.DescendantNodes().Where(x => x is ObjectCreationExpressionSyntax);
+
+            var references = descendantNodes
+                .SelectMany(method => method.DescendantNodes().OfType<ExpressionSyntax>())
+                .Where(x => symbolEqualityComparer.Equals(semanticModel.GetSymbolInfo(x).Symbol, propertySymbol))
+                .ToList();
+
+            var propertyNames = propertyDeclarationSyntaxes.Select(x => x.Identifier.ValueText).ToImmutableList();
+
+            foreach (var item in references)
+            {
+                if (!(item.Parent is ObjectCreationExpressionSyntax objectCreationExpressionSyntax)) continue;
+
+                var assignmentExpressionSyntaxes = objectCreationExpressionSyntax.Initializer.Expressions
+                    .OfType<AssignmentExpressionSyntax>().ToList();
+
+                var argumentsToAdd = assignmentExpressionSyntaxes
+                    .Where(x => propertyNames.Contains((x.Left as IdentifierNameSyntax).Identifier.ValueText));
+
+                if (!assignmentExpressionSyntaxes
+                    .Any(x => !propertyNames.Contains((x.Left as IdentifierNameSyntax).Identifier.ValueText)) || !argumentsToAdd.Any())
+                {
+                    continue;
+                }
+
+                var expressionsLastTrailingTrivia = objectCreationExpressionSyntax.Initializer.Expressions.Last().GetTrailingTrivia();
+
+                var initializer = objectCreationExpressionSyntax.Initializer
+                    .WithLeadingTrivia(objectCreationExpressionSyntax.Initializer.GetLeadingTrivia().Insert(0, SyntaxFactory.CarriageReturnLineFeed))
+                    .WithExpressions(
+                        SyntaxFactory.SeparatedList<ExpressionSyntax>(
+                            assignmentExpressionSyntaxes
+                                .Where(x =>
+                                    !propertyNames.Contains((x.Left as IdentifierNameSyntax).Identifier.ValueText)
+                                )
+                        )
+                    )
+                    .WithCloseBraceToken(
+                        objectCreationExpressionSyntax.Initializer.CloseBraceToken
+                            .WithLeadingTrivia(
+                                SyntaxFactory.ParseLeadingTrivia(
+                                        objectCreationExpressionSyntax.Initializer.CloseBraceToken.LeadingTrivia
+                                            .ToFullString()
+                                            .Replace(Environment.NewLine, string.Empty)
+                                    )
+                                    .InsertRange(0, expressionsLastTrailingTrivia.ToArray())
+                            )
+                    )
+                    ;
+
+                var syntax = objectCreationExpressionSyntax
+                    .WithType(objectCreationExpressionSyntax.Type.WithoutTrivia())
+                    .WithArgumentList(
+                        (objectCreationExpressionSyntax.ArgumentList ?? SyntaxFactory.ArgumentList()).AddArguments(
+                            argumentsToAdd.Select(x =>
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.LiteralExpression(
+                                        SyntaxKind.StringLiteralExpression,
+                                        SyntaxFactory.Literal(x.Right.ToString().Replace("\"", string.Empty))
+                                    )
+                                )
+                            ).ToArray()
+                        ).WithoutTrivia()
+                    )
+                    .WithInitializer(
+                        initializer
+                    )
+                    .WithTrailingTrivia(objectCreationExpressionSyntax.GetTrailingTrivia());
+
+                yield return (item.Parent, syntax);
+            }
+        }
+
+        private static async Task<Document> FixCodeAsync(
             Document document,
             SyntaxNode root,
             List<PropertyDeclarationSyntax> declarations,
             CancellationToken cancellationToken
         )
         {
-            var record = declarations.First().HasParent<RecordDeclarationSyntax>();
+            var record = declarations[0].HasParent<RecordDeclarationSyntax>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var propertyDeclarationSyntaxes = record.Members.OfType<PropertyDeclarationSyntax>().ToImmutableList();
 
             var propertiesUsed = GetPropertiesUsed(semanticModel, propertyDeclarationSyntaxes).ToList();
             var propertiesToChange = propertyDeclarationSyntaxes.Except(propertiesUsed).ToImmutableList();
-            var parameterList = (record.ParameterList ?? SyntaxFactory.ParameterList());
+            var parameterList = record.ParameterList ?? SyntaxFactory.ParameterList();
             var recordParameterList = parameterList
                 .AddParameters(
-                    propertiesToChange.Select((x, i) => 
+                    propertiesToChange.Select((x, i) =>
                         SyntaxFactory.Parameter(
                             SyntaxFactory.Identifier(x.Identifier.ValueText)
                         )
@@ -128,95 +216,7 @@ namespace AwesomeAnalyzer
             return document.WithText(newRoot);
         }
 
-        private IEnumerable<(SyntaxNode item, SyntaxNode syntax)> FindRecordConstructorUsages(
-            SemanticModel semanticModel,
-            RecordDeclarationSyntax declaration,
-            ImmutableList<PropertyDeclarationSyntax> propertyDeclarationSyntaxes
-        )
-        {
-            var propertySymbol = semanticModel.GetDeclaredSymbol(declaration);
-            if (propertySymbol == null)
-            {
-                yield break;
-            }
-
-            var symbolEqualityComparer = SymbolEqualityComparer.Default;
-
-            var syntaxNode = declaration.GetRoot();
-            var descendantNodes = syntaxNode.DescendantNodes().Where(x => x is ObjectCreationExpressionSyntax);
-
-            var references = descendantNodes
-                .SelectMany(method => method.DescendantNodes().OfType<ExpressionSyntax>())
-                .Where(x => symbolEqualityComparer.Equals(semanticModel.GetSymbolInfo(x).Symbol, propertySymbol))
-                .ToList();
-
-            var propertyNames = propertyDeclarationSyntaxes.Select(x => x.Identifier.ValueText).ToImmutableList();
-
-            foreach (var item in references)
-            {
-                if (!(item.Parent is ObjectCreationExpressionSyntax objectCreationExpressionSyntax)) continue;
-
-                var assignmentExpressionSyntaxes = objectCreationExpressionSyntax.Initializer.Expressions
-                    .OfType<AssignmentExpressionSyntax>().ToList();
-
-                var argumentsToAdd = assignmentExpressionSyntaxes
-                    .Where(x => propertyNames.Contains((x.Left as IdentifierNameSyntax).Identifier.ValueText));
-
-                if (assignmentExpressionSyntaxes
-                    .Any(x => propertyNames.Contains((x.Left as IdentifierNameSyntax).Identifier.ValueText) == false) == false || argumentsToAdd.Any() == false)
-                {
-                    continue;
-                }
-
-                var expressionsLastTrailingTrivia = objectCreationExpressionSyntax.Initializer.Expressions.Last().GetTrailingTrivia();
-
-                var initializer = objectCreationExpressionSyntax.Initializer
-                    .WithLeadingTrivia(objectCreationExpressionSyntax.Initializer.GetLeadingTrivia().Insert(0, SyntaxFactory.CarriageReturnLineFeed))
-                    .WithExpressions(
-                        SyntaxFactory.SeparatedList<ExpressionSyntax>(
-                            assignmentExpressionSyntaxes
-                                .Where(x => 
-                                    propertyNames.Contains((x.Left as IdentifierNameSyntax).Identifier.ValueText) == false
-                                )
-                        )
-                    )
-                    .WithCloseBraceToken(
-                        objectCreationExpressionSyntax.Initializer.CloseBraceToken
-                            .WithLeadingTrivia(
-                                SyntaxFactory.ParseLeadingTrivia(
-                                        objectCreationExpressionSyntax.Initializer.CloseBraceToken.LeadingTrivia
-                                            .ToFullString()
-                                            .Replace(Environment.NewLine, string.Empty)
-                                    )
-                                    .InsertRange(0, expressionsLastTrailingTrivia.ToArray())
-                            )
-                    )
-                    ;
-
-                var syntax = objectCreationExpressionSyntax
-                    .WithType(objectCreationExpressionSyntax.Type.WithoutTrivia())
-                    .WithArgumentList(
-                        (objectCreationExpressionSyntax.ArgumentList ?? SyntaxFactory.ArgumentList()).AddArguments(
-                            argumentsToAdd.Select(x => 
-                                SyntaxFactory.Argument(
-                                    SyntaxFactory.LiteralExpression(
-                                        SyntaxKind.StringLiteralExpression, 
-                                        SyntaxFactory.Literal(x.Right.ToString().Replace("\"", string.Empty))
-                                    )
-                                )
-                            ).ToArray()
-                        ).WithoutTrivia()
-                    )
-                    .WithInitializer(
-                        initializer
-                    )
-                    .WithTrailingTrivia(objectCreationExpressionSyntax.GetTrailingTrivia());
-
-                yield return (item.Parent, syntax);
-            }
-        }
-
-        private IEnumerable<PropertyDeclarationSyntax> GetPropertiesUsed(
+        private static IEnumerable<PropertyDeclarationSyntax> GetPropertiesUsed(
             SemanticModel semanticModel,
             ImmutableList<PropertyDeclarationSyntax> propertyDeclarationSyntaxes
         )
@@ -224,7 +224,7 @@ namespace AwesomeAnalyzer
             return propertyDeclarationSyntaxes.Where(x => IsUsed(semanticModel, x));
         }
 
-        private bool IsUsed(
+        private static bool IsUsed(
             SemanticModel semanticModel,
             PropertyDeclarationSyntax propertyDeclaration
         )

@@ -26,7 +26,7 @@ namespace AwesomeAnalyzer.Analyzers
 
         private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            using (var _ = new MeasureTime(true))
+            using (_ = new MeasureTime(true))
             {
                 if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0101AddAwait.Id))
                 {

@@ -1,10 +1,10 @@
 ﻿namespace AwesomeAnalyzer.Test;
 
 public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
-    where TAnalyzer : DiagnosticAnalyzer, new()
-    where TCodeFix : CodeFixProvider, new()
+where TAnalyzer : DiagnosticAnalyzer, new()
+where TCodeFix : CodeFixProvider, new()
 {
-    public sealed class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, MSTestVerifier>
+    public sealed class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, XUnitVerifier>
     {
         public Test() => SolutionTransforms.Add(
             (solution, projectId) =>

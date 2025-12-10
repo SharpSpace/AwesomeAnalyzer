@@ -1,6 +1,6 @@
 ﻿namespace AwesomeAnalyzer.Test;
 
-public sealed class TestTarget<TAnalyzer, TCodeFix> : CodeFixTest<MSTestVerifier>
+public sealed class TestTarget<TAnalyzer, TCodeFix> : CodeFixTest<XUnitVerifier>
 where TAnalyzer : DiagnosticAnalyzer, new()
 where TCodeFix : CodeFixProvider, new()
 {

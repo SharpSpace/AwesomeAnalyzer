@@ -10,9 +10,12 @@ namespace AwesomeAnalyzer.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class RenameAsyncAnalyzer : DiagnosticAnalyzer
     {
-        private const string TextAsync = "Async";
         private const string Textasync = "async";
+
+        private const string TextAsync = "Async";
+
         private const string TextTask = "Task";
+
         private const string TextValueTask = "ValueTask";
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
@@ -27,9 +30,9 @@ namespace AwesomeAnalyzer.Analyzers
             context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.MethodDeclaration);
         }
 
-        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            using (var _ = new MeasureTime())
+            using (_ = new MeasureTime())
             {
                 if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0100RenameAsync.Id))
                 {

@@ -24,7 +24,7 @@ namespace AwesomeAnalyzer.Analyzers
 
         private static async Task AnalyzeNodeAsync(SyntaxNodeAnalysisContext context)
         {
-            using (var _ = new MeasureTime())
+            using (_ = new MeasureTime())
             {
                 if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0001MakeSealed.Id))
                 {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
@@ -40,7 +40,6 @@ namespace AwesomeAnalyzer
             var message = $"{_path.Substring(_path.LastIndexOf('\\') + 1)}->{_info} in {elapsed.Milliseconds}ms";
 
             Debug.WriteLine($"{nameof(MeasureTime)} {message}");
-            Console.WriteLine($"{nameof(MeasureTime)} {message}");
         }
     }
 }

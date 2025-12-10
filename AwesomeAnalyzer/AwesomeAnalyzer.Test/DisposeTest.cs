@@ -4,10 +4,9 @@
 
 namespace AwesomeAnalyzer.Test;
 
-[TestClass]
 public sealed class DisposeTest
 {
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic1()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -40,10 +39,10 @@ public sealed class DisposeTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic2() =>
     await VerifyCS.VerifyCodeFixAsync(
         LanguageVersion.CSharp8,
@@ -78,9 +77,9 @@ public sealed class DisposeTest
         }
         """
     )
-    .ConfigureAwait(false);
+;
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic3()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -124,10 +123,10 @@ public sealed class DisposeTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic1() =>
     await VerifyCS.VerifyAnalyzerAsync(
         """
@@ -145,9 +144,9 @@ public sealed class DisposeTest
         }
         """
     )
-    .ConfigureAwait(false);
+;
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic2() =>
     await VerifyCS.VerifyAnalyzerAsync(
         """
@@ -166,5 +165,5 @@ public sealed class DisposeTest
         }
         """
     )
-    .ConfigureAwait(false);
+;
 }

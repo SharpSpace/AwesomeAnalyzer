@@ -20,19 +20,18 @@ namespace AwesomeAnalyzer.Analyzers
             context.EnableConcurrentExecution();
 
             context.RegisterSyntaxNodeAction(
-                c => Analyze(c),
+                c => AnalyzeAsync(c),
                 SyntaxKind.PropertyDeclaration
             );
         }
 
-        private async Task Analyze(SyntaxNodeAnalysisContext context)
+        private static async Task AnalyzeAsync(SyntaxNodeAnalysisContext context)
         {
             var propertyDeclarationSyntax = (PropertyDeclarationSyntax)context.Node;
 
             if (propertyDeclarationSyntax.HasParent<RecordDeclarationSyntax>() == null) return;
-            if (await IsUsed(context, propertyDeclarationSyntax)) return;
+            if (await IsUsedAsync(context, propertyDeclarationSyntax)) return;
 
-            //Debug.WriteLine("propertyDeclarationSyntax: " + propertyDeclarationSyntax.ToFullString());
             context.ReportDiagnostic(
                 Diagnostic.Create(
                     DiagnosticDescriptors.Rule0009MakeImmutableRecord,
@@ -42,7 +41,7 @@ namespace AwesomeAnalyzer.Analyzers
             );
         }
 
-        private async Task<bool> IsUsed(SyntaxNodeAnalysisContext context, PropertyDeclarationSyntax propertyDeclaration)
+        private static async Task<bool> IsUsedAsync(SyntaxNodeAnalysisContext context, PropertyDeclarationSyntax propertyDeclaration)
         {
             var semanticModel = context.SemanticModel;
             var propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclaration);
@@ -72,7 +71,7 @@ namespace AwesomeAnalyzer.Analyzers
                     break;
                 }
             }
-            
+
             return makeImmutableRecordVisitor.IsFound;
         }
     }

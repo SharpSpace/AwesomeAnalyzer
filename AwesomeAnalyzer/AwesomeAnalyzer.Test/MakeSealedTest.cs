@@ -4,10 +4,9 @@
 
 namespace AwesomeAnalyzer.Test;
 
-[TestClass]
 public sealed class MakeSealedTest
 {
-    [TestMethod]
+    [Fact]
     public async Task ClassBaseClassDifferentNamespacesTest_Diagnostic()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -34,10 +33,10 @@ public sealed class MakeSealedTest
                 }
                 """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task ClassBaseClassTest_Diagnostic()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -56,10 +55,10 @@ public sealed class MakeSealedTest
                 }
                 """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task ClassTest_Diagnostic()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -72,16 +71,16 @@ public sealed class MakeSealedTest
                 { }
                 """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task ClassTest_NoDiagnostic()
     {
-        await VerifyCS.VerifyAnalyzerAsync(@"sealed class Program {}").ConfigureAwait(false);
+        await VerifyCS.VerifyAnalyzerAsync(@"sealed class Program {}");
     }
 
-    [TestMethod]
+    [Fact]
     public async Task InternalClassTest_Diagnostic()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -94,10 +93,10 @@ public sealed class MakeSealedTest
                 { }
                 """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Private2ClassTest_Diagnostic()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -116,10 +115,10 @@ public sealed class MakeSealedTest
                 }
                 """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task PublicClassTest_Diagnostic()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -132,16 +131,16 @@ public sealed class MakeSealedTest
                 { }
                 """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task PublicClassTest_NoDiagnostic()
     {
-        await VerifyCS.VerifyAnalyzerAsync(@"public sealed class Program {}").ConfigureAwait(false);
+        await VerifyCS.VerifyAnalyzerAsync(@"public sealed class Program {}");
     }
 
-    [TestMethod]
+    [Fact]
     public async Task PublicPartialClassTest_Diagnostic()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -154,16 +153,16 @@ public sealed class MakeSealedTest
                 { }
                 """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task PublicStaticClassTest_NoDiagnostic()
     {
-        await VerifyCS.VerifyAnalyzerAsync(@"public static class Program {}").ConfigureAwait(false);
+        await VerifyCS.VerifyAnalyzerAsync(@"public static class Program {}");
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic1()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -172,10 +171,10 @@ public sealed class MakeSealedTest
             public class Program2 {}
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic2()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -187,10 +186,10 @@ public sealed class MakeSealedTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic3()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -206,10 +205,10 @@ public sealed class MakeSealedTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic4()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -220,10 +219,10 @@ public sealed class MakeSealedTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic5()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -238,10 +237,10 @@ public sealed class MakeSealedTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic6()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -253,6 +252,6 @@ public sealed class MakeSealedTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 }

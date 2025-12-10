@@ -4,10 +4,9 @@
 
 namespace AwesomeAnalyzer.Test;
 
-[TestClass]
 public sealed class RemoveAsyncAwaitTest
 {
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic1()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -35,10 +34,10 @@ public sealed class RemoveAsyncAwaitTest
             }
             """
             )
-            .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic2()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -67,10 +66,10 @@ public sealed class RemoveAsyncAwaitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic3()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -92,10 +91,10 @@ public sealed class RemoveAsyncAwaitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic4()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -119,10 +118,10 @@ public sealed class RemoveAsyncAwaitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic5()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -147,10 +146,10 @@ public sealed class RemoveAsyncAwaitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic6()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -174,14 +173,13 @@ public sealed class RemoveAsyncAwaitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic7()
     {
         await VerifyCS.VerifyCodeFixAsync(
-            // LanguageVersion.CSharp10,
             """
             using System.Threading.Tasks;
 
@@ -205,10 +203,10 @@ public sealed class RemoveAsyncAwaitTest
             }
             """
         )
-        .ConfigureAwait(false); // ValueTask.FromResult(string.Empty)
+; // ValueTask.FromResult(string.Empty)
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic8()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -245,10 +243,10 @@ public sealed class RemoveAsyncAwaitTest
             }
             """
             )
-            .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic9()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -259,8 +257,7 @@ public sealed class RemoveAsyncAwaitTest
             {
                 public Task GetUser() => Task.Run({|JJ0006:async () => await Task.Delay(0)|});
             }
-            """
-            ,
+            """,
             """
             using System.Threading.Tasks;
 
@@ -270,10 +267,10 @@ public sealed class RemoveAsyncAwaitTest
             }
             """
             )
-            .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestMissingAsync_NoDiagnostic1()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -290,10 +287,10 @@ public sealed class RemoveAsyncAwaitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    //[TestMethod]
+    //[Fact]
     //public async Task TestMissingAsync_NoDiagnostic2()
     //{
     //    await VerifyCS.VerifyAnalyzerAsync(
@@ -304,7 +301,7 @@ public sealed class RemoveAsyncAwaitTest
     //        [TestClass]
     //        public sealed class Tests
     //        {
-    //            [TestMethod]
+    //            [Fact]
     //            public async Task Test()
     //            {
     //                await Task.CompletedTask;

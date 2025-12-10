@@ -27,11 +27,11 @@ namespace AwesomeAnalyzer.Analyzers
             context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.InvocationExpression);
         }
 
-        private void AnalyzeNode(
+        private static void AnalyzeNode(
             SyntaxNodeAnalysisContext context
         )
         {
-            using (var _ = new MeasureTime())
+            using (_ = new MeasureTime())
             {
                 if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0102AddAsync.Id))
                 {

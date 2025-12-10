@@ -4,10 +4,9 @@
 
 namespace AwesomeAnalyzer.Test;
 
-[TestClass]
 public sealed class MakeConstUnitTest
 {
-    [TestMethod]
+    [Fact]
     public async Task DeclarationIsInvalid_NoDiagnostic()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -22,10 +21,10 @@ public sealed class MakeConstUnitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task DeclarationIsNotString_NoDiagnostic()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -40,10 +39,10 @@ public sealed class MakeConstUnitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task InitializerIsNotConstant_NoDiagnostic()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -59,10 +58,10 @@ public sealed class MakeConstUnitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task LocalIntCouldBeConstant_Diagnostic()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -89,10 +88,10 @@ public sealed class MakeConstUnitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task MultipleInitializers_NoDiagnostic()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -109,10 +108,10 @@ public sealed class MakeConstUnitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task NoInitializer_NoDiagnostic()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -129,10 +128,10 @@ public sealed class MakeConstUnitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task StringCouldBeConstant_Diagnostic()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -157,10 +156,10 @@ public sealed class MakeConstUnitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task VariableIsAlreadyConst_NoDiagnostic()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -176,10 +175,10 @@ public sealed class MakeConstUnitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task VariableIsAssigned_NoDiagnostic()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -195,10 +194,10 @@ public sealed class MakeConstUnitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task VarIntDeclarationCouldBeConstant_Diagnostic()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -223,10 +222,10 @@ public sealed class MakeConstUnitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task VarStringDeclarationCouldBeConstant_Diagnostic()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -251,6 +250,6 @@ public sealed class MakeConstUnitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 }

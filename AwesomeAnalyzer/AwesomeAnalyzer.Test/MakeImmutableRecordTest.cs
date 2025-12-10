@@ -4,10 +4,9 @@
 
 namespace AwesomeAnalyzer.Test;
 
-[TestClass]
 public sealed class MakeImmutableRecordTest
 {
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic1()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -30,10 +29,10 @@ public sealed class MakeImmutableRecordTest
                 internal static class IsExternalInit {}
             }
             """
-        ).ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic2()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -57,10 +56,10 @@ public sealed class MakeImmutableRecordTest
                 internal static class IsExternalInit {}
             }
             """
-        ).ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic3()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -114,10 +113,10 @@ public sealed class MakeImmutableRecordTest
                 internal static class IsExternalInit {}
             }
             """
-        ).ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic4()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -173,10 +172,10 @@ public sealed class MakeImmutableRecordTest
                 internal static class IsExternalInit {}
             }
             """
-        ).ConfigureAwait(false);
+        );
     }
-    
-    [TestMethod]
+
+    [Fact]
     public async Task Test_Diagnostic5()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -199,10 +198,10 @@ public sealed class MakeImmutableRecordTest
                 internal static class IsExternalInit {}
             }
             """
-        ).ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic1()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -217,10 +216,10 @@ public sealed class MakeImmutableRecordTest
                 internal static class IsExternalInit {}
             }
             """
-        ).ConfigureAwait(false);
+        );
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic2()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -235,6 +234,6 @@ public sealed class MakeImmutableRecordTest
                 internal static class IsExternalInit {}
             }
             """
-        ).ConfigureAwait(false);
+        );
     }
 }

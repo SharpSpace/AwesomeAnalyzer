@@ -4,10 +4,9 @@
 
 namespace AwesomeAnalyzer.Test;
 
-[TestClass]
 public sealed class SimilarTest
 {
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic1()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -62,10 +61,10 @@ public sealed class SimilarTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic2()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -142,10 +141,10 @@ public sealed class SimilarTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic3()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -212,10 +211,10 @@ public sealed class SimilarTest
             }
             """
             )
-            .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic4()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -268,10 +267,10 @@ public sealed class SimilarTest
             }
             """
             )
-            .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic5()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -331,10 +330,10 @@ public sealed class SimilarTest
             }
             """
             )
-            .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic6()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -394,10 +393,10 @@ public sealed class SimilarTest
             }
             """
             )
-            .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic7()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -458,10 +457,10 @@ public sealed class SimilarTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic8()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -522,10 +521,10 @@ public sealed class SimilarTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic9()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -586,10 +585,10 @@ public sealed class SimilarTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic10()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -650,10 +649,10 @@ public sealed class SimilarTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic1() =>
         await VerifyCS.VerifyAnalyzerAsync(
             """
@@ -685,5 +684,5 @@ public sealed class SimilarTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
 }

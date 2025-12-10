@@ -14,4 +14,4 @@ global using Microsoft.CodeAnalysis.Diagnostics;
 global using Microsoft.CodeAnalysis.Testing;
 global using Microsoft.CodeAnalysis.Testing.Verifiers;
 global using Microsoft.CodeAnalysis.VisualBasic.Testing;
-global using Microsoft.VisualStudio.TestTools.UnitTesting;
+global using Xunit;

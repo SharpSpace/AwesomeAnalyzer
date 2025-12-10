@@ -11,10 +11,6 @@ namespace AwesomeAnalyzer.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class ParseAnalyzer : DiagnosticAnalyzer
     {
-        private const string TextString = "String";
-
-        private const string TextVar = "var";
-
         public static readonly ImmutableArray<dynamic> Types = ImmutableArray.CreateRange(
             new dynamic[]
             {
@@ -32,6 +28,10 @@ namespace AwesomeAnalyzer.Analyzers
                 new TryParseTypes<ushort>("ushort", 1, 0),
             }
         );
+
+        private const string TextString = "String";
+
+        private const string TextVar = "var";
 
         private static readonly ConcurrentDictionary<ExpressionSyntax, ITypeSymbol> VariableTypesCache =
             new ConcurrentDictionary<ExpressionSyntax, ITypeSymbol>();
@@ -51,9 +51,9 @@ namespace AwesomeAnalyzer.Analyzers
             context.RegisterSyntaxNodeAction(AnalyzeNodeReturnStatement, SyntaxKind.ReturnStatement);
         }
 
-        private void AnalyzeEqualsValueClause(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeEqualsValueClause(SyntaxNodeAnalysisContext context)
         {
-            using (var _ = new MeasureTime())
+            using (_ = new MeasureTime())
             {
                 if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0005ParseString.Id))
                 {
@@ -68,23 +68,9 @@ namespace AwesomeAnalyzer.Analyzers
             }
         }
 
-        private void AnalyzeNodeReturnStatement(SyntaxNodeAnalysisContext context)
-        {
-            using (var _ = new MeasureTime())
-            {
-                if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0005ParseString.Id))
-                {
-                    return;
-                }
-
-                var returnStatementSyntax = (ReturnStatementSyntax)context.Node;
-                AnalyzeNode(context, returnStatementSyntax.Expression);
-            }
-        }
-
-        private void AnalyzeNode(
+        private static void AnalyzeNode(
             SyntaxNodeAnalysisContext context,
-            ExpressionSyntax          sourceValueExpression
+            ExpressionSyntax sourceValueExpression
         )
         {
             if (!(sourceValueExpression is IdentifierNameSyntax) && !(sourceValueExpression is LiteralExpressionSyntax))
@@ -119,7 +105,6 @@ namespace AwesomeAnalyzer.Analyzers
                 }
             }
 
-            // Debug.WriteLine("T:" + targetType);
             if (targetType == "void") return;
             if (targetType == "dynamic") return;
             if (targetType == "object") return;
@@ -128,7 +113,6 @@ namespace AwesomeAnalyzer.Analyzers
             if (sourceType == null) return;
             if (sourceType.ToString() != "string") return;
 
-            // Debug.WriteLine("S:" + sourceType.ToString());
             if (string.Equals(sourceType.ToString(), targetType, System.StringComparison.InvariantCultureIgnoreCase))
             {
                 return;
@@ -139,6 +123,29 @@ namespace AwesomeAnalyzer.Analyzers
                     DiagnosticDescriptors.Rule0005ParseString,
                     sourceValueExpression.GetLocation()
                 )
+            );
+        }
+
+        private static void AnalyzeNodeReturnStatement(SyntaxNodeAnalysisContext context)
+        {
+            using (_ = new MeasureTime())
+            {
+                if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0005ParseString.Id))
+                {
+                    return;
+                }
+
+                var returnStatementSyntax = (ReturnStatementSyntax)context.Node;
+                AnalyzeNode(context, returnStatementSyntax.Expression);
+            }
+        }
+
+        private static ITypeSymbol GetVariableType(SyntaxNodeAnalysisContext context, ExpressionSyntax valueExpression)
+        {
+            return VariableTypesCache.GetOrAdd(
+                valueExpression,
+                syntax => ModelExtensions.GetTypeInfo(context.SemanticModel, syntax, context.CancellationToken)
+                    .Type
             );
         }
 
@@ -199,23 +206,6 @@ namespace AwesomeAnalyzer.Analyzers
 
             _expectedTypesCache[valueExpression] = expectedType;
             return expectedType;
-        }
-
-        private ITypeSymbol GetVariableType(SyntaxNodeAnalysisContext context, ExpressionSyntax valueExpression)
-        {
-            return VariableTypesCache.GetOrAdd(
-                valueExpression,
-                syntax => ModelExtensions.GetTypeInfo(context.SemanticModel, syntax, context.CancellationToken)
-                    .Type
-            );
-            //if (_variableTypesCache.TryGetValue(valueExpression, out var variableType))
-            //{
-            //    return variableType;
-            //}
-
-            //variableType = ModelExtensions.GetTypeInfo(context.SemanticModel, valueExpression, context.CancellationToken).Type;
-            //_variableTypesCache[valueExpression] = variableType;
-            //return variableType;
         }
     }
 }

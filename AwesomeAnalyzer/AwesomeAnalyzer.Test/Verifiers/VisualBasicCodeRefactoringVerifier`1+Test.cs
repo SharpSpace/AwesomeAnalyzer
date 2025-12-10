@@ -3,5 +3,5 @@
 public static partial class VisualBasicCodeRefactoringVerifier<TCodeRefactoring>
     where TCodeRefactoring : CodeRefactoringProvider, new()
 {
-    public sealed class Test : VisualBasicCodeRefactoringTest<TCodeRefactoring, MSTestVerifier> { }
+    public sealed class Test : VisualBasicCodeRefactoringTest<TCodeRefactoring, XUnitVerifier> { }
 }

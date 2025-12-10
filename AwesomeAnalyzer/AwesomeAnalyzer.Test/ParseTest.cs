@@ -6,10 +6,9 @@ using VerifyCS = AwesomeAnalyzer.Test.CSharpCodeFixVerifier<
 
 namespace AwesomeAnalyzer.Test;
 
-[TestClass]
 public sealed class ParseTest
 {
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic1()
     {
         foreach (var item in ParseAnalyzer.Types)
@@ -34,11 +33,11 @@ public sealed class ParseTest
                     }
                 }
                 """
-            ).ConfigureAwait(false);
+            );
         }
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic2()
     {
         foreach (var item in ParseAnalyzer.Types)
@@ -64,11 +63,11 @@ public sealed class ParseTest
                 }
                 """
             )
-            .ConfigureAwait(false);
+;
         }
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnosticAsync1()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -82,10 +81,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnosticAsync2()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -99,10 +98,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnosticAsync3()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -116,10 +115,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnosticAsync4()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -133,10 +132,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnosticAsync5()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -150,10 +149,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnosticAsync6()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -168,10 +167,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnosticAsync7()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -182,10 +181,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnosticAsync8()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -202,10 +201,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnosticAsync9()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -222,10 +221,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnosticAsync10()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -244,10 +243,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnosticAsync11()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -264,10 +263,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnosticAsync12()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -284,10 +283,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnosticAsync13()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -303,10 +302,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestByte_Diagnostic1()
     {
         var item = ParseAnalyzer.Types.Single(x => x.TypeName == "byte");
@@ -330,10 +329,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestDecimal_Diagnostic1()
     {
         var item = ParseAnalyzer.Types.Single(x => x.TypeName == "decimal");
@@ -357,10 +356,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestDecimal_Diagnostic20()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -385,10 +384,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestInt_Diagnostic1()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -411,10 +410,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestInt_Diagnostic2()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -437,10 +436,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestInt_Diagnostic10()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -463,10 +462,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestInt_Diagnostic11()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -489,10 +488,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestInt_Diagnostic20()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -517,10 +516,10 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestInt_Diagnostic21()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -545,6 +544,6 @@ public sealed class ParseTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 }

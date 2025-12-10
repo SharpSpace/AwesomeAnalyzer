@@ -31,6 +31,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\AwesomeAnalyzer.CodeFixes\AwesomeAnalyzer.CodeFixes.csproj" />
     <ProjectReference Include="..\AwesomeAnalyzer\AwesomeAnalyzer.csproj" />
   </ItemGroup>

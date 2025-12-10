@@ -10,8 +10,9 @@ namespace AwesomeAnalyzer.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class DisposedAnalyzer : DiagnosticAnalyzer
     {
-        private const string TextUsing = "using";
         private const string TextIDisposable = "IDisposable";
+
+        private const string TextUsing = "using";
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
             DiagnosticDescriptors.Rule0004Disposed
@@ -27,7 +28,7 @@ namespace AwesomeAnalyzer.Analyzers
 
         private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            using (var _ = new MeasureTime())
+            using (_ = new MeasureTime())
             {
                 if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0004Disposed.Id))
                 {
@@ -58,7 +59,7 @@ namespace AwesomeAnalyzer.Analyzers
                 if (typeSymbol == null) return;
 
                 var interfaces = typeSymbol.AllInterfaces;
-                if (interfaces.Any(x => x.Name == TextIDisposable) == false) return;
+                if (!interfaces.Any(x => x.Name == TextIDisposable)) return;
 
                 context.ReportDiagnostic(
                     Diagnostic.Create(

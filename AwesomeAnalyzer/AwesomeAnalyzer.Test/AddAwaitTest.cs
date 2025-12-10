@@ -4,10 +4,9 @@
 
 namespace AwesomeAnalyzer.Test;
 
-[TestClass]
 public sealed class AddAwaitTest
 {
-    [TestMethod]
+    [Fact]
     public async Task TestMissingAwait_Diagnostic1()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -38,10 +37,10 @@ public sealed class AddAwaitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestMissingAwait_Diagnostic2()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -74,10 +73,10 @@ public sealed class AddAwaitTest
             class User {}
             """
             )
-            .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestMissingAwait_NoDiagnostic1()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -95,10 +94,10 @@ public sealed class AddAwaitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestMissingAwait_NoDiagnostic2()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -122,10 +121,10 @@ public sealed class AddAwaitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestMissingAwait_NoDiagnostic3()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -141,10 +140,10 @@ public sealed class AddAwaitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestMissingAwait_NoDiagnostic4()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -160,10 +159,10 @@ public sealed class AddAwaitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestMissingAwait_NoDiagnostic5()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -182,10 +181,10 @@ public sealed class AddAwaitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task TestMissingAwait_NoDiagnostic6()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -204,11 +203,10 @@ public sealed class AddAwaitTest
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-
-    [TestMethod]
+    [Fact]
     public async Task TestMissingAwait_NoDiagnostic7()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -221,6 +219,6 @@ public sealed class AddAwaitTest
             }
             """
             )
-            .ConfigureAwait(false);
+;
     }
 }

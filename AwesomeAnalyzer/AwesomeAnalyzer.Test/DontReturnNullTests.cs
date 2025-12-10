@@ -4,10 +4,9 @@
 
 namespace AwesomeAnalyzer.Test;
 
-[TestClass]
 public sealed class DontReturnNullTests
 {
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic1()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -35,10 +34,10 @@ public sealed class DontReturnNullTests
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic2()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -66,10 +65,10 @@ public sealed class DontReturnNullTests
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic3()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -99,10 +98,10 @@ public sealed class DontReturnNullTests
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic4()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -130,10 +129,10 @@ public sealed class DontReturnNullTests
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_Diagnostic5()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -161,10 +160,10 @@ public sealed class DontReturnNullTests
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic1()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -180,10 +179,10 @@ public sealed class DontReturnNullTests
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic2()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -199,10 +198,10 @@ public sealed class DontReturnNullTests
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic3()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -218,10 +217,10 @@ public sealed class DontReturnNullTests
             }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic4()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -239,10 +238,10 @@ public sealed class DontReturnNullTests
             sealed class Item { }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic5()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -262,10 +261,10 @@ public sealed class DontReturnNullTests
             sealed class Item { }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 
-    [TestMethod]
+    [Fact]
     public async Task Test_NoDiagnostic6()
     {
         await VerifyCS.VerifyAnalyzerAsync(
@@ -285,6 +284,6 @@ public sealed class DontReturnNullTests
             sealed class Item { }
             """
         )
-        .ConfigureAwait(false);
+;
     }
 }

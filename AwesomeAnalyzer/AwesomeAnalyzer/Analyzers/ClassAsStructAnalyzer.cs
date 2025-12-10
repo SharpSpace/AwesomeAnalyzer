@@ -23,7 +23,7 @@ namespace AwesomeAnalyzer.Analyzers
 
         private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            using (var _ = new MeasureTime())
+            using (_ = new MeasureTime())
             {
                 if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0200ClassAsStruct.Id))
                 {
@@ -59,7 +59,7 @@ namespace AwesomeAnalyzer.Analyzers
                 var fields = classDeclaration.Members.OfType<FieldDeclarationSyntax>();
                 foreach (var field in fields)
                 {
-                    if (!field.Modifiers.Any(SyntaxKind.ReadOnlyKeyword) && 
+                    if (!field.Modifiers.Any(SyntaxKind.ReadOnlyKeyword) &&
                         !field.Modifiers.Any(SyntaxKind.ConstKeyword))
                     {
                         return;
@@ -73,9 +73,9 @@ namespace AwesomeAnalyzer.Analyzers
                     if (property.AccessorList != null)
                     {
                         var setter = property.AccessorList.Accessors
-                            .FirstOrDefault(a => a.IsKind(SyntaxKind.SetAccessorDeclaration) || 
+                            .FirstOrDefault(a => a.IsKind(SyntaxKind.SetAccessorDeclaration) ||
                                                a.IsKind(SyntaxKind.InitAccessorDeclaration));
-                        
+
                         if (setter != null && setter.IsKind(SyntaxKind.SetAccessorDeclaration))
                         {
                             return; // Has mutable setter

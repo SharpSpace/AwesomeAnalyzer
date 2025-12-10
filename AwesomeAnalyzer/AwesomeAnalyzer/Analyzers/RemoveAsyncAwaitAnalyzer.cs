@@ -26,7 +26,7 @@ namespace AwesomeAnalyzer.Analyzers
             context.RegisterSyntaxNodeAction(AnalyzeLambdaExpressionNode, SyntaxKind.ParenthesizedLambdaExpression);
         }
 
-        private void AnalyzeLambdaExpressionNode(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeLambdaExpressionNode(SyntaxNodeAnalysisContext context)
         {
             if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0006RemoveAsyncAwait.Id))
             {
@@ -34,7 +34,7 @@ namespace AwesomeAnalyzer.Analyzers
             }
 
             var node = (ParenthesizedLambdaExpressionSyntax)context.Node;
-            if (node.ToString().StartsWith("async") == false) return;
+            if (!node.ToString().StartsWith("async")) return;
 
             context.ReportDiagnostic(
                 Diagnostic.Create(
@@ -45,9 +45,9 @@ namespace AwesomeAnalyzer.Analyzers
             );
         }
 
-        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            using (var _ = new MeasureTime(true))
+            using (_ = new MeasureTime(true))
             {
                 if (context.IsDisabledEditorConfig(DiagnosticDescriptors.Rule0006RemoveAsyncAwait.Id))
                 {
@@ -55,9 +55,9 @@ namespace AwesomeAnalyzer.Analyzers
                 }
 
                 var methodDeclarationSyntax = (MethodDeclarationSyntax)context.Node;
-                if (methodDeclarationSyntax.AttributeLists.Any(x => 
+                if (methodDeclarationSyntax.AttributeLists.Any(x =>
                     x.Attributes.Any(y =>
-                        y.Name.ToFullString() == "TestMethod" || 
+                        y.Name.ToFullString() == "TestMethod" ||
                         y.Name.ToFullString() == "Fact"
                     )
                 )) return;
