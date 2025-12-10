@@ -55,7 +55,7 @@ jobs:
           MARKETPLACE_PAT: ${{ secrets.MARKETPLACE_PAT }}
           MARKETPLACE_PUBLISHER: ${{ secrets.MARKETPLACE_PUBLISHER }}
         run: |
-          if (-not $env:MARKETPLACE_PAT -or -not $env:MARKETPLACE_PUBLISHER) {
+          if ([string]::IsNullOrEmpty($env:MARKETPLACE_PAT) -or [string]::IsNullOrEmpty($env:MARKETPLACE_PUBLISHER)) {
             Add-Content -Path $env:GITHUB_OUTPUT -Value 'have_secrets=false'
           } else {
             Add-Content -Path $env:GITHUB_OUTPUT -Value 'have_secrets=true'
