@@ -48,8 +48,21 @@ jobs:
           name: ${{ github.ref_name }}
           files: Setup/*
 
+      - name: Check Marketplace secrets
+        id: check-marketplace-secrets
+        shell: pwsh
+        env:
+          MARKETPLACE_PAT: ${{ secrets.MARKETPLACE_PAT }}
+          MARKETPLACE_PUBLISHER: ${{ secrets.MARKETPLACE_PUBLISHER }}
+        run: |
+          if (-not $env:MARKETPLACE_PAT -or -not $env:MARKETPLACE_PUBLISHER) {
+            Add-Content -Path $env:GITHUB_OUTPUT -Value 'have_secrets=false'
+          } else {
+            Add-Content -Path $env:GITHUB_OUTPUT -Value 'have_secrets=true'
+          }
+
       - name: Publish to Visual Studio Marketplace (optional)
-        if: ${{ secrets.MARKETPLACE_PAT != '' && secrets.MARKETPLACE_PUBLISHER != '' }}
+        if: ${{ steps.check-marketplace-secrets.outputs.have_secrets == 'true' }}
         shell: pwsh
         env:
           MARKETPLACE_PAT: ${{ secrets.MARKETPLACE_PAT }}
