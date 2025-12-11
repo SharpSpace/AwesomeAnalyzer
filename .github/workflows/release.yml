@@ -23,7 +23,7 @@ jobs:
         run: dotnet restore "AwesomeAnalyzer.sln"
 
       - name: Build solution (Release)
-        run: dotnet msbuild "AwesomeAnalyzer.sln" -t:Rebuild -p:Configuration=Release
+        run: dotnet msbuild "AwesomeAnalyzer.sln" -t:Rebuild -p:Configuration=Release -p:DeployExtension=false
 
       - name: Find and copy VSIX to Setup folder
         shell: pwsh
@@ -46,7 +46,9 @@ jobs:
         with:
           tag: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          files: Setup/*
+          artifacts: Setup/*
+          allowUpdates: true
+          replacesArtifacts: true
 
       - name: Check Marketplace secrets
         id: check-marketplace-secrets
@@ -68,8 +70,9 @@ jobs:
           MARKETPLACE_PAT: ${{ secrets.MARKETPLACE_PAT }}
           MARKETPLACE_PUBLISHER: ${{ secrets.MARKETPLACE_PUBLISHER }}
         run: |
-          $vsix = Get-ChildItem -Path Setup -Filter *.vsix | Select-Object -First 1
+          # Get the most recently modified VSIX file (the one we just built)
+          $vsix = Get-ChildItem -Path Setup -Filter *.vsix | Sort-Object LastWriteTime -Descending | Select-Object -First 1
           if (-not $vsix) { Write-Host "No VSIX found in Setup/ - skipping marketplace publish."; exit 0 }
           Write-Host "Publishing $($vsix.Name) to Visual Studio Marketplace (publisher: $env:MARKETPLACE_PUBLISHER)"
-          # Call included script that performs the publish via REST API
+          # Call included script that performs the publish via TFX CLI
           .\Setup\publish-to-marketplace.ps1 -VsixPath $vsix.FullName -Publisher $env:MARKETPLACE_PUBLISHER -Pat $env:MARKETPLACE_PAT
