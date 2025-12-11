@@ -28,9 +28,15 @@ jobs:
       - name: Find and copy VSIX to Setup folder
         shell: pwsh
         run: |
-          $vsix = Get-ChildItem -Path . -Filter *.vsix -Recurse -File | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          # Find the newly built VSIX (exclude Setup folder to avoid old files)
+          $vsix = Get-ChildItem -Path . -Filter *.vsix -Recurse -File -Exclude Setup | Where-Object { $_.DirectoryName -notlike "*\Setup*" -and $_.DirectoryName -notlike "*/Setup/*" } | Sort-Object LastWriteTime -Descending | Select-Object -First 1
           if (-not $vsix) { Write-Error "No .vsix found in repository after build."; exit 1 }
+          
+          # Clean old VSIX files from Setup folder
           New-Item -ItemType Directory -Path Setup -Force | Out-Null
+          Get-ChildItem -Path Setup -Filter *.vsix -File | Remove-Item -Force
+          
+          # Copy the newly built VSIX
           Copy-Item -Path $vsix.FullName -Destination (Join-Path -Path "Setup" -ChildPath $vsix.Name) -Force
           Write-Host "Copied VSIX to Setup\$($vsix.Name)"
 
