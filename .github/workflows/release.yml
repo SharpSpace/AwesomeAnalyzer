@@ -29,7 +29,7 @@ jobs:
         shell: pwsh
         run: |
           # Find the newly built VSIX (exclude Setup folder to avoid old files)
-          $vsix = Get-ChildItem -Path . -Filter *.vsix -Recurse -File -Exclude Setup | Where-Object { $_.DirectoryName -notlike "*\Setup*" -and $_.DirectoryName -notlike "*/Setup/*" } | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          $vsix = Get-ChildItem -Path . -Filter *.vsix -Recurse -File | Where-Object { $_.DirectoryName -notmatch '[\\/]Setup$' } | Sort-Object LastWriteTime -Descending | Select-Object -First 1
           if (-not $vsix) { Write-Error "No .vsix found in repository after build."; exit 1 }
           
           # Clean old VSIX files from Setup folder
