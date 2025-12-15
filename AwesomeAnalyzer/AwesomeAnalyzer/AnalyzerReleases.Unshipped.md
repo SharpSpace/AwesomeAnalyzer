@@ -15,6 +15,7 @@ JJ0200 | Performance | Info | DiagnosticDescriptors
 JJ0100 | Naming | Warning | DiagnosticDescriptors
 JJ0101 | Naming | Warning | DiagnosticDescriptors
 JJ0102 | Naming | Warning | DiagnosticDescriptors
+JJ0103 | Performance | Info | DiagnosticDescriptors
 JJ1001 | Order | Warning | SortAnalyzer
 JJ1002 | Order | Warning | SortAnalyzer
 JJ1003 | Order | Warning | SortAnalyzer

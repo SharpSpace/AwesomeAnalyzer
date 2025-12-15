@@ -127,4 +127,7 @@
   <data name="ClassAsStructCodeFixTitle" xml:space="preserve">
     <value>Convert class to struct</value>
   </data>
+  <data name="UseValueTaskCodeFixTitle" xml:space="preserve">
+    <value>Use ValueTask instead of Task</value>
+  </data>
 </root>
