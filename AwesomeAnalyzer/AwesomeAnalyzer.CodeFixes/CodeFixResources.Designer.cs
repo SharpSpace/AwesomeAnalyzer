@@ -86,5 +86,14 @@ namespace AwesomeAnalyzer {
                 return ResourceManager.GetString("ClassAsStructCodeFixTitle", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use ValueTask instead of Task.
+        /// </summary>
+        internal static string UseValueTaskCodeFixTitle {
+            get {
+                return ResourceManager.GetString("UseValueTaskCodeFixTitle", resourceCulture);
+            }
+        }
     }
 }

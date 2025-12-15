@@ -22,6 +22,7 @@ ID | Notes
 [JJ0100](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0100.md) | Method contains Async prefix.
 [JJ0101](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0101.md) | Method call is missing Await.
 [JJ0102](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0101.md) | Method name is missing Async prefix.
+[JJ0103](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0103.md) | Use ValueTask instead of Task for better performance.
 [JJ0200](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0200.md) | Class can be converted to struct.
 [JJ1001-JJ1013](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ1001-JJ1013.md) | [Type] needs to be sorted alphabetically. [Type] needs to be in correct order.
 

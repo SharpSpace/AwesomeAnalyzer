@@ -114,6 +114,16 @@ namespace AwesomeAnalyzer
             description: "Method name is missing Async prefix."
         );
 
+        public static readonly DiagnosticDescriptor Rule0103UseValueTask = new DiagnosticDescriptor(
+            "JJ0103",
+            "Use ValueTask instead of Task",
+            "Method '{0}' can use ValueTask instead of Task for better performance",
+            TextPerformance,
+            DiagnosticSeverity.Info,
+            isEnabledByDefault: true,
+            description: "Use ValueTask instead of Task to reduce allocations when method completes synchronously or caches results."
+        );
+
         public static readonly DiagnosticDescriptor Rule1001FieldSort = new DiagnosticDescriptor(
             "JJ1001",
             "Field needs to be sorted alphabetically",
