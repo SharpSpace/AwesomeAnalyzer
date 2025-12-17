@@ -44,6 +44,16 @@ namespace AwesomeAnalyzer
             description: "Add TryParse."
         );
 
+        public static readonly DiagnosticDescriptor Rule0006RemoveAsyncAwait = new DiagnosticDescriptor(
+            "JJ0006",
+            "Remove async and await",
+            "Remove async and await in method '{0}'",
+            TextPerformance,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Remove async and await."
+        );
+
         public static readonly DiagnosticDescriptor Rule0007DontReturnNull = new DiagnosticDescriptor(
             "JJ0007",
             "Don't return null",

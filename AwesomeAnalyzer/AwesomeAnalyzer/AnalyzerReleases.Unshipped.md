@@ -8,6 +8,7 @@ Rule ID | Category | Severity | Notes
 JJ0001 | Performance | Warning | DiagnosticDescriptors
 JJ0003 | Performance | Warning | DiagnosticDescriptors
 JJ0004 | Performance | Warning | DiagnosticDescriptors
+JJ0006 | Performance | Warning | DiagnosticDescriptors
 JJ0007 | Performance | Warning | DiagnosticDescriptors
 JJ0008 | Performance | Info | DiagnosticDescriptors
 JJ0200 | Performance | Info | DiagnosticDescriptors
