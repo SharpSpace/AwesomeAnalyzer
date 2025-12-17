@@ -290,6 +290,27 @@ public sealed class RemoveAsyncAwaitTest
 ;
     }
 
+    [Fact]
+    public async Task TestRealAsyncWork_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            using System.Threading.Tasks;
+            using System.Net.Http;
+
+            sealed class Program
+            {
+                public async Task<string> Method()
+                {
+                    using var client = new HttpClient();
+                    return await client.GetStringAsync("https://example.com");
+                }
+            }
+            """
+        )
+;
+    }
+
     //[Fact]
     //public async Task TestMissingAsync_NoDiagnostic2()
     //{

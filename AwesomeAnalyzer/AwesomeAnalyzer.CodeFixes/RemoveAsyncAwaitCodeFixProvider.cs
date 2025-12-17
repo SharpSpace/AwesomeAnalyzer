@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace AwesomeAnalyzer
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeSealedCodeFixProvider))]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RemoveAsyncAwaitCodeFixProvider))]
     [Shared]
     public sealed class RemoveAsyncAwaitCodeFixProvider : CodeFixProvider
     {
