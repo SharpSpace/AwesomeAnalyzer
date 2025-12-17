@@ -15,7 +15,6 @@ ID | Notes
 [JJ0003](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0003.md) | Variable can be a const.
 [JJ0004](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0004.md) | Statement is missing using because type implements IDisposable.
 [JJ0005](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0005.md) | Convert string to [Type].TryParse()
-[JJ0006](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0006.md) | Remove async and await in method.
 [JJ0007](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0007.md) | Don't return lists with null from methods.
 [JJ0008](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0008.md) | Similar Code Detected.
 [JJ0009](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0009.md) | Property can be made immutable in Record.
