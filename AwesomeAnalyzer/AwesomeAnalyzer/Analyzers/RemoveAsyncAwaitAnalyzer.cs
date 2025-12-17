@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -91,7 +90,8 @@ namespace AwesomeAnalyzer.Analyzers
                 }
 
                 // Handle methods with body
-                if (Regex.Matches(methodDeclarationSyntax.Body.ToFullString(), "await ").Count > 1) return;
+                var awaitCount = methodDeclarationSyntax.Body.DescendantNodes().OfType<AwaitExpressionSyntax>().Count();
+                if (awaitCount > 1) return;
                 var lastStatement = methodDeclarationSyntax.Body.Statements.Last();
                 if (!((lastStatement as ExpressionStatementSyntax)?.Expression is AwaitExpressionSyntax awaitExpression)) return;
 
