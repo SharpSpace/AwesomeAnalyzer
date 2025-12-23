@@ -80,10 +80,11 @@ namespace AwesomeAnalyzer
                     item.FullSpan,
                     item.Name,
                     item.Order,
+                    item.RegionName,
                     Type: x.Key
                 )
             )
-            .GroupBy(x => x.ClassName)
+            .GroupBy(x => new { x.ClassName, x.RegionName })
             .Where(x => x.Count() > 1)
             .ToDictionary(
                 x => x.Key,
