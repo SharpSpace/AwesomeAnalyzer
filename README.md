@@ -19,6 +19,8 @@ ID | Notes
 [JJ0007](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0007.md) | Don't return lists with null from methods.
 [JJ0008](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0008.md) | Similar Code Detected.
 [JJ0009](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0009.md) | Property can be made immutable in Record.
+[JJ0010](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0010.md) | IEnumerable is enumerated multiple times.
+[JJ0011](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0011.md) | IQueryable is executed multiple times (causes multiple database queries).
 [JJ0100](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0100.md) | Method contains Async prefix.
 [JJ0101](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0101.md) | Method call is missing Await.
 [JJ0102](https://github.com/SharpSpace/AwesomeAnalyzer/blob/master/Docs/JJ0102.md) | Method name is missing Async prefix.

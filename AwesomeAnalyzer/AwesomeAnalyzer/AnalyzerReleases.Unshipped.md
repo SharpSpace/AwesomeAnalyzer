@@ -12,6 +12,7 @@ JJ0006 | Performance | Warning | DiagnosticDescriptors
 JJ0007 | Performance | Warning | DiagnosticDescriptors
 JJ0008 | Performance | Info | DiagnosticDescriptors
 JJ0010 | Performance | Warning | DiagnosticDescriptors
+JJ0011 | Performance | Warning | DiagnosticDescriptors
 JJ0200 | Performance | Info | DiagnosticDescriptors
 JJ0100 | Naming | Warning | DiagnosticDescriptors
 JJ0101 | Naming | Warning | DiagnosticDescriptors
