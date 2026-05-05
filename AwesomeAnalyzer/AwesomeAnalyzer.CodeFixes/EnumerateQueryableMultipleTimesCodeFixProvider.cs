@@ -26,6 +26,9 @@ namespace AwesomeAnalyzer
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             if (root == null) return;
 
+            var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+            if (semanticModel == null) return;
+
             foreach (var diagnostic in context.Diagnostics)
             {
                 var variable = root.FindToken(diagnostic.Location.SourceSpan.Start)
@@ -35,10 +38,12 @@ namespace AwesomeAnalyzer
 
                 if (variable?.Initializer == null) continue;
 
+                var method = MaterializationHelper.ChooseBestMethod(variable, semanticModel, context.CancellationToken);
+
                 context.RegisterCodeFix(
                     CodeAction.Create(
-                        title: "Convert to list",
-                        createChangedDocument: token => ConvertToListAsync(context.Document, variable, token),
+                        title: MaterializationHelper.GetFixTitle(method),
+                        createChangedDocument: token => MaterializeAsync(context.Document, variable, method, token),
                         equivalenceKey: "EnumerateQueryableMultipleTimesCodeFixTitle"
                     ),
                     diagnostic
@@ -46,9 +51,10 @@ namespace AwesomeAnalyzer
             }
         }
 
-        private static async Task<Document> ConvertToListAsync(
+        private static async Task<Document> MaterializeAsync(
             Document document,
             VariableDeclaratorSyntax variable,
+            MaterializationHelper.Method method,
             CancellationToken cancellationToken)
         {
             if (variable.Initializer == null) return document;
@@ -59,82 +65,27 @@ namespace AwesomeAnalyzer
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (root == null) return document;
 
-            var initializerExpression = variable.Initializer.Value;
+            var invocation = MaterializationHelper.BuildMaterializationInvocation(
+                variable.Initializer.Value,
+                MaterializationHelper.GetMethodName(method)
+            );
 
-            // Parenthesize if the expression has lower precedence than member access.
-            ExpressionSyntax target;
-            if (NeedsParentheses(initializerExpression))
-            {
-                target = SyntaxFactory.ParenthesizedExpression(
-                    initializerExpression.WithoutTrivia()
-                ).WithTriviaFrom(initializerExpression);
-            }
-            else
-            {
-                target = initializerExpression;
-            }
-
-            var toListInvocation = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    target.WithoutTrailingTrivia(),
-                    SyntaxFactory.IdentifierName("ToList")
-                )
-            ).WithTrailingTrivia(initializerExpression.GetTrailingTrivia());
-
-            // Also change the declared type to var: List<T> is not assignable to IQueryable<T>.
+            // Also change the declared type to var: List<T>/T[]/HashSet<T> don't implement IQueryable<T>.
             var varType = SyntaxFactory.IdentifierName("var")
                 .WithTriviaFrom(declaration.Type);
 
             var newRoot = root.ReplaceNodes(
-                new SyntaxNode[] { declaration.Type, initializerExpression },
+                new SyntaxNode[] { declaration.Type, variable.Initializer.Value },
                 (original, _) =>
                 {
                     if (original == declaration.Type) return varType;
-                    return toListInvocation;
+                    return invocation;
                 }
             );
 
             var newDocument = document.WithSyntaxRoot(newRoot);
 
-            return await EnsureUsingSystemLinqAsync(newDocument, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static bool NeedsParentheses(ExpressionSyntax expression)
-        {
-            return expression is ConditionalExpressionSyntax ||
-                   expression is BinaryExpressionSyntax ||
-                   expression is AssignmentExpressionSyntax ||
-                   expression is AwaitExpressionSyntax ||
-                   expression is CastExpressionSyntax ||
-                   expression is ThrowExpressionSyntax ||
-                   expression is LambdaExpressionSyntax ||
-                   expression is QueryExpressionSyntax;
-        }
-
-        private static async Task<Document> EnsureUsingSystemLinqAsync(
-            Document document,
-            CancellationToken cancellationToken)
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (!(root is CompilationUnitSyntax compilationUnit)) return document;
-
-            bool alreadyPresent = compilationUnit.Usings.Any(u =>
-                u.Alias == null &&
-                !u.StaticKeyword.IsKind(SyntaxKind.StaticKeyword) &&
-                string.Equals(u.Name?.ToFullString().Trim(), "System.Linq", System.StringComparison.Ordinal)
-            );
-            if (alreadyPresent) return document;
-
-            var usingDirective = SyntaxFactory.UsingDirective(
-                SyntaxFactory.QualifiedName(
-                    SyntaxFactory.IdentifierName("System"),
-                    SyntaxFactory.IdentifierName("Linq")
-                ).WithLeadingTrivia(SyntaxFactory.Space)
-            ).WithTrailingTrivia(SyntaxFactory.ElasticLineFeed);
-
-            var newRoot = compilationUnit.AddUsings(usingDirective);
-            return document.WithSyntaxRoot(newRoot);
+            return await MaterializationHelper.EnsureUsingSystemLinqAsync(newDocument, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -37,7 +37,7 @@ public sealed class EnumerateMultipleTimesTest
 
                 private void Method()
                 {
-                    IEnumerable<int> items = GetItems().ToList();
+                    IEnumerable<int> items = GetItems().ToArray();
                     var count = items.Count();
                     foreach (var item in items) { }
                 }
@@ -78,7 +78,7 @@ public sealed class EnumerateMultipleTimesTest
 
                 private void Method()
                 {
-                    IEnumerable<string> items = GetItems().ToList();
+                    IEnumerable<string> items = GetItems().ToArray();
                     foreach (var item in items) { }
                     foreach (var item in items) { }
                 }
@@ -119,7 +119,7 @@ public sealed class EnumerateMultipleTimesTest
 
                 private void Method()
                 {
-                    IEnumerable<int> items = GetItems().ToList();
+                    IEnumerable<int> items = GetItems().ToArray();
                     var any = items.Any();
                     var first = items.First();
                 }
@@ -160,7 +160,7 @@ public sealed class EnumerateMultipleTimesTest
 
                 private void Method()
                 {
-                    var items = GetItems().ToList();
+                    var items = GetItems().ToArray();
                     var count = items.Count();
                     foreach (var item in items) { }
                 }
@@ -201,7 +201,7 @@ public sealed class EnumerateMultipleTimesTest
 
                 private void Method()
                 {
-                    IEnumerable<int> items = GetItems().Where(x => x > 1).ToList();
+                    IEnumerable<int> items = GetItems().Where(x => x > 1).ToArray();
                     var count = items.Count();
                     foreach (var item in items) { }
                 }
@@ -244,7 +244,7 @@ public sealed class EnumerateMultipleTimesTest
 
                 private void Method()
                 {
-                    IEnumerable<int> items = GetItems().ToList();
+                    IEnumerable<int> items = GetItems().ToArray();
                     if (items.Any())
                     {
                         foreach (var item in items) { }
@@ -533,7 +533,7 @@ public sealed class EnumerateMultipleTimesTest
 
                 private void Method()
                 {
-                    IEnumerable<int> items = GetItems().ToList();
+                    IEnumerable<int> items = GetItems().ToArray();
                     foreach (var item in (items)) { }
                     foreach (var item in (items)) { }
                 }
@@ -598,7 +598,7 @@ public sealed class EnumerateMultipleTimesTest
 
                 private void Method(bool condition)
                 {
-                    IEnumerable<int> items = (condition ? GetItems() : Enumerable.Empty<int>()).ToList();
+                    IEnumerable<int> items = (condition ? GetItems() : Enumerable.Empty<int>()).ToArray();
                     var count = items.Count();
                     foreach (var item in items) { }
                 }
@@ -639,7 +639,7 @@ public sealed class EnumerateMultipleTimesTest
 
                 private void Method()
                 {
-                    IEnumerable<int> items = (GetItems() ?? Enumerable.Empty<int>()).ToList();
+                    IEnumerable<int> items = (GetItems() ?? Enumerable.Empty<int>()).ToArray();
                     var count = items.Count();
                     foreach (var item in items) { }
                 }
@@ -679,8 +679,90 @@ public sealed class EnumerateMultipleTimesTest
 
                 private void Method()
                 {
-                    IEnumerable<int> items = GetItems().ToList();
+                    IEnumerable<int> items = GetItems().ToArray();
                     foreach (var item in items) { }
+                    foreach (var item in items) { }
+                }
+            }
+            """
+        )
+;
+    }
+
+    [Fact]
+    public async Task Test_Diagnostic_ContainsOnlyUsage_FixUsesToHashSet()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            sealed class Program
+            {
+                private static IEnumerable<int> GetItems() => new[] { 1, 2, 3 };
+
+                private void Method(int value)
+                {
+                    IEnumerable<int> [|items = GetItems()|];
+                    var a = items.Contains(value);
+                    var b = items.Contains(value + 1);
+                }
+            }
+            """,
+            fixedSource:
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            sealed class Program
+            {
+                private static IEnumerable<int> GetItems() => new[] { 1, 2, 3 };
+
+                private void Method(int value)
+                {
+                    IEnumerable<int> items = GetItems().ToHashSet();
+                    var a = items.Contains(value);
+                    var b = items.Contains(value + 1);
+                }
+            }
+            """
+        )
+;
+    }
+
+    [Fact]
+    public async Task Test_Diagnostic_ContainsMixedWithForeach_FixUsesToArray()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            sealed class Program
+            {
+                private static IEnumerable<int> GetItems() => new[] { 1, 2, 3 };
+
+                private void Method(int value)
+                {
+                    IEnumerable<int> [|items = GetItems()|];
+                    var a = items.Contains(value);
+                    foreach (var item in items) { }
+                }
+            }
+            """,
+            fixedSource:
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            sealed class Program
+            {
+                private static IEnumerable<int> GetItems() => new[] { 1, 2, 3 };
+
+                private void Method(int value)
+                {
+                    IEnumerable<int> items = GetItems().ToArray();
+                    var a = items.Contains(value);
                     foreach (var item in items) { }
                 }
             }

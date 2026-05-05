@@ -37,7 +37,7 @@ public sealed class EnumerateQueryableMultipleTimesTest
 
                 private void Method()
                 {
-                    var query = GetQuery().ToList();
+                    var query = GetQuery().ToArray();
                     foreach (var item in query) { }
                     foreach (var item in query) { }
                 }
@@ -78,7 +78,7 @@ public sealed class EnumerateQueryableMultipleTimesTest
 
                 private void Method()
                 {
-                    var query = GetQuery().ToList();
+                    var query = GetQuery().ToArray();
                     var any = query.Any();
                     var first = query.First();
                 }
@@ -119,7 +119,7 @@ public sealed class EnumerateQueryableMultipleTimesTest
 
                 private void Method()
                 {
-                    var query = GetQuery().ToList();
+                    var query = GetQuery().ToArray();
                     var count = query.Count();
                     foreach (var item in query) { }
                 }
