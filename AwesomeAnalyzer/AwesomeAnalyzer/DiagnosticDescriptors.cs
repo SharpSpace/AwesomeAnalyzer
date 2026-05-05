@@ -84,6 +84,26 @@ namespace AwesomeAnalyzer
             description: "Make property immutable in Record."
         );
 
+        public static readonly DiagnosticDescriptor Rule0010EnumerateMultipleTimes = new DiagnosticDescriptor(
+            "JJ0010",
+            "IEnumerable is enumerated multiple times",
+            "Variable '{0}' is an IEnumerable that is enumerated multiple times, consider converting it to a list",
+            TextPerformance,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "IEnumerable is enumerated multiple times. Convert it to a list to avoid repeated enumeration."
+        );
+
+        public static readonly DiagnosticDescriptor Rule0011EnumerateQueryableMultipleTimes = new DiagnosticDescriptor(
+            "JJ0011",
+            "IQueryable is executed multiple times",
+            "Variable '{0}' is an IQueryable that is executed multiple times, causing multiple database queries. Consider calling .ToList() to materialize the results once",
+            TextPerformance,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "IQueryable is executed multiple times, which causes multiple database queries. Call .ToList() to materialize the results and avoid the extra round-trips."
+        );
+
         public static readonly DiagnosticDescriptor Rule0100RenameAsync = new DiagnosticDescriptor(
             "JJ0100",
             "Method name contains Async prefix",
