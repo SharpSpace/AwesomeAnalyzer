@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace AwesomeAnalyzer
@@ -55,26 +56,85 @@ namespace AwesomeAnalyzer
             var declaration = variable.Parent as VariableDeclarationSyntax;
             if (declaration == null) return document;
 
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (root == null) return document;
 
-            var initializerSpan = variable.Initializer.Value.Span;
-            var initializerText = sourceText.ToString(initializerSpan);
+            var initializerExpression = variable.Initializer.Value;
 
-            var changes = new System.Collections.Generic.List<Microsoft.CodeAnalysis.Text.TextChange>();
-
-            // Replace type with var (type comes before the initializer in source)
-            if (!declaration.Type.IsVar)
+            // Parenthesize if the expression has lower precedence than member access.
+            ExpressionSyntax target;
+            if (NeedsParentheses(initializerExpression))
             {
-                changes.Add(new Microsoft.CodeAnalysis.Text.TextChange(declaration.Type.Span, "var"));
+                target = SyntaxFactory.ParenthesizedExpression(
+                    initializerExpression.WithoutTrivia()
+                ).WithTriviaFrom(initializerExpression);
+            }
+            else
+            {
+                target = initializerExpression;
             }
 
-            // Append .ToList() to the initializer expression
-            changes.Add(new Microsoft.CodeAnalysis.Text.TextChange(
-                new Microsoft.CodeAnalysis.Text.TextSpan(initializerSpan.End, 0),
-                ".ToList()"
-            ));
+            var toListInvocation = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    target.WithoutTrailingTrivia(),
+                    SyntaxFactory.IdentifierName("ToList")
+                )
+            ).WithTrailingTrivia(initializerExpression.GetTrailingTrivia());
 
-            return document.WithText(sourceText.WithChanges(changes));
+            // Also change the declared type to var: List<T> is not assignable to IQueryable<T>.
+            var varType = SyntaxFactory.IdentifierName("var")
+                .WithTriviaFrom(declaration.Type);
+
+            var newRoot = root.ReplaceNodes(
+                new SyntaxNode[] { declaration.Type, initializerExpression },
+                (original, _) =>
+                {
+                    if (original == declaration.Type) return varType;
+                    return toListInvocation;
+                }
+            );
+
+            var newDocument = document.WithSyntaxRoot(newRoot);
+
+            return await EnsureUsingSystemLinqAsync(newDocument, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static bool NeedsParentheses(ExpressionSyntax expression)
+        {
+            return expression is ConditionalExpressionSyntax ||
+                   expression is BinaryExpressionSyntax ||
+                   expression is AssignmentExpressionSyntax ||
+                   expression is AwaitExpressionSyntax ||
+                   expression is CastExpressionSyntax ||
+                   expression is ThrowExpressionSyntax ||
+                   expression is LambdaExpressionSyntax ||
+                   expression is QueryExpressionSyntax;
+        }
+
+        private static async Task<Document> EnsureUsingSystemLinqAsync(
+            Document document,
+            CancellationToken cancellationToken)
+        {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (!(root is CompilationUnitSyntax compilationUnit)) return document;
+
+            bool alreadyPresent = compilationUnit.Usings.Any(u =>
+                u.Alias == null &&
+                !u.StaticKeyword.IsKind(SyntaxKind.StaticKeyword) &&
+                string.Equals(u.Name?.ToFullString().Trim(), "System.Linq", System.StringComparison.Ordinal)
+            );
+            if (alreadyPresent) return document;
+
+            var usingDirective = SyntaxFactory.UsingDirective(
+                SyntaxFactory.QualifiedName(
+                    SyntaxFactory.IdentifierName("System"),
+                    SyntaxFactory.IdentifierName("Linq")
+                ).WithLeadingTrivia(SyntaxFactory.Space)
+            ).WithTrailingTrivia(SyntaxFactory.ElasticLineFeed);
+
+            var newRoot = compilationUnit.AddUsings(usingDirective);
+            return document.WithSyntaxRoot(newRoot);
         }
     }
 }

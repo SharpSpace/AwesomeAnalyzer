@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -32,7 +33,11 @@ namespace AwesomeAnalyzer.Analyzers
                 }
 
                 var localDeclaration = (LocalDeclarationStatementSyntax)context.Node;
+                var containingBlock = localDeclaration.Parent;
+                if (containingBlock == null) return;
 
+                // Collect candidate variables: IEnumerable<T> locals with non-materialized initializers.
+                var candidates = new Dictionary<ISymbol, VariableDeclaratorSyntax>(SymbolEqualityComparer.Default);
                 foreach (var variable in localDeclaration.Declaration.Variables)
                 {
                     if (variable.Initializer == null) continue;
@@ -52,23 +57,37 @@ namespace AwesomeAnalyzer.Analyzers
                     );
                     if (IsMaterializedCollection(initializerTypeInfo.Type, context.SemanticModel.Compilation)) continue;
 
-                    var containingBlock = localDeclaration.Parent;
-                    if (containingBlock == null) continue;
+                    candidates[symbol] = variable;
+                }
 
-                    var enumerationCount = CountEnumerationUsages(
-                        containingBlock,
-                        symbol,
-                        context.SemanticModel,
-                        context.CancellationToken
-                    );
+                if (candidates.Count == 0) return;
 
-                    if (enumerationCount >= 2)
+                // Single pass over the containing block: count enumeration usages per candidate symbol.
+                var counts = new Dictionary<ISymbol, int>(SymbolEqualityComparer.Default);
+                foreach (var sym in candidates.Keys) counts[sym] = 0;
+
+                foreach (var node in containingBlock.DescendantNodes())
+                {
+                    if (!(node is IdentifierNameSyntax identifier)) continue;
+
+                    var resolvedSymbol = context.SemanticModel.GetSymbolInfo(identifier, context.CancellationToken).Symbol;
+                    if (resolvedSymbol == null || !counts.ContainsKey(resolvedSymbol)) continue;
+
+                    if (IsEnumerationUsage(identifier, context.SemanticModel, context.CancellationToken))
+                    {
+                        counts[resolvedSymbol]++;
+                    }
+                }
+
+                foreach (var pair in candidates)
+                {
+                    if (counts.TryGetValue(pair.Key, out var count) && count >= 2)
                     {
                         context.ReportDiagnostic(
                             Diagnostic.Create(
                                 DiagnosticDescriptors.Rule0010EnumerateMultipleTimes,
-                                variable.GetLocation(),
-                                variable.Identifier.ValueText
+                                pair.Value.GetLocation(),
+                                pair.Value.Identifier.ValueText
                             )
                         );
                     }
@@ -97,52 +116,65 @@ namespace AwesomeAnalyzer.Analyzers
             var iCollectionType = compilation.GetTypeByMetadataName("System.Collections.Generic.ICollection`1");
             var iReadOnlyCollectionType = compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyCollection`1");
 
+            // Check if the type itself is one of the materialized interfaces (e.g. cast to IList<T>).
+            if (IsMatchingMaterializedInterface(namedType, iListType, iReadOnlyListType, iCollectionType, iReadOnlyCollectionType))
+            {
+                return true;
+            }
+
             return namedType.AllInterfaces.Any(iface =>
-                (iListType != null && SymbolEqualityComparer.Default.Equals(iface.OriginalDefinition, iListType)) ||
-                (iReadOnlyListType != null && SymbolEqualityComparer.Default.Equals(iface.OriginalDefinition, iReadOnlyListType)) ||
-                (iCollectionType != null && SymbolEqualityComparer.Default.Equals(iface.OriginalDefinition, iCollectionType)) ||
-                (iReadOnlyCollectionType != null && SymbolEqualityComparer.Default.Equals(iface.OriginalDefinition, iReadOnlyCollectionType))
+                IsMatchingMaterializedInterface(iface, iListType, iReadOnlyListType, iCollectionType, iReadOnlyCollectionType)
             );
         }
 
-        private static int CountEnumerationUsages(
-            SyntaxNode containingBlock,
-            ISymbol variableSymbol,
+        private static bool IsMatchingMaterializedInterface(
+            INamedTypeSymbol type,
+            INamedTypeSymbol iListType,
+            INamedTypeSymbol iReadOnlyListType,
+            INamedTypeSymbol iCollectionType,
+            INamedTypeSymbol iReadOnlyCollectionType)
+        {
+            return
+                (iListType != null && SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, iListType)) ||
+                (iReadOnlyListType != null && SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, iReadOnlyListType)) ||
+                (iCollectionType != null && SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, iCollectionType)) ||
+                (iReadOnlyCollectionType != null && SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, iReadOnlyCollectionType));
+        }
+
+        private static bool IsEnumerationUsage(
+            IdentifierNameSyntax identifier,
             SemanticModel model,
             CancellationToken cancellationToken)
         {
-            var count = 0;
-
-            foreach (var node in containingBlock.DescendantNodes())
+            // foreach (... in [wrapped] variable): walk up through parentheses and null-forgiving operators.
+            SyntaxNode current = identifier;
+            while (current.Parent is ParenthesizedExpressionSyntax ||
+                   (current.Parent is PostfixUnaryExpressionSyntax postfix &&
+                    postfix.IsKind(SyntaxKind.SuppressNullableWarningExpression)))
             {
-                if (!(node is IdentifierNameSyntax identifier)) continue;
-
-                var resolvedSymbol = model.GetSymbolInfo(identifier, cancellationToken).Symbol;
-                if (!SymbolEqualityComparer.Default.Equals(resolvedSymbol, variableSymbol)) continue;
-
-                if (IsEnumerationUsage(identifier))
-                {
-                    count++;
-                }
+                current = current.Parent;
             }
 
-            return count;
-        }
-
-        private static bool IsEnumerationUsage(IdentifierNameSyntax identifier)
-        {
-            // foreach (... in variable)
-            if (identifier.Parent is ForEachStatementSyntax forEach && forEach.Expression == identifier)
+            if (current.Parent is ForEachStatementSyntax forEach && forEach.Expression == current)
             {
                 return true;
             }
 
-            // variable.Method(...)
+            // variable.Method(...): only count invocations of methods in the System.Linq namespace.
             if (identifier.Parent is MemberAccessExpressionSyntax memberAccess &&
                 memberAccess.Expression == identifier &&
-                memberAccess.Parent is InvocationExpressionSyntax)
+                memberAccess.Parent is InvocationExpressionSyntax invocation)
             {
-                return true;
+                var methodSymbol = model.GetSymbolInfo(invocation, cancellationToken).Symbol as IMethodSymbol;
+                if (methodSymbol != null)
+                {
+                    var containingType = methodSymbol.ContainingType;
+                    return string.Equals(
+                        containingType?.ContainingNamespace?.ToDisplayString(),
+                        "System.Linq",
+                        System.StringComparison.Ordinal
+                    );
+                }
             }
 
             return false;

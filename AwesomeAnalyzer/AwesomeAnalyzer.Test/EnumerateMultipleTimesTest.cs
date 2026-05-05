@@ -501,4 +501,191 @@ public sealed class EnumerateMultipleTimesTest
         )
 ;
     }
+
+    [Fact]
+    public async Task Test_Diagnostic_ForeachWithParenthesizedCollection()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            sealed class Program
+            {
+                private static IEnumerable<int> GetItems() => new[] { 1, 2, 3 };
+
+                private void Method()
+                {
+                    IEnumerable<int> [|items = GetItems()|];
+                    foreach (var item in (items)) { }
+                    foreach (var item in (items)) { }
+                }
+            }
+            """,
+            fixedSource:
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            sealed class Program
+            {
+                private static IEnumerable<int> GetItems() => new[] { 1, 2, 3 };
+
+                private void Method()
+                {
+                    IEnumerable<int> items = GetItems().ToList();
+                    foreach (var item in (items)) { }
+                    foreach (var item in (items)) { }
+                }
+            }
+            """
+        )
+;
+    }
+
+    [Fact]
+    public async Task Test_NoDiagnostic_NonLinqMethodCallNotCounted()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            sealed class Program
+            {
+                private static IEnumerable<int> GetItems() => new[] { 1, 2, 3 };
+
+                private void Method()
+                {
+                    IEnumerable<int> items = GetItems();
+                    string s = items.ToString();
+                    foreach (var item in items) { }
+                }
+            }
+            """
+        )
+;
+    }
+
+    [Fact]
+    public async Task Test_Diagnostic_TernaryInitializer_FixParenthesizes()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            sealed class Program
+            {
+                private static IEnumerable<int> GetItems() => new[] { 1, 2, 3 };
+
+                private void Method(bool condition)
+                {
+                    IEnumerable<int> [|items = condition ? GetItems() : Enumerable.Empty<int>()|];
+                    var count = items.Count();
+                    foreach (var item in items) { }
+                }
+            }
+            """,
+            fixedSource:
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            sealed class Program
+            {
+                private static IEnumerable<int> GetItems() => new[] { 1, 2, 3 };
+
+                private void Method(bool condition)
+                {
+                    IEnumerable<int> items = (condition ? GetItems() : Enumerable.Empty<int>()).ToList();
+                    var count = items.Count();
+                    foreach (var item in items) { }
+                }
+            }
+            """
+        )
+;
+    }
+
+    [Fact]
+    public async Task Test_Diagnostic_NullCoalescingInitializer_FixParenthesizes()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            sealed class Program
+            {
+                private static IEnumerable<int> GetItems() => null;
+
+                private void Method()
+                {
+                    IEnumerable<int> [|items = GetItems() ?? Enumerable.Empty<int>()|];
+                    var count = items.Count();
+                    foreach (var item in items) { }
+                }
+            }
+            """,
+            fixedSource:
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            sealed class Program
+            {
+                private static IEnumerable<int> GetItems() => null;
+
+                private void Method()
+                {
+                    IEnumerable<int> items = (GetItems() ?? Enumerable.Empty<int>()).ToList();
+                    var count = items.Count();
+                    foreach (var item in items) { }
+                }
+            }
+            """
+        )
+;
+    }
+
+    [Fact]
+    public async Task Test_Diagnostic_FixAddsUsingSystemLinq_WhenMissing()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System.Collections.Generic;
+
+            sealed class Program
+            {
+                private static IEnumerable<int> GetItems() => new[] { 1, 2, 3 };
+
+                private void Method()
+                {
+                    IEnumerable<int> [|items = GetItems()|];
+                    foreach (var item in items) { }
+                    foreach (var item in items) { }
+                }
+            }
+            """,
+            fixedSource:
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            sealed class Program
+            {
+                private static IEnumerable<int> GetItems() => new[] { 1, 2, 3 };
+
+                private void Method()
+                {
+                    IEnumerable<int> items = GetItems().ToList();
+                    foreach (var item in items) { }
+                    foreach (var item in items) { }
+                }
+            }
+            """
+        )
+;
+    }
 }
