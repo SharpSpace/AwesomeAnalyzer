@@ -27,17 +27,17 @@ namespace AwesomeAnalyzer
 
             foreach (var diagnostic in context.Diagnostics)
             {
-                var declaration = root.FindToken(diagnostic.Location.SourceSpan.Start)
+                var variable = root.FindToken(diagnostic.Location.SourceSpan.Start)
                     .Parent?.AncestorsAndSelf()
-                    .OfType<LocalDeclarationStatementSyntax>()
+                    .OfType<VariableDeclaratorSyntax>()
                     .FirstOrDefault();
 
-                if (declaration == null) continue;
+                if (variable?.Initializer == null) continue;
 
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         title: "Convert to list",
-                        createChangedDocument: token => ConvertToListAsync(context.Document, declaration, token),
+                        createChangedDocument: token => ConvertToListAsync(context.Document, variable, token),
                         equivalenceKey: "EnumerateMultipleTimesCodeFixTitle"
                     ),
                     diagnostic
@@ -47,11 +47,9 @@ namespace AwesomeAnalyzer
 
         private static async Task<Document> ConvertToListAsync(
             Document document,
-            LocalDeclarationStatementSyntax localDeclaration,
+            VariableDeclaratorSyntax variable,
             CancellationToken cancellationToken)
         {
-            var declaration = localDeclaration.Declaration;
-            var variable = declaration.Variables[0];
             if (variable.Initializer == null) return document;
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

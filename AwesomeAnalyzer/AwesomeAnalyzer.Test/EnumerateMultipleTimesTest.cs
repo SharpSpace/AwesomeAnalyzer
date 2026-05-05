@@ -20,7 +20,7 @@ public sealed class EnumerateMultipleTimesTest
 
                 private void Method()
                 {
-                    [|IEnumerable<int> items = GetItems();|]
+                    IEnumerable<int> [|items = GetItems()|];
                     var count = items.Count();
                     foreach (var item in items) { }
                 }
@@ -61,7 +61,7 @@ public sealed class EnumerateMultipleTimesTest
 
                 private void Method()
                 {
-                    [|IEnumerable<string> items = GetItems();|]
+                    IEnumerable<string> [|items = GetItems()|];
                     foreach (var item in items) { }
                     foreach (var item in items) { }
                 }
@@ -102,7 +102,7 @@ public sealed class EnumerateMultipleTimesTest
 
                 private void Method()
                 {
-                    [|IEnumerable<int> items = GetItems();|]
+                    IEnumerable<int> [|items = GetItems()|];
                     var any = items.Any();
                     var first = items.First();
                 }
@@ -143,7 +143,7 @@ public sealed class EnumerateMultipleTimesTest
 
                 private void Method()
                 {
-                    [|var items = GetItems();|]
+                    var [|items = GetItems()|];
                     var count = items.Count();
                     foreach (var item in items) { }
                 }
@@ -184,7 +184,7 @@ public sealed class EnumerateMultipleTimesTest
 
                 private void Method()
                 {
-                    [|IEnumerable<int> items = GetItems().Where(x => x > 1);|]
+                    IEnumerable<int> [|items = GetItems().Where(x => x > 1)|];
                     var count = items.Count();
                     foreach (var item in items) { }
                 }
@@ -225,7 +225,7 @@ public sealed class EnumerateMultipleTimesTest
 
                 private void Method()
                 {
-                    [|IEnumerable<int> items = GetItems();|]
+                    IEnumerable<int> [|items = GetItems()|];
                     if (items.Any())
                     {
                         foreach (var item in items) { }

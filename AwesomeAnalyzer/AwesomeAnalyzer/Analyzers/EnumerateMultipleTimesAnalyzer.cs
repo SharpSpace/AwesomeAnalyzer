@@ -67,7 +67,7 @@ namespace AwesomeAnalyzer.Analyzers
                         context.ReportDiagnostic(
                             Diagnostic.Create(
                                 DiagnosticDescriptors.Rule0010EnumerateMultipleTimes,
-                                localDeclaration.GetLocation(),
+                                variable.GetLocation(),
                                 variable.Identifier.ValueText
                             )
                         );
@@ -78,7 +78,7 @@ namespace AwesomeAnalyzer.Analyzers
 
         private static bool IsEnumerableType(ITypeSymbol type, Compilation compilation)
         {
-            if (!(type is INamedTypeSymbol namedType)) return false;
+            if (type is not INamedTypeSymbol namedType) return false;
 
             var genericEnumerable = compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerable`1");
             if (genericEnumerable == null) return false;
@@ -90,7 +90,7 @@ namespace AwesomeAnalyzer.Analyzers
         {
             if (type == null) return false;
             if (type is IArrayTypeSymbol) return true;
-            if (!(type is INamedTypeSymbol namedType)) return false;
+            if (type is not INamedTypeSymbol namedType) return false;
 
             var iListType = compilation.GetTypeByMetadataName("System.Collections.Generic.IList`1");
             var iReadOnlyListType = compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyList`1");
@@ -115,7 +115,7 @@ namespace AwesomeAnalyzer.Analyzers
 
             foreach (var node in containingBlock.DescendantNodes())
             {
-                if (!(node is IdentifierNameSyntax identifier)) continue;
+                if (node is not IdentifierNameSyntax identifier) continue;
 
                 var resolvedSymbol = model.GetSymbolInfo(identifier, cancellationToken).Symbol;
                 if (!SymbolEqualityComparer.Default.Equals(resolvedSymbol, variableSymbol)) continue;
