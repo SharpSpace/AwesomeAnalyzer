@@ -279,7 +279,7 @@ public sealed class EnumerateMultipleTimesTest
     }
 
     [Fact]
-    public async Task Test_NoDiagnostic_SingleMethodCall()
+    public async Task Test_NoDiagnostic_SingleMaterializationCall()
     {
         await VerifyCS.VerifyAnalyzerAsync(
             """
@@ -294,6 +294,30 @@ public sealed class EnumerateMultipleTimesTest
                 {
                     IEnumerable<int> items = GetItems();
                     var list = items.ToList();
+                }
+            }
+            """
+        )
+;
+    }
+
+    [Fact]
+    public async Task Test_NoDiagnostic_ToListTwiceOnAlreadyMaterialized()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            sealed class Program
+            {
+                private static IEnumerable<int> GetItems() => new[] { 1, 2, 3 };
+
+                private void Method()
+                {
+                    var items = GetItems().ToList();
+                    var x = items.ToList();
+                    var y = items.ToList();
                 }
             }
             """
