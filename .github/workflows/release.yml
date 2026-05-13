@@ -1,4 +1,4 @@
-name: Release on tag
+name: Release and Publish to Marketplace
 
 on:
   push:
@@ -50,29 +50,51 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
 
-      - name: Check Marketplace secrets
-        id: check-marketplace-secrets
+      - name: Publish to Visual Studio Marketplace
+        if: ${{ secrets.MARKETPLACE_PAT != '' && secrets.MARKETPLACE_PUBLISHER != '' }}
         shell: pwsh
         env:
           MARKETPLACE_PAT: ${{ secrets.MARKETPLACE_PAT }}
           MARKETPLACE_PUBLISHER: ${{ secrets.MARKETPLACE_PUBLISHER }}
         run: |
-          if ([string]::IsNullOrEmpty($env:MARKETPLACE_PAT) -or [string]::IsNullOrEmpty($env:MARKETPLACE_PUBLISHER)) {
-            Add-Content -Path $env:GITHUB_OUTPUT -Value 'have_secrets=false'
-          } else {
-            Add-Content -Path $env:GITHUB_OUTPUT -Value 'have_secrets=true'
+          # Get the VSIX file
+          $vsix = Get-ChildItem -Path Setup -Filter *.vsix | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if (-not $vsix) {
+            Write-Host "No VSIX found in Setup/ - skipping marketplace publish."
+            exit 0
           }
 
-      - name: Publish to Visual Studio Marketplace (optional)
-        if: ${{ steps.check-marketplace-secrets.outputs.have_secrets == 'true' }}
-        shell: pwsh
-        env:
-          MARKETPLACE_PAT: ${{ secrets.MARKETPLACE_PAT }}
-          MARKETPLACE_PUBLISHER: ${{ secrets.MARKETPLACE_PUBLISHER }}
-        run: |
-          # Get the most recently modified VSIX file (the one we just built)
-          $vsix = Get-ChildItem -Path Setup -Filter *.vsix | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-          if (-not $vsix) { Write-Host "No VSIX found in Setup/ - skipping marketplace publish."; exit 0 }
-          Write-Host "Publishing $($vsix.Name) to Visual Studio Marketplace (publisher: $env:MARKETPLACE_PUBLISHER)"
-          # Call included script that performs the publish via TFX CLI
-          .\Setup\publish-to-marketplace.ps1 -VsixPath $vsix.FullName -Publisher $env:MARKETPLACE_PUBLISHER -Pat $env:MARKETPLACE_PAT
+          Write-Host "Publishing $($vsix.Name) to Visual Studio Marketplace..."
+
+          # Check if Node.js is installed
+          $nodeVersion = node --version 2>&1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Node.js is not installed. TFX CLI requires Node.js."
+            exit 1
+          }
+          Write-Host "Node.js version: $nodeVersion"
+
+          # Check if tfx-cli is installed, install if needed
+          $tfxVersion = tfx version 2>&1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "TFX CLI not found. Installing tfx-cli..."
+            npm install -g tfx-cli
+            if ($LASTEXITCODE -ne 0) {
+              Write-Error "Failed to install tfx-cli"
+              exit 1
+            }
+          }
+
+          # Publish extension
+          & tfx extension publish --vsix "$($vsix.FullName)" --token "$env:MARKETPLACE_PAT" --no-prompt
+
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Extension published successfully!"
+          } else {
+            Write-Error "Failed to publish extension. Exit code: $LASTEXITCODE"
+            Write-Host ""
+            Write-Host "Troubleshooting:"
+            Write-Host "1. Verify PAT token has 'Marketplace (Publish)' scope"
+            Write-Host "2. Verify publisher '$env:MARKETPLACE_PUBLISHER' exists"
+            exit 1
+          }
