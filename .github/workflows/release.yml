@@ -9,10 +9,24 @@ jobs:
   build-and-release:
     name: Build, create release and publish
     runs-on: windows-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Update VSIX manifest version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = $tag.TrimStart('v')
+          $path = "AwesomeAnalyzer/AwesomeAnalyzer.Vsix/source.extension.vsixmanifest"
+          $content = Get-Content $path -Raw
+          # Replace the Version attribute inside the <Identity> element; capture groups preserve surrounding text
+          $content = $content -replace '(<Identity[^>]*\bVersion=")[^"]*(")', "`${1}$version`${2}"
+          Set-Content -Path $path -Value $content -Encoding UTF8 -NoNewline
+          Write-Host "Set VSIX manifest version to $version"
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v3
@@ -49,6 +63,7 @@ jobs:
           artifacts: Setup/*
           allowUpdates: true
           replacesArtifacts: true
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to Visual Studio Marketplace
         if: ${{ secrets.MARKETPLACE_PAT != '' && secrets.MARKETPLACE_PUBLISHER != '' }}
