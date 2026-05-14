@@ -124,16 +124,13 @@ jobs:
               Write-Error "Failed to resolve npm global bin path after tfx-cli installation."
               exit 1
             }
-            $candidateCmd = Join-Path $npmGlobalBin "tfx.cmd"
-            $candidateNoExt = Join-Path $npmGlobalBin "tfx"
-            if (Test-Path $candidateCmd) {
-              $tfxPath = $candidateCmd
-            } elseif (Test-Path $candidateNoExt) {
-              $tfxPath = $candidateNoExt
-            } else {
-              Write-Error "tfx-cli was installed but neither '$candidateCmd' nor '$candidateNoExt' was found."
+            $env:PATH = "$npmGlobalBin$([System.IO.Path]::PathSeparator)$env:PATH"
+            $tfxCommand = Get-Command tfx -ErrorAction SilentlyContinue
+            if (-not $tfxCommand) {
+              Write-Error "tfx-cli was installed but 'tfx' could not be resolved from PATH."
               exit 1
             }
+            $tfxPath = $tfxCommand.Source
           } else {
             $tfxPath = $tfxCommand.Source
           }
