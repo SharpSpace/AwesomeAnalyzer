@@ -111,16 +111,29 @@ jobs:
             exit 0
           }
           Write-Host "Publishing $($vsix.Name) to Visual Studio Marketplace..."
-          $tfxVersion = tfx version 2>&1
-          if ($LASTEXITCODE -ne 0) {
-            Write-Host "Installing tfx-cli..."
+          $tfxCommand = Get-Command tfx -ErrorAction SilentlyContinue
+          if (-not $tfxCommand) {
+            Write-Host "tfx-cli is not available on PATH. Installing..."
             npm install -g tfx-cli
             if ($LASTEXITCODE -ne 0) {
               Write-Error "Failed to install tfx-cli"
               exit 1
             }
+            $npmGlobalBin = (npm bin -g).Trim()
+            if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($npmGlobalBin)) {
+              Write-Error "Failed to resolve npm global bin path after tfx-cli installation."
+              exit 1
+            }
+            $candidate = Join-Path $npmGlobalBin "tfx.cmd"
+            if (-not (Test-Path $candidate)) {
+              Write-Error "tfx-cli was installed but '$candidate' was not found."
+              exit 1
+            }
+            $tfxPath = $candidate
+          } else {
+            $tfxPath = $tfxCommand.Source
           }
-          & tfx extension publish --vsix "$($vsix.FullName)" --token "$env:MARKETPLACE_PAT" --no-prompt
+          & $tfxPath extension publish --vsix "$($vsix.FullName)" --token "$env:MARKETPLACE_PAT" --no-prompt
           if ($LASTEXITCODE -eq 0) {
             Write-Host "Extension published successfully!"
           } else {
