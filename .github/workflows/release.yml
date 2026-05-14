@@ -116,11 +116,14 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to Visual Studio Marketplace
-        if: ${{ secrets.MARKETPLACE_PAT != '' }}
         shell: pwsh
         env:
           MARKETPLACE_PAT: ${{ secrets.MARKETPLACE_PAT }}
         run: |
+          if ([string]::IsNullOrWhiteSpace($env:MARKETPLACE_PAT)) {
+            Write-Host "MARKETPLACE_PAT is not configured - skipping marketplace publish."
+            exit 0
+          }
           $vsix = Get-ChildItem -Path Setup -Filter *.vsix | Sort-Object LastWriteTime -Descending | Select-Object -First 1
           if (-not $vsix) {
             Write-Host "No VSIX found in Setup/ - skipping marketplace publish."
