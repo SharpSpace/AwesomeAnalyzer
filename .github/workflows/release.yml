@@ -51,11 +51,10 @@ jobs:
           replacesArtifacts: true
 
       - name: Publish to Visual Studio Marketplace
-        if: ${{ secrets.MARKETPLACE_PAT != '' && secrets.MARKETPLACE_PUBLISHER != '' }}
+        if: ${{ secrets.MARKETPLACE_PAT != '' }}
         shell: pwsh
         env:
           MARKETPLACE_PAT: ${{ secrets.MARKETPLACE_PAT }}
-          MARKETPLACE_PUBLISHER: ${{ secrets.MARKETPLACE_PUBLISHER }}
         run: |
           # Get the VSIX file
           $vsix = Get-ChildItem -Path Setup -Filter *.vsix | Sort-Object LastWriteTime -Descending | Select-Object -First 1
@@ -85,7 +84,7 @@ jobs:
             }
           }
 
-          # Publish extension
+          # Publish extension (publisher is read from VSIX manifest)
           & tfx extension publish --vsix "$($vsix.FullName)" --token "$env:MARKETPLACE_PAT" --no-prompt
 
           if ($LASTEXITCODE -eq 0) {
@@ -95,6 +94,5 @@ jobs:
             Write-Host ""
             Write-Host "Troubleshooting:"
             Write-Host "1. Verify PAT token has 'Marketplace (Publish)' scope"
-            Write-Host "2. Verify publisher '$env:MARKETPLACE_PUBLISHER' exists"
             exit 1
           }
