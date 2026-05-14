@@ -20,24 +20,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Calculate next version
         id: version
         shell: pwsh
         run: |
-          # Get all vX.Y.Z tags sorted descending by version
-          $tags = git tag --sort=-v:refname | Where-Object { $_ -match '^v\d+\.\d+\.\d+$' }
-          if ($tags) {
-            $latest = @($tags)[0]
-            Write-Host "Latest tag: $latest"
-            $parts = $latest.TrimStart('v').Split('.')
-            $newVersion = "$($parts[0]).$($parts[1]).$([int]$parts[2] + 1)"
-          } else {
-            $newVersion = "0.1.0"
-          }
-          $newTag = "v$newVersion"
+          # Version format: YYYY.MMDD.HHmmss  (e.g. 2026.0514.082547)
+          # Unique per second, always increasing, human-readable, fits X.Y.Z.
+          $now        = [System.DateTime]::UtcNow
+          $year       = $now.Year
+          $monthDay   = [int]($now.ToString('MMdd'))
+          $timeNum    = [int]($now.ToString('HHmmss'))
+          $newVersion = "$year.$monthDay.$timeNum"
+          $newTag     = "v$newVersion"
           Write-Host "New version: $newVersion  ->  tag: $newTag"
           "version=$newVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "tag=$newTag"         | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
@@ -116,7 +112,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) {
             Write-Host "Installing tfx-cli..."
             npm install -g tfx-cli
-            if ($LASTEXITCODE -ne 0) { Write-Error "Failed to install tfx-cli"; exit 1 }
+            if ($LASTEXITCODE -ne 0) {
+              Write-Error "Failed to install tfx-cli"
+              exit 1
+            }
           }
           & tfx extension publish --vsix "$($vsix.FullName)" --token "$env:MARKETPLACE_PAT" --no-prompt
           if ($LASTEXITCODE -eq 0) {
