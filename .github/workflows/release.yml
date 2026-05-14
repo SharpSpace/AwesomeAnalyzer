@@ -55,6 +55,24 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Set version from tag
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = $tag -replace '^v', ''
+          if ($version -notmatch '^\d+\.\d+\.\d+') {
+            Write-Error "Tag '$tag' does not produce a valid version string. Expected format: vX.Y.Z"
+            exit 1
+          }
+          Write-Host "Setting version to $version"
+
+          # Update VSIX manifest version
+          $manifestPath = "AwesomeAnalyzer/AwesomeAnalyzer.Vsix/source.extension.vsixmanifest"
+          [xml]$manifest = Get-Content $manifestPath
+          $manifest.PackageManifest.Metadata.Identity.Version = $version
+          $manifest.Save([System.IO.Path]::GetFullPath($manifestPath))
+          Write-Host "Updated VSIX manifest version to $version"
+
       - name: Restore NuGet packages
         run: dotnet restore "AwesomeAnalyzer.sln"
 
@@ -64,7 +82,8 @@ jobs:
       - name: Find and copy VSIX to Setup folder
         shell: pwsh
         run: |
-          $version = "${{ steps.version.outputs.version }}"
+          $tag = "${{ github.ref_name }}"
+          $version = $tag -replace '^v', ''
           # Exclude the Setup folder to avoid picking up old committed VSIX files
           $vsix = Get-ChildItem -Path . -Filter *.vsix -Recurse -File |
             Where-Object { $_.FullName -notlike "*\Setup\*" } |
