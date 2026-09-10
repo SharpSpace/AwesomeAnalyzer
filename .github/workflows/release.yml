@@ -16,7 +16,7 @@ jobs:
       contents: write
     # Prevent overlapping release runs for the same repository
     concurrency:
-      group: release
+      group: release-${{ github.ref }}
       cancel-in-progress: false
 
     steps:
