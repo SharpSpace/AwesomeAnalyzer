@@ -104,6 +104,16 @@ namespace AwesomeAnalyzer
             description: "IQueryable is executed multiple times, which causes multiple database queries. Call .ToList() to materialize the results and avoid the extra round-trips."
         );
 
+        public static readonly DiagnosticDescriptor Rule0012UnusedCode = new DiagnosticDescriptor(
+            "JJ0012",
+            "Code is not used",
+            "Code '{0}' is not used",
+            TextUsage,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Code is not used and can be removed."
+        );
+
         public static readonly DiagnosticDescriptor Rule0100RenameAsync = new DiagnosticDescriptor(
             "JJ0100",
             "Method name contains Async prefix",
