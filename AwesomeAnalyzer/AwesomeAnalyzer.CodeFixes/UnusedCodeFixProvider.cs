@@ -53,13 +53,14 @@ namespace AwesomeAnalyzer
 
         private static bool IsSupportedDeclarationNode(SyntaxNode node) =>
             node is VariableDeclaratorSyntax
-                or MethodDeclarationSyntax
-                or PropertyDeclarationSyntax
-                or EventDeclarationSyntax
-                or LocalFunctionStatementSyntax
-                or ClassDeclarationSyntax
-                or StructDeclarationSyntax
-                or RecordDeclarationSyntax;
+                || node is MethodDeclarationSyntax
+                || node is PropertyDeclarationSyntax
+                || node is EventDeclarationSyntax
+                || node is EventFieldDeclarationSyntax
+                || node is LocalFunctionStatementSyntax
+                || node is ClassDeclarationSyntax
+                || node is StructDeclarationSyntax
+                || node is RecordDeclarationSyntax;
 
         private static async Task<Document> RemoveUnusedCodeAsync(
             Document document,
@@ -89,8 +90,14 @@ namespace AwesomeAnalyzer
 
         private static SyntaxNode GetNodeToRemove(SyntaxNode declaration)
         {
-            if (declaration is not VariableDeclaratorSyntax variableDeclarator
-                || variableDeclarator.Parent is not VariableDeclarationSyntax variableDeclaration)
+            var variableDeclarator = declaration as VariableDeclaratorSyntax;
+            if (variableDeclarator == null)
+            {
+                return declaration;
+            }
+
+            var variableDeclaration = variableDeclarator.Parent as VariableDeclarationSyntax;
+            if (variableDeclaration == null)
             {
                 return declaration;
             }

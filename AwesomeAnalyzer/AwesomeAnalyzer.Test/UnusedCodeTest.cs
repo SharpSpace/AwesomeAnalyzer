@@ -15,7 +15,7 @@ public sealed class UnusedCodeTest
             {
                 public void Run()
                 {
-                    [|int value = 1;|]
+                    int {|JJ0012:value|} = 1;
                 }
             }
             """,
@@ -24,6 +24,7 @@ public sealed class UnusedCodeTest
             {
                 public void Run()
                 {
+
                 }
             }
             """
@@ -58,7 +59,7 @@ public sealed class UnusedCodeTest
             """
             class Program
             {
-                [|private void UnusedMethod()|]
+                private void {|JJ0012:UnusedMethod|}()
                 {
                 }
             }
@@ -66,6 +67,7 @@ public sealed class UnusedCodeTest
             """
             class Program
             {
+
             }
             """
         )
@@ -100,12 +102,13 @@ public sealed class UnusedCodeTest
             """
             class Program
             {
-                [|private int Number { get; set; }|]
+                private int {|JJ0012:Number|} { get; set; }
             }
             """,
             """
             class Program
             {
+
             }
             """
         )
@@ -121,7 +124,7 @@ public sealed class UnusedCodeTest
             {
                 public void Run()
                 {
-                    [|void Work()|]
+                    void {|JJ0012:Work|}()
                     {
                     }
                 }
@@ -132,6 +135,7 @@ public sealed class UnusedCodeTest
             {
                 public void Run()
                 {
+
                 }
             }
             """
@@ -164,6 +168,97 @@ public sealed class UnusedCodeTest
                 {
                     int used = 1;
                     Console.WriteLine(used);
+                }
+            }
+            """
+        )
+;
+    }
+
+    [Fact]
+    public async Task UnusedPrivateEvent_DiagnosticAndFix()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+
+            class Program
+            {
+                private event EventHandler {|JJ0012:Changed|};
+            }
+            """,
+            """
+            using System;
+
+            class Program
+            {
+
+            }
+            """
+        )
+;
+    }
+
+    [Fact]
+    public async Task UnusedNestedPrivateClass_DiagnosticAndFix()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            class Program
+            {
+                private class {|JJ0012:Inner|} { }
+            }
+            """,
+            """
+            class Program
+            {
+
+            }
+            """
+        )
+;
+    }
+
+    [Fact]
+    public async Task PrivateConstructor_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            class Program
+            {
+                private Program()
+                {
+                }
+
+                public static Program Create()
+                {
+                    return new Program();
+                }
+            }
+            """
+        )
+;
+    }
+
+    [Fact]
+    public async Task PrivateEventWithSubscription_NoDiagnostic()
+    {
+        await VerifyCS.VerifyAnalyzerAsync(
+            """
+            using System;
+
+            class Program
+            {
+                private event EventHandler Changed;
+
+                public void Run()
+                {
+                    Changed += OnChanged;
+                    Changed -= OnChanged;
+                }
+
+                private void OnChanged(object sender, EventArgs e)
+                {
                 }
             }
             """

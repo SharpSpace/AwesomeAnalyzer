@@ -78,13 +78,14 @@ namespace AwesomeAnalyzer.Analyzers
                 }
 
                 var variableDeclarator = (VariableDeclaratorSyntax)context.Node;
-                if (variableDeclarator.Parent is not VariableDeclarationSyntax declaration)
+                var declaration = variableDeclarator.Parent as VariableDeclarationSyntax;
+                if (declaration == null)
                 {
                     return;
                 }
 
-                if (declaration.Parent is not LocalDeclarationStatementSyntax
-                    && declaration.Parent is not ForStatementSyntax)
+                if (!(declaration.Parent is LocalDeclarationStatementSyntax)
+                    && !(declaration.Parent is ForStatementSyntax))
                 {
                     return;
                 }
@@ -95,7 +96,7 @@ namespace AwesomeAnalyzer.Analyzers
                     return;
                 }
 
-                var scope = declaration.Parent;
+                var scope = GetScopeForLocalVariable(variableDeclarator, declaration.Parent);
                 if (scope == null)
                 {
                     return;
@@ -165,19 +166,58 @@ namespace AwesomeAnalyzer.Analyzers
                 return false;
             }
 
-            return symbol switch
+            if (symbol is IFieldSymbol fieldSymbol)
             {
-                IFieldSymbol fieldSymbol => fieldSymbol.AssociatedSymbol == null,
-                IMethodSymbol methodSymbol => methodSymbol.MethodKind == MethodKind.Ordinary
+                return fieldSymbol.AssociatedSymbol == null && !fieldSymbol.IsConst;
+            }
+
+            if (symbol is IMethodSymbol methodSymbol)
+            {
+                return methodSymbol.MethodKind == MethodKind.Ordinary
+                    && methodSymbol.DeclaringSyntaxReferences.Any(x => x.GetSyntax() is MethodDeclarationSyntax)
                     && !methodSymbol.IsOverride
-                    && !methodSymbol.IsAbstract,
-                IPropertySymbol propertySymbol => !propertySymbol.IsOverride
-                    && !propertySymbol.IsAbstract,
-                IEventSymbol eventSymbol => !eventSymbol.IsOverride
-                    && !eventSymbol.IsAbstract,
-                INamedTypeSymbol namedTypeSymbol => namedTypeSymbol.ContainingType != null,
-                _ => false,
-            };
+                    && !methodSymbol.IsAbstract;
+            }
+
+            if (symbol is IPropertySymbol propertySymbol)
+            {
+                return !propertySymbol.IsOverride && !propertySymbol.IsAbstract;
+            }
+
+            if (symbol is IEventSymbol eventSymbol)
+            {
+                return !eventSymbol.IsOverride && !eventSymbol.IsAbstract;
+            }
+
+            if (symbol is INamedTypeSymbol namedTypeSymbol)
+            {
+                return namedTypeSymbol.ContainingType != null
+                    && namedTypeSymbol.DeclaringSyntaxReferences.Any(
+                        x => x.GetSyntax() is ClassDeclarationSyntax
+                            || x.GetSyntax() is StructDeclarationSyntax
+                            || x.GetSyntax() is RecordDeclarationSyntax
+                    );
+            }
+
+            return false;
+        }
+
+        private static SyntaxNode GetScopeForLocalVariable(
+            VariableDeclaratorSyntax variableDeclarator,
+            SyntaxNode declarationParent)
+        {
+            if (declarationParent is ForStatementSyntax forStatement)
+            {
+                return forStatement;
+            }
+
+            var block = variableDeclarator.FirstAncestorOrSelf<BlockSyntax>();
+            if (block != null)
+            {
+                return block;
+            }
+
+            return declarationParent;
         }
 
         private static bool IsUsedInContainingType(
@@ -213,17 +253,24 @@ namespace AwesomeAnalyzer.Analyzers
                 .Select(x => x.GetSyntax(cancellationToken).Span)
                 .ToImmutableArray();
 
-            foreach (var simpleName in scope.DescendantNodes().OfType<SimpleNameSyntax>())
+            foreach (var syntaxNode in scope.DescendantNodes().OfType<SyntaxNode>())
             {
-                var symbolInfo = semanticModel.GetSymbolInfo(simpleName, cancellationToken);
+                if (!(syntaxNode is SimpleNameSyntax)
+                    && !(syntaxNode is MemberAccessExpressionSyntax)
+                    && !(syntaxNode is MemberBindingExpressionSyntax))
+                {
+                    continue;
+                }
+
+                var symbolInfo = semanticModel.GetSymbolInfo(syntaxNode, cancellationToken);
                 if (IsSymbolMatch(symbolInfo.Symbol, symbol)
-                    && !declarations.Any(x => x.Contains(simpleName.SpanStart)))
+                    && !declarations.Any(x => x.Contains(syntaxNode.SpanStart)))
                 {
                     return true;
                 }
 
                 if (symbolInfo.CandidateSymbols.Any(x => IsSymbolMatch(x, symbol))
-                    && !declarations.Any(x => x.Contains(simpleName.SpanStart)))
+                    && !declarations.Any(x => x.Contains(syntaxNode.SpanStart)))
                 {
                     return true;
                 }
